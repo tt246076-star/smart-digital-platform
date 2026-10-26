@@ -17,10 +17,10 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
           <p className="mt-3 leading-7 text-slate-500">أضف معلومات المحل وروابط التواصل، وسننشئ لك صفحة قابلة للمشاركة.</p>
 
           {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">
-            {error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات في حسابك. تواصل مع الإدارة لزيادة العدد." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : "تعذر حفظ الصفحة. تأكد أنك نفذت ملفات SQL في Supabase ثم حاول مجددًا."}
+            {error === "trial" ? "حسابك التجريبي يسمح بالمشاهدة فقط لمدة 3 أيام. لفتح إنشاء الصفحات، تواصل مع الإدارة بعد الشراء." : error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات في حسابك. تواصل مع الإدارة لزيادة العدد." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : "تعذر حفظ الصفحة. تأكد أنك نفذت ملفات SQL في Supabase ثم حاول مجددًا."}
           </p>}
 
-          <form action={createLandingPage} className="mt-8 space-y-6">
+          {error === "trial" ? <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">العودة إلى لوحة التحكم</Link> : <form action={createLandingPage} className="mt-8 space-y-6">
             <section className="space-y-4">
               <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معلومات النشاط</h2>
               <div>
@@ -85,7 +85,7 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
             <button type="submit" className="w-full rounded-xl bg-blue-600 px-5 py-4 font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-200">
               إنشاء الصفحة
             </button>
-          </form>
+          </form>}
         </div>
       </div>
     </main>
