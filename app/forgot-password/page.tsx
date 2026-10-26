@@ -1,0 +1,10 @@
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import Header from "@/components/Header";
+import { createClient } from "@/lib/supabase/client";
+export default function ForgotPasswordPage() {
+ const [email,setEmail]=useState(""); const [loading,setLoading]=useState(false); const [message,setMessage]=useState(""); const [error,setError]=useState("");
+ async function submit(e:React.FormEvent){e.preventDefault();setLoading(true);setError("");setMessage("");const supabase=createClient();const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/auth/callback?next=/reset-password`});setLoading(false);if(error)setError("تعذّر إرسال الرابط. تحقق من البريد وإعدادات البريد الإلكتروني في Supabase.");else setMessage("إذا كان البريد مسجلًا، ستصلك رسالة لإعادة تعيين كلمة المرور. افحص البريد الوارد وSpam.");}
+ return <><Header/><main dir="rtl" className="mx-auto max-w-md px-4 py-14"><h1 className="text-3xl font-extrabold">استعادة كلمة المرور</h1><p className="mt-3 text-sm leading-7 text-slate-600">أدخل البريد الإلكتروني الذي سجلت به، وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</p><form onSubmit={submit} className="mt-6 space-y-4"><label className="block text-sm font-bold">البريد الإلكتروني<input type="email" dir="ltr" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3"/></label>{error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}{message&&<p role="status" className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-800">{message}</p>}<button disabled={loading} className="w-full rounded-lg bg-brand py-3 font-bold text-white disabled:opacity-60">{loading?"جارٍ الإرسال...":"إرسال رابط الاستعادة"}</button></form><p className="mt-5 text-sm"><Link href="/login" className="font-bold text-brand">الرجوع لتسجيل الدخول</Link></p></main></>;
+}
