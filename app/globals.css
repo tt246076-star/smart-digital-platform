@@ -5,5 +5,58 @@
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 summary::-webkit-details-marker { display: none; }
+
+.lp-home { color: #0f172a; background: #fff; }
+.lp-hero { background: radial-gradient(ellipse at 78% 24%, rgba(57,76,255,.32), transparent 34%), radial-gradient(ellipse at 8% 75%, rgba(0,201,255,.15), transparent 35%), linear-gradient(125deg,#030817 0%,#07183e 50%,#11104b 100%); }
+.lp-orb { position:absolute; z-index:-1; border-radius:9999px; filter:blur(2px); pointer-events:none; }
+.lp-orb-one { width:350px;height:350px;top:-140px;right:18%;background:rgba(0,177,255,.16); }
+.lp-orb-two { width:290px;height:290px;bottom:0;left:-90px;background:rgba(128,61,255,.18); }
+.lp-gradient-text { background:linear-gradient(90deg,#6ee7ff 0%,#8b9dff 48%,#d7a7ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent; }
+.lp-primary-btn,.lp-secondary-btn { display:inline-flex;align-items:center;justify-content:center;gap:.75rem;border-radius:14px;padding:13px 22px;font-weight:800;transition:transform .25s ease,box-shadow .25s ease,background .25s ease; }
+.lp-primary-btn { color:white;background:linear-gradient(100deg,#0878ff,#7048ff);box-shadow:0 12px 30px rgba(35,104,255,.27); }
+.lp-primary-btn:hover { transform:translateY(-3px);box-shadow:0 16px 36px rgba(35,104,255,.4); }
+.lp-secondary-btn { border:1px solid rgba(255,255,255,.35);color:#fff;background:rgba(255,255,255,.06);backdrop-filter:blur(12px); }
+.lp-secondary-btn:hover { transform:translateY(-3px);background:rgba(255,255,255,.13); }
+.lp-showcase { overflow:hidden;border:1px solid rgba(255,255,255,.2);border-radius:22px;background:rgba(9,17,43,.76);box-shadow:0 30px 90px rgba(0,0,0,.4),0 0 55px rgba(41,116,255,.17);backdrop-filter:blur(18px);transform:perspective(1200px) rotateY(2deg); }
+.lp-float-card { animation:lp-float 5s ease-in-out infinite; }
+.lp-marquee-wrap { overflow:hidden;background:rgba(255,255,255,.025); }
+.lp-marquee { white-space:nowrap;overflow:hidden;color:#a5c7ff;font-size:13px;font-weight:700;letter-spacing:.04em; }
+.lp-marquee span { display:inline-block;min-width:max-content;animation:lp-marquee 32s linear infinite; }
+.lp-section { scroll-margin-top:6rem; }
+.lp-eyebrow { display:inline-flex;align-items:center;gap:.45rem;border:1px solid #dbeafe;border-radius:999px;background:#eff6ff;padding:7px 13px;color:#2563eb;font-size:12px;font-weight:900; }
+.lp-template { overflow:hidden;border:1px solid #e6eaf2;border-radius:22px;background:#fff;box-shadow:0 5px 20px rgba(15,23,42,.035);transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease; }
+.lp-template:hover { transform:translateY(-7px);border-color:#b9d3ff;box-shadow:0 22px 45px rgba(37,99,235,.12); }
+.lp-template-art { position:relative;display:flex;min-height:190px;align-items:center;justify-content:center;overflow:hidden; }
+.lp-template-art:before,.lp-template-art:after { position:absolute;content:"";border:1px solid rgba(255,255,255,.25);border-radius:24px;transform:rotate(-24deg); }
+.lp-template-art:before { width:180px;height:240px;right:-45px;top:-90px; }
+.lp-template-art:after { width:130px;height:180px;left:-25px;bottom:-100px; }
+.lp-template-symbol { z-index:1;display:grid;width:92px;height:110px;place-items:center;border:1px solid rgba(255,255,255,.4);border-radius:18px;background:rgba(255,255,255,.17);color:white;font-size:50px;box-shadow:0 15px 45px rgba(0,0,0,.16);backdrop-filter:blur(8px);transform:rotate(-5deg); }
+.lp-template-mini { position:absolute;top:28px;left:24px;display:flex;gap:5px; }
+.lp-template-mini span { width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.75); }
+.lp-template-lines { position:absolute;right:25px;bottom:25px;display:grid;gap:6px; }
+.lp-template-lines i { display:block;width:70px;height:5px;border-radius:9px;background:rgba(255,255,255,.55); }
+.lp-template-lines i:nth-child(2) { width:48px; }.lp-template-lines i:nth-child(3) { width:60px; }
+.lp-template-label { position:absolute;bottom:14px;left:16px;color:rgba(255,255,255,.85);font-size:10px; }
+.lp-text-link { display:inline-flex;align-items:center;gap:.6rem;font-weight:800;color:#2563eb;white-space:nowrap; }
+.lp-feature-section { background:linear-gradient(180deg,#f5f8ff,#f8faff 55%,#fff); }
+.lp-feature-card { border:1px solid #e5eaf5;border-radius:20px;background:rgba(255,255,255,.85);padding:25px;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease; }
+.lp-feature-card:hover { transform:translateY(-5px);border-color:#c6d8ff;box-shadow:0 16px 36px rgba(31,74,150,.08); }
+.lp-feature-icon { display:grid;width:50px;height:50px;place-items:center;border:1px solid #dbeafe;border-radius:16px;background:linear-gradient(145deg,#eff6ff,#e0e7ff);font-size:23px; }
+.lp-step { position:relative;border:1px solid #e5eaf5;border-radius:20px;background:white;padding:25px;transition:transform .25s ease,box-shadow .25s ease; }
+.lp-step:hover { transform:translateY(-5px);box-shadow:0 15px 35px rgba(30,64,175,.08); }
+.lp-step-number { display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:linear-gradient(135deg,#dbeafe,#ede9fe);padding:8px 12px;color:#315be8;font-size:13px;font-weight:900; }
+.lp-cta { position:relative;background:radial-gradient(ellipse at 15% 15%,rgba(0,198,255,.22),transparent 35%),radial-gradient(ellipse at 85% 80%,rgba(139,92,246,.3),transparent 38%),linear-gradient(120deg,#06132d,#0a2460 55%,#1a1554);box-shadow:0 25px 70px rgba(19,50,120,.18); }
+.lp-cta:before { position:absolute;content:"";width:260px;height:260px;border:1px solid rgba(255,255,255,.12);border-radius:50%;top:-150px;left:8%;box-shadow:0 0 0 30px rgba(255,255,255,.025),0 0 0 60px rgba(255,255,255,.02);pointer-events:none; }
+.lp-reveal { animation:lp-rise .75s both; }
+.lp-reveal-delay { animation-delay:.15s; }
+@keyframes lp-rise { from { opacity:0;transform:translateY(20px); } to { opacity:1;transform:translateY(0); } }
+@keyframes lp-float { 0%,100% { transform:translateY(0) rotate(-1deg); } 50% { transform:translateY(-9px) rotate(1deg); } }
+@keyframes lp-marquee { from { transform:translateX(-15%); } to { transform:translateX(15%); } }
+@media (max-width:640px) {
+  .lp-showcase { transform:none; }
+  .lp-template-art { min-height:160px; }
+  .lp-hero h1 { letter-spacing:-.03em; }
+}
