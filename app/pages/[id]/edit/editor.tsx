@@ -17,12 +17,21 @@ const themes = [
   { id: "sunset", name: "غروب", main: "#ea580c", soft: "#fff7ed", dark: "#431407" },
   { id: "emerald", name: "أخضر", main: "#059669", soft: "#ecfdf5", dark: "#022c22" },
   { id: "rose", name: "وردي", main: "#e11d48", soft: "#fff1f2", dark: "#4c0519" },
+  { id: "midnight", name: "ليلي", main: "#6366f1", soft: "#eef2ff", dark: "#111827" },
+  { id: "gold", name: "ذهبي", main: "#b7791f", soft: "#fffbeb", dark: "#422006" },
+  { id: "mint", name: "نعناعي", main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a" },
+  { id: "berry", name: "توتي", main: "#a21caf", soft: "#fdf4ff", dark: "#4a044e" },
+  { id: "slate", name: "رمادي", main: "#475569", soft: "#f8fafc", dark: "#0f172a" },
 ];
 const templates = [
   { id: "aurora", name: "Aurora", hint: "متدرّج وعصري" },
   { id: "store", name: "Store", hint: "متجر وبيع" },
   { id: "minimal", name: "Minimal", hint: "بسيط وراقي" },
   { id: "bold", name: "Bold", hint: "جريء ولافت" },
+  { id: "beauty", name: "Beauty", hint: "جمال وعناية" },
+  { id: "agency", name: "Agency", hint: "خدمات وشركات" },
+  { id: "restaurant", name: "Restaurant", hint: "مطاعم ومقاهي" },
+  { id: "portfolio", name: "Portfolio", hint: "أعمال شخصية" },
 ];
 const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100";
 const label = "block text-sm font-extrabold text-slate-800";
@@ -41,7 +50,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [seoTitle, setSeoTitle] = useState(page.seo_title || "");
   const [seoDescription, setSeoDescription] = useState(page.seo_description || "");
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
-  const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" ? "rounded-3xl border-2 shadow-xl" : template === "store" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
+  const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
   async function uploadLogo(file?: File) {
     if (!file) return;
@@ -72,7 +81,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <h2 className="text-lg font-black text-slate-950">1. اختار القالب</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {templates.map((item) => <button key={item.id} type="button" onClick={() => setTemplate(item.id)} className={`rounded-2xl border p-3 text-right transition hover:-translate-y-0.5 hover:shadow-md ${template === item.id ? "border-violet-500 bg-violet-50 ring-2 ring-violet-200" : "border-slate-200 bg-white"}`}>
-            <div className="mb-3 h-12 overflow-hidden rounded-lg" style={{ background: item.id === "minimal" ? "#f8fafc" : item.id === "bold" ? activeTheme.dark : item.id === "store" ? activeTheme.soft : `linear-gradient(135deg,${activeTheme.main},#111827)` }}>
+            <div className="mb-3 h-12 overflow-hidden rounded-lg" style={{ background: item.id === "minimal" || item.id === "portfolio" ? "#f8fafc" : item.id === "bold" || item.id === "agency" ? activeTheme.dark : item.id === "store" || item.id === "restaurant" ? activeTheme.soft : item.id === "beauty" ? "linear-gradient(135deg,#fbcfe8,#fce7f3)" : `linear-gradient(135deg,${activeTheme.main},#111827)` }}>
               <div className="mx-2 mt-2 h-2 w-1/2 rounded-full bg-white/80" /><div className="mx-2 mt-1 h-1.5 w-3/4 rounded-full bg-white/40" />
             </div>
             <span className="block text-sm font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
@@ -117,7 +126,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
         <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: activeTheme.soft }}>
           <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: activeTheme.main + "30", background: "#fff" }}>
-            <div className="h-2" style={{ background: template === "minimal" ? activeTheme.main : `linear-gradient(90deg,${activeTheme.main},${activeTheme.dark})` }} />
+            <div className="h-2" style={{ background: template === "minimal" || template === "portfolio" ? activeTheme.main : template === "beauty" ? "linear-gradient(90deg,#f472b6,#be185d)" : `linear-gradient(90deg,${activeTheme.main},${activeTheme.dark})` }} />
             <div className="px-5 py-7 text-center">
               {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: activeTheme.main }}>{business.slice(0,1) || "م"}</div>}
               <p className="text-xs font-black" style={{ color: activeTheme.main }}>مرحبًا بكم</p>
