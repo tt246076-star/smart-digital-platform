@@ -12,6 +12,8 @@ const links = [
 export default async function Header() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
+  const isAdmin = !!user?.email && user.email.trim().toLowerCase() === adminEmail;
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 text-slate-900 backdrop-blur transition-colors duration-300 dark:border-slate-800 dark:bg-slate-950/90 dark:text-slate-100">
@@ -35,6 +37,7 @@ export default async function Header() {
               <Link href="/dashboard" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
                 لوحة التحكم
               </Link>
+              {isAdmin && <Link href="/admin" className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-800 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200">لوحة الإدارة</Link>}
               <Link href="/settings" className="rounded-lg border px-3 py-2 text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-800">⚙️ الإعدادات</Link>
               <form action="/auth/signout" method="post">
                 <button type="submit" className="rounded-lg px-3 py-2 text-sm font-bold text-ink hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800">
