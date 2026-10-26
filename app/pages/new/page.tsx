@@ -35,6 +35,18 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
                 <label className={labelClass} htmlFor="description">وصف قصير</label>
                 <textarea className={inputClass} id="description" name="description" rows={3} maxLength={1000} placeholder="عرّف الزبائن بنشاطك أو منتجاتك..." />
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><label className={labelClass} htmlFor="template">القالب الجاهز</label>
+                  <select className={inputClass} id="template" name="template" defaultValue="aurora">
+                    <option value="aurora">Aurora — عصري متدرج</option><option value="store">Store — متجر إلكتروني</option><option value="minimal">Minimal — بسيط وراقي</option><option value="bold">Bold — جريء</option><option value="beauty">Beauty — جمال وعناية</option><option value="agency">Agency — خدمات وشركات</option><option value="restaurant">Restaurant — مطاعم ومقاهي</option><option value="portfolio">Portfolio — أعمال شخصية</option>
+                  </select>
+                </div>
+                <div><label className={labelClass} htmlFor="theme">ثيم الألوان</label>
+                  <select className={inputClass} id="theme" name="theme" defaultValue="violet">
+                    <option value="violet">بنفسجي</option><option value="ocean">أزرق</option><option value="sunset">غروب</option><option value="emerald">أخضر</option><option value="rose">وردي</option><option value="midnight">ليلي</option><option value="gold">ذهبي</option><option value="mint">نعناعي</option><option value="berry">توتي</option><option value="slate">رمادي</option>
+                  </select>
+                </div>
+              </div>
               <div>
                 <label className={labelClass} htmlFor="logo_url">رابط صورة المحل أو الشعار</label>
                 <input className={inputClass} id="logo_url" name="logo_url" type="url" placeholder="https://example.com/logo.jpg" />
