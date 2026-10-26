@@ -20,6 +20,10 @@ export async function updateLandingPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
+  const { data: accessPlan } = await supabase.from("user_access_plans").select("plan_type, expires_at").eq("user_id", user.id).maybeSingle();
+  const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
+  if (!planActive || accessPlan.plan_type === "trial") redirect("/dashboard?readOnly=1");
+
   const id = String(formData.get("id") || "");
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
