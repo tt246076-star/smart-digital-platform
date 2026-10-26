@@ -53,8 +53,8 @@ export async function updateLandingPage(formData: FormData) {
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "violet");
-  const template = ["aurora", "store", "minimal", "bold"].includes(requestedTemplate) ? requestedTemplate : "aurora";
-  const theme = ["violet", "ocean", "sunset", "emerald", "rose"].includes(requestedTheme) ? requestedTheme : "violet";
+  const template = ["aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"].includes(requestedTemplate) ? requestedTemplate : "aurora";
+  const theme = ["violet", "ocean", "sunset", "emerald", "rose", "midnight", "gold", "mint", "berry", "slate"].includes(requestedTheme) ? requestedTheme : "violet";
 
   if (!id || !business_name || business_name.length > 100) redirect(`/pages/${encodeURIComponent(id)}/edit?error=name`);
   if (headline.length > 140 || description.length > 1000 || phone.length > 30 || whatsapp.length > 30) {
