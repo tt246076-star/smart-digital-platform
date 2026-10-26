@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -84,6 +85,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
         كلمة المرور
         <input type="password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={isLogin ? "current-password" : "new-password"} className={input} />
       </label>
+      {isLogin && <div className="text-left"><Link href="/forgot-password" className="text-sm font-bold text-brand hover:underline">نسيت كلمة المرور؟</Link></div>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
       {done && <p role="status" className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-800">{done}</p>}
       <button
