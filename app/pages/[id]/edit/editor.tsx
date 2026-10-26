@@ -93,7 +93,12 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div><label className={label} htmlFor="whatsapp">رقم واتساب</label><input className={field} id="whatsapp" name="whatsapp" type="tel" dir="ltr" defaultValue={page.whatsapp} maxLength={30} /></div>
       </section>
       <section className="space-y-4">
-        <h2 className="text-lg font-black text-slate-950">4. الشعار وروابط التواصل</h2>
+        <h2 className="text-lg font-black text-slate-950">4. الظهور في Google (SEO)</h2>
+        <div><label className={label} htmlFor="seo_title">عنوان Google</label><input className={field} id="seo_title" name="seo_title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} maxLength={60} placeholder="اسم متجرك | منتجات مميزة" /><p className="mt-1 text-xs text-slate-500">{seoTitle.length}/60 حرفًا</p></div>
+        <div><label className={label} htmlFor="seo_description">وصف Google</label><textarea className={field} id="seo_description" name="seo_description" rows={3} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} maxLength={160} placeholder="وصف مختصر يساعد الزبائن على فهم ما تقدمه." /><p className="mt-1 text-xs text-slate-500">{seoDescription.length}/160 حرفًا</p></div>
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-black text-slate-950">5. الشعار وروابط التواصل</h2>
         <div className="rounded-2xl border border-dashed border-slate-300 p-4">
           <label className={label} htmlFor="logo_upload">رفع شعار من الهاتف (حتى 5MB)</label>
           <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadLogo(e.target.files?.[0])} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
