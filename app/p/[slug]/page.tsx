@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 
 const themes: Record<string, { main: string; soft: string; dark: string; gradient: string }> = {
   violet: { main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b", gradient: "linear-gradient(120deg,#7c3aed,#312e81)" },
@@ -18,12 +19,23 @@ function socialLinks(page: any) {
   ].filter((link) => link.url);
 }
 
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const supabase = await createClient();
+  const { data: page } = await supabase.from("landing_pages")
+    .select("business_name, headline, seo_title, seo_description, description")
+    .eq("slug", params.slug).eq("is_published", true).maybeSingle();
+  if (!page) return { title: "صفحة غير موجودة | بطاقاتي" };
+  const title = page.seo_title?.trim() || page.headline?.trim() || page.business_name;
+  const description = page.seo_description?.trim() || page.description?.trim() || `تعرّف على ${page.business_name} وتواصل معنا عبر بطاقاتي.`;
+  return { title, description, openGraph: { title, description, type: "website" } };
+}
+
 export default async function PublicLandingPage({ params, searchParams }: {
   params: { slug: string }; searchParams?: { updated?: string };
 }) {
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
-    .select("business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme")
+    .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description")
     .eq("slug", params.slug).eq("is_published", true).maybeSingle();
   if (!page) notFound();
 
@@ -36,6 +48,7 @@ export default async function PublicLandingPage({ params, searchParams }: {
 
   return (
     <main dir="rtl" className="relative min-h-screen overflow-hidden px-4 py-10 sm:py-16" style={{ background: isBold ? theme.dark : theme.soft }}>
+      <LandingPageAnalytics slug={params.slug} />
       {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: theme.main }} />}
       {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: theme.main }} />}
       <div className={`relative mx-auto overflow-hidden ${isStore ? "max-w-3xl rounded-2xl" : "max-w-2xl rounded-[2rem]"} ${isBold ? "border-2 shadow-2xl" : "border shadow-xl"}`} style={{ borderColor: theme.main + "35", background: "#fff", animation: "landingEnter .65s ease-out both" }}>
@@ -47,9 +60,9 @@ export default async function PublicLandingPage({ params, searchParams }: {
           <h1 className={`mt-3 font-black tracking-tight ${isBold ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`} style={{ color: isBold ? theme.dark : theme.dark }}>{page.business_name}</h1>
           {page.headline && <p className="mx-auto mt-4 max-w-xl text-lg font-extrabold leading-8 sm:text-xl" style={{ color: theme.main }}>{page.headline}</p>}
           {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p>}
-          {page.phone && <a href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 font-black text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:min-w-64" style={{ background: theme.gradient }}>اتصل بنا · {page.phone}</a>}
+          {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 font-black text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:min-w-64" style={{ background: theme.gradient }}>اتصل بنا · {page.phone}</a>}
           {links.length > 0 && <div className={`mx-auto mt-4 grid max-w-lg gap-3 ${isStore ? "sm:grid-cols-2" : "grid-cols-1"}`}>
-            {links.map((link: { label: string; url: string }, index: number) => <a key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between rounded-2xl border px-5 py-4 text-right text-sm font-extrabold transition duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: theme.main + "30", color: theme.dark, background: index === 0 ? theme.soft : "#fff" }}><span>{link.label}</span><span className="transition-transform group-hover:-translate-x-1" style={{ color: theme.main }}>↗</span></a>)}
+            {links.map((link: { label: string; url: string }, index: number) => <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between rounded-2xl border px-5 py-4 text-right text-sm font-extrabold transition duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: theme.main + "30", color: theme.dark, background: index === 0 ? theme.soft : "#fff" }}><span>{link.label}</span><span className="transition-transform group-hover:-translate-x-1" style={{ color: theme.main }}>↗</span></a>)}
           </div>}
           <div className="mx-auto mt-8 h-px max-w-xs" style={{ background: theme.main + "25" }} />
           <p className="mt-5 text-xs font-medium text-slate-400">صُنعت هذه الصفحة باستخدام بطاقاتي ✦</p>
