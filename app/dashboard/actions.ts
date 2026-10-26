@@ -1,0 +1,35 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+
+export async function duplicateLandingPage(formData: FormData) {
+  const id = String(formData.get("id") || "");
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+  if (!id) redirect("/dashboard");
+
+  const { data: source } = await supabase.from("landing_pages")
+    .select("business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme, seo_title, seo_description, sections")
+    .eq("id", id).eq("user_id", user.id).maybeSingle();
+  if (!source) redirect("/dashboard?duplicateError=1");
+
+  const newSlug = `${source.business_name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 28) || "page"}-${crypto.randomUUID().slice(0, 8)}`;
+  const { error } = await supabase.from("landing_pages").insert({
+    ...source,
+    user_id: user.id,
+    slug: newSlug,
+    business_name: `${source.business_name} - نسخة`.slice(0, 100),
+    is_published: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+  if (error) {
+    console.error("Duplicate landing page failed:", error.message);
+    redirect("/dashboard?duplicateError=1");
+  }
+  revalidatePath("/dashboard");
+  redirect("/dashboard?duplicated=1");
+}
