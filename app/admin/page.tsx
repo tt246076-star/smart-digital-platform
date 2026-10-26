@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { setUserPlan, deleteLandingPage } from "./actions";
+import DeletePageForm from "./DeletePageForm";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +41,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
         <div className="mt-4 space-y-3">
           {(pagesData || []).map((page: any) => <article key={page.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
             <div><p className="font-extrabold">{page.business_name || "صفحة بلا اسم"}</p><p className="mt-1 text-xs text-slate-500" dir="ltr">{page.slug} · {page.user_id}</p></div>
-            <form action={deleteLandingPage}>
-              <input type="hidden" name="page_id" value={page.id}/>
-              <button type="submit" className="rounded-xl border border-red-200 px-4 py-2 font-bold text-red-700">حذف الصفحة</button>
-            </form>
+            <DeletePageForm action={deleteLandingPage} pageId={page.id} />
           </article>)}
           {(!pagesData || pagesData.length === 0) && <p className="text-sm text-slate-500">لا توجد صفحات.</p>}
         </div>
