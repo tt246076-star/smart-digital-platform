@@ -11,6 +11,16 @@ export default async function EditLandingPage({ params, searchParams }: {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
+  const { data: accessPlan } = await supabase
+    .from("user_access_plans")
+    .select("plan_type, expires_at, max_pages")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const planExpired = !accessPlan || (accessPlan.expires_at && new Date(accessPlan.expires_at).getTime() <= Date.now());
+  const canEdit = !planExpired && accessPlan.plan_type !== "trial" && accessPlan.max_pages >= 1;
+  if (!canEdit) redirect("/dashboard?error=readonly");
+
   const { data: page, error } = await supabase.from("landing_pages")
     .select("id, slug, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme, seo_title, seo_description")
     .eq("id", params.id).eq("user_id", user.id).maybeSingle();
