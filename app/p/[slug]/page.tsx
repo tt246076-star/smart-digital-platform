@@ -8,6 +8,11 @@ const themes: Record<string, { main: string; soft: string; dark: string; gradien
   sunset: { main: "#ea580c", soft: "#fff7ed", dark: "#431407", gradient: "linear-gradient(120deg,#f97316,#be123c)" },
   emerald: { main: "#059669", soft: "#ecfdf5", dark: "#022c22", gradient: "linear-gradient(120deg,#059669,#064e3b)" },
   rose: { main: "#e11d48", soft: "#fff1f2", dark: "#4c0519", gradient: "linear-gradient(120deg,#e11d48,#881337)" },
+  midnight: { main: "#6366f1", soft: "#eef2ff", dark: "#111827", gradient: "linear-gradient(120deg,#6366f1,#111827)" },
+  gold: { main: "#b7791f", soft: "#fffbeb", dark: "#422006", gradient: "linear-gradient(120deg,#f59e0b,#78350f)" },
+  mint: { main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a", gradient: "linear-gradient(120deg,#2dd4bf,#134e4a)" },
+  berry: { main: "#a21caf", soft: "#fdf4ff", dark: "#4a044e", gradient: "linear-gradient(120deg,#d946ef,#701a75)" },
+  slate: { main: "#475569", soft: "#f8fafc", dark: "#0f172a", gradient: "linear-gradient(120deg,#64748b,#0f172a)" },
 };
 
 function socialLinks(page: any) {
@@ -44,19 +49,22 @@ export default async function PublicLandingPage({ params, searchParams }: {
   const template = page.template || "aurora";
   const isMinimal = template === "minimal";
   const isBold = template === "bold";
-  const isStore = template === "store";
+  const isStore = template === "store" || template === "restaurant";
+  const isBeauty = template === "beauty";
+  const isPortfolio = template === "portfolio";
+  const isAgency = template === "agency";
 
   return (
-    <main dir="rtl" className="relative min-h-screen overflow-hidden px-4 py-10 sm:py-16" style={{ background: isBold ? theme.dark : theme.soft }}>
+    <main dir="rtl" className="relative min-h-screen overflow-hidden px-4 py-10 sm:py-16" style={{ background: isBold || isAgency ? theme.dark : isBeauty ? "#fff1f7" : theme.soft }}>
       <LandingPageAnalytics slug={params.slug} />
-      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: theme.main }} />}
-      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: theme.main }} />}
-      <div className={`relative mx-auto overflow-hidden ${isStore ? "max-w-3xl rounded-2xl" : "max-w-2xl rounded-[2rem]"} ${isBold ? "border-2 shadow-2xl" : "border shadow-xl"}`} style={{ borderColor: theme.main + "35", background: "#fff", animation: "landingEnter .65s ease-out both" }}>
-        <div className="h-2" style={{ background: isMinimal ? theme.main : theme.gradient }} />
+      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: isBeauty ? "#f472b6" : theme.main }} />}
+      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: isBeauty ? "#db2777" : theme.main }} />}
+      <div className={`relative mx-auto overflow-hidden ${isStore || isAgency || isPortfolio ? "max-w-3xl rounded-2xl" : "max-w-2xl rounded-[2rem]"} ${isBold || isAgency ? "border-2 shadow-2xl" : "border shadow-xl"}`} style={{ borderColor: theme.main + "35", background: "#fff", animation: "landingEnter .65s ease-out both" }}>
+        <div className="h-2" style={{ background: isMinimal || isPortfolio ? theme.main : isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }} />
         <section className={`px-6 pb-9 pt-10 text-center sm:px-12 sm:pb-12 ${isStore ? "sm:pt-8" : "sm:pt-12"}`}>
           {page.logo_url ? <img src={page.logo_url} alt={page.business_name} className={`mx-auto mb-5 object-cover shadow-md ${isStore ? "h-20 w-20 rounded-xl" : "h-24 w-24 rounded-3xl"}`} /> :
-            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-3xl text-4xl font-black text-white shadow-lg" style={{ background: theme.gradient }}>{page.business_name.slice(0, 1)}</div>}
-          <p className="text-xs font-black tracking-[0.18em]" style={{ color: theme.main }}>{isStore ? "متجر رسمي" : "أهلًا بكم في"}</p>
+            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-3xl text-4xl font-black text-white shadow-lg" style={{ background: isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }}>{page.business_name.slice(0, 1)}</div>}
+          <p className="text-xs font-black tracking-[0.18em]" style={{ color: theme.main }}>{isStore ? "متجر رسمي" : isBeauty ? "الجمال يبدأ من هنا" : isAgency ? "حلول احترافية لأعمالك" : isPortfolio ? "معرض الأعمال" : "أهلًا بكم في"}</p>
           <h1 className={`mt-3 font-black tracking-tight ${isBold ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`} style={{ color: isBold ? theme.dark : theme.dark }}>{page.business_name}</h1>
           {page.headline && <p className="mx-auto mt-4 max-w-xl text-lg font-extrabold leading-8 sm:text-xl" style={{ color: theme.main }}>{page.headline}</p>}
           {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p>}
