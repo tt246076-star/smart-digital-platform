@@ -28,7 +28,8 @@ export async function createLandingPage(formData: FormData) {
   if (!planActive || accessPlan.plan_type === "trial" || (accessPlan.max_pages ?? 0) < 1) {
     redirect("/pages/new?error=trial");
   }
-\n  const { count: currentPages, error: countError } = await supabase
+
+  const { count: currentPages, error: countError } = await supabase
     .from("landing_pages").select("id", { count: "exact", head: true }).eq("user_id", user.id);
   const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
   const maxPages = Math.min(pageLimit?.max_pages ?? 1, accessPlan?.max_pages ?? 0);
