@@ -22,6 +22,12 @@ export async function createLandingPage(formData: FormData) {
 
   if (authError || !user) redirect("/login");
 
+  const { count: currentPages, error: countError } = await supabase
+    .from("landing_pages").select("id", { count: "exact", head: true }).eq("user_id", user.id);
+  const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
+  const maxPages = pageLimit?.max_pages ?? 1;
+  if (countError || (currentPages ?? 0) >= maxPages) redirect("/pages/new?error=limit");
+
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
   const description = String(formData.get("description") || "").trim();
