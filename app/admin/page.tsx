@@ -9,7 +9,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminEmail = "tt246076@gmail.com";
   if (!adminEmail || user.email?.toLowerCase() !== adminEmail) redirect("/dashboard?error=readonly");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
