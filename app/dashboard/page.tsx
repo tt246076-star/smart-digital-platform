@@ -97,7 +97,6 @@ export default async function DashboardPage({
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link href={`/p/${page.slug}`} target="_blank" className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-700">معاينة الصفحة</Link>
                       <button type="button" disabled title="سيُضاف محرر الصفحة في المرحلة التالية" className="cursor-not-allowed rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-400">تعديل قريبًا</button>
-                      <button type="button" onClick={undefined} className="hidden">نسخ الرابط</button>
                     </div>
                   </article>
                 ))}
