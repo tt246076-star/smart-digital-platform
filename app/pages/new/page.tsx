@@ -1,11 +1,36 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { createLandingPage } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 const inputClass = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 const labelClass = "block text-sm font-bold text-slate-800";
 
 export default function NewLandingPage({ searchParams }: { searchParams: { error?: string } }) {
   const error = searchParams.error;
+  const [logoUrl, setLogoUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  async function uploadLogo(file?: File) {
+    if (!file) return;
+    setUploadError("");
+    if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
+    if (file.size > 5 * 1024 * 1024) { setUploadError("الصورة لازم تكون أقل من 5 ميغابايت."); return; }
+    setUploading(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
+      const path = `new/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      setLogoUrl(supabase.storage.from("landing-logos").getPublicUrl(path).data.publicUrl);
+    } catch {
+      setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
+    } finally { setUploading(false); }
+  }
 
   return (
     <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 sm:py-12">
@@ -48,9 +73,13 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
                 </div>
               </div>
               <div>
-                <label className={labelClass} htmlFor="logo_url">رابط صورة المحل أو الشعار</label>
-                <input className={inputClass} id="logo_url" name="logo_url" type="url" placeholder="https://example.com/logo.jpg" />
-                <p className="mt-2 text-xs text-slate-500">حاليًا أضف رابط صورة مباشر؛ رفع الصور من الجهاز نضيفه لاحقًا.</p>
+                <label className={labelClass} htmlFor="logo_upload">صورة المحل أو الشعار (رفع ملف من الهاتف)</label>
+                <input type="hidden" name="logo_url" value={logoUrl} />
+                <input className={inputClass} id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadLogo(e.target.files?.[0])} />
+                <p className="mt-2 text-xs text-slate-500">اختار صورة من جهازك مباشرة، بدون إدخال أي رابط. الحد الأقصى 5 ميغابايت.</p>
+                {uploading && <p className="mt-2 text-sm font-bold text-blue-700">جاري رفع الصورة...</p>}
+                {uploadError && <p role="alert" className="mt-2 text-sm font-bold text-red-600">{uploadError}</p>}
+                {logoUrl && <div className="mt-3 flex items-center gap-3"><img src={logoUrl} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => setLogoUrl("")} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
               </div>
             </section>
 
@@ -94,8 +123,8 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
               </div>
             </section>
 
-            <button type="submit" className="w-full rounded-xl bg-blue-600 px-5 py-4 font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-200">
-              إنشاء الصفحة
+            <button disabled={uploading} type="submit" className="w-full rounded-xl bg-blue-600 px-5 py-4 font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-200">
+              {uploading ? "انتظر حتى يكتمل رفع الصورة..." : "إنشاء الصفحة"}
             </button>
           </form>}
         </div>
