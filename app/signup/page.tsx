@@ -1,5 +1,5 @@
-import AuthPlaceholder from "@/components/AuthPlaceholder";
+import AuthPage from "@/components/AuthPage";
 
 export default function SignupPage() {
-  return <AuthPlaceholder mode="signup" />;
+  return <AuthPage mode="signup" />;
 }
