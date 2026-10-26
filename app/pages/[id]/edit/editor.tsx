@@ -37,6 +37,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [headline, setHeadline] = useState(page.headline || "");
   const [description, setDescription] = useState(page.description || "");
   const [phone, setPhone] = useState(page.phone || "");
+  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("desktop");
   const [seoTitle, setSeoTitle] = useState(page.seo_title || "");
   const [seoDescription, setSeoDescription] = useState(page.seo_description || "");
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
@@ -113,9 +114,9 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div className="grid gap-4 sm:grid-cols-2"><div><label className={label} htmlFor="custom_label">اسم رابط إضافي</label><input className={field} id="custom_label" name="custom_label" defaultValue={page.custom_links?.[0]?.label || ""} maxLength={40} placeholder="موقع المتجر" /></div><div><label className={label} htmlFor="custom_url">الرابط الإضافي</label><input className={field} id="custom_url" name="custom_url" type="url" defaultValue={page.custom_links?.[0]?.url || ""} placeholder="https://..." /></div></div>
       </section>
       <section>
-        <h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
         <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: activeTheme.soft }}>
-          <div className={previewClass} style={{ borderColor: activeTheme.main + "30", background: "#fff" }}>
+          <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: activeTheme.main + "30", background: "#fff" }}>
             <div className="h-2" style={{ background: template === "minimal" ? activeTheme.main : `linear-gradient(90deg,${activeTheme.main},${activeTheme.dark})` }} />
             <div className="px-5 py-7 text-center">
               {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: activeTheme.main }}>{business.slice(0,1) || "م"}</div>}
