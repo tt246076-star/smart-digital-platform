@@ -8,7 +8,7 @@ type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
-  template: string | null; theme: string | null;
+  template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
 };
 
 const themes = [
@@ -37,6 +37,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [headline, setHeadline] = useState(page.headline || "");
   const [description, setDescription] = useState(page.description || "");
   const [phone, setPhone] = useState(page.phone || "");
+  const [seoTitle, setSeoTitle] = useState(page.seo_title || "");
+  const [seoDescription, setSeoDescription] = useState(page.seo_description || "");
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" ? "rounded-3xl border-2 shadow-xl" : template === "store" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
