@@ -1,9 +1,10 @@
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// يُستخدم داخل الصفحات والمسارات على الخادم
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -14,11 +15,11 @@ export function createClient() {
         },
         setAll(list) {
           try {
-            list.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            list.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
           } catch {
-            // يُتجاهل عند الاستدعاء من صفحة عرض فقط
+            // قد لا يُسمح بتعديل ملفات الارتباط أثناء عرض الصفحة
           }
         },
       },
