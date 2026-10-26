@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createLandingPage } from "./actions";
@@ -10,7 +10,7 @@ const inputClass = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4
 const labelClass = "block text-sm font-bold text-slate-800";
 type Product = { name: string; price: string; image_url: string; description: string };
 
-export default function NewLandingPage() {
+function NewLandingPageForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [logoUrl, setLogoUrl] = useState("");
@@ -112,4 +112,9 @@ export default function NewLandingPage() {
       </div>
     </div>
   </main>;
+}
+
+
+export default function NewLandingPage() {
+  return <Suspense fallback={<main dir="rtl" className="min-h-screen bg-slate-50 p-8 text-center">جاري تحميل النموذج...</main>}><NewLandingPageForm /></Suspense>;
 }
