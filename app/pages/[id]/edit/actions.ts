@@ -24,6 +24,8 @@ export async function updateLandingPage(formData: FormData) {
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const seo_title = String(formData.get("seo_title") || "").trim().slice(0, 60);
+  const seo_description = String(formData.get("seo_description") || "").trim().slice(0, 160);
   const phone = String(formData.get("phone") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const logo_url = safeUrl(formData.get("logo_url"));
@@ -45,7 +47,7 @@ export async function updateLandingPage(formData: FormData) {
   }
 
   const { data, error } = await supabase.from("landing_pages").update({
-    business_name, headline, description, phone, whatsapp, logo_url,
+    business_name, headline, description, seo_title, seo_description, phone, whatsapp, logo_url,
     instagram_url, facebook_url, tiktok_url, youtube_url, custom_links,
     template, theme, updated_at: new Date().toISOString(),
   }).eq("id", id).eq("user_id", user.id).select("slug").single();
