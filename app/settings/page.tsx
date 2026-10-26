@@ -24,7 +24,11 @@ export default function SettingsPage() {
 
   async function saveProfile() {
     setBusy(true); setMessage("");
-    const { error } = await supabase.auth.updateUser({ data: { display_name: name } });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMessage("سجّل الدخول من جديد."); setBusy(false); return; }
+    const { error: authError } = await supabase.auth.updateUser({ data: { display_name: name } });
+    const { error: profileError } = await supabase.from("profiles").upsert({ id: user.id, display_name: name }, { onConflict: "id" });
+    const error = authError || profileError;
     setMessage(error ? error.message : "تم حفظ الملف الشخصي.");
     setBusy(false);
   }
