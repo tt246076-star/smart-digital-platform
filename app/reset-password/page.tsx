@@ -1,0 +1,10 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import { createClient } from "@/lib/supabase/client";
+export default function ResetPasswordPage() {
+ const router=useRouter();const [password,setPassword]=useState("");const [confirm,setConfirm]=useState("");const [error,setError]=useState("");const [loading,setLoading]=useState(false);
+ async function submit(e:React.FormEvent){e.preventDefault();setError("");if(password.length<8){setError("كلمة المرور لازم تكون 8 أحرف على الأقل.");return;}if(password!==confirm){setError("كلمتا المرور غير متطابقتين.");return;}setLoading(true);const supabase=createClient();const {error}=await supabase.auth.updateUser({password});setLoading(false);if(error){setError("الرابط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.");return;}router.push("/login?error=password-updated");router.refresh();}
+ return <><Header/><main dir="rtl" className="mx-auto max-w-md px-4 py-14"><h1 className="text-3xl font-extrabold">تعيين كلمة مرور جديدة</h1><p className="mt-3 text-sm leading-7 text-slate-600">أدخل كلمة مرور جديدة لا تقل عن 8 أحرف.</p><form onSubmit={submit} className="mt-6 space-y-4"><label className="block text-sm font-bold">كلمة المرور الجديدة<input type="password" dir="ltr" minLength={8} required autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3"/></label><label className="block text-sm font-bold">تأكيد كلمة المرور<input type="password" dir="ltr" minLength={8} required autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3"/></label>{error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}<button disabled={loading} className="w-full rounded-lg bg-brand py-3 font-bold text-white disabled:opacity-60">{loading?"جارٍ الحفظ...":"حفظ كلمة المرور الجديدة"}</button></form></main></>;
+}
