@@ -61,7 +61,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
-  async function uploadLogo(file?: File) {
+  async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
@@ -70,13 +70,17 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
     try {
       const supabase = createClient();
       const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-      const path = `${page.id}/logo-${Date.now()}.${ext}`;
+      const targetName = typeof target === "number" ? `product-${target + 1}` : target;
+      const path = `${page.id}/${targetName}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("landing-logos").getPublicUrl(path);
-      setLogo(data.publicUrl);
+      if (target === "logo") setLogo(data.publicUrl);
+      else if (target === "round") setRoundImageUrl(data.publicUrl);
+      else if (target === "cover") setCoverImageUrl(data.publicUrl);
+      else setProducts(old => old.map((p, i) => i === target ? { ...p, image_url: data.publicUrl } : p));
     } catch {
-      setUploadError("ما قدرناش نرفع الصورة. تأكد أنك نفذت إعداد تخزين الصور في Supabase.");
+      setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
     } finally { setUploading(false); }
   }
 
@@ -117,8 +121,16 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div><label className={label} htmlFor="address">عنوان المحل</label><input className={field} id="address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="الشارع، البلدية، الولاية" /></div>
         <div><label className={label} htmlFor="map_url">رابط Google Maps للمحل</label><input className={field} id="map_url" type="url" value={mapUrl} onChange={e=>setMapUrl(e.target.value)} placeholder="https://maps.google.com/..." /></div>
         <div><label className={label} htmlFor="hours">أوقات العمل</label><textarea className={field} id="hours" rows={3} value={hours} onChange={e=>setHours(e.target.value)} placeholder={"الأحد–الخميس: 08:00–18:00\nالجمعة: مغلق"} /></div>
-        <div><label className={label} htmlFor="round_image_url">رابط صورة دائرية للمحل أو صاحب النشاط</label><input className={field} id="round_image_url" type="url" value={roundImageUrl} onChange={e=>setRoundImageUrl(e.target.value)} placeholder="https://..." /></div>
-        <div><label className={label} htmlFor="cover_image_url">رابط صورة مربعة أو صورة غلاف</label><input className={field} id="cover_image_url" type="url" value={coverImageUrl} onChange={e=>setCoverImageUrl(e.target.value)} placeholder="https://..." /></div>
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
+          <label className={label} htmlFor="round_image_upload">صورة دائرية للمحل أو صاحب النشاط</label>
+          <input id="round_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "round")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
+          {roundImageUrl && <div className="mt-3 flex items-center gap-3"><img src={roundImageUrl} alt="معاينة الصورة الدائرية" className="h-16 w-16 rounded-full border object-cover" /><button type="button" onClick={()=>setRoundImageUrl("")} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+        </div>
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
+          <label className={label} htmlFor="cover_image_upload">صورة الغلاف أو الصورة المربعة</label>
+          <input id="cover_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "cover")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
+          {coverImageUrl && <div className="mt-3 space-y-2"><img src={coverImageUrl} alt="معاينة صورة الغلاف" className="max-h-40 w-full rounded-xl border object-cover" /><button type="button" onClick={()=>setCoverImageUrl("")} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+        </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. كتالوج المنتجات (حتى 3 منتجات)</h2>
@@ -127,7 +139,9 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           <h3 className="font-extrabold text-slate-800">المنتج {index+1}</h3>
           <input className={field} aria-label={"اسم المنتج "+(index+1)} value={product.name} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,name:e.target.value}:p))} placeholder="اسم المنتج" maxLength={80} />
           <input className={field} aria-label={"سعر المنتج "+(index+1)} value={product.price} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,price:e.target.value}:p))} placeholder="السعر (دج)" maxLength={30} />
-          <input className={field} aria-label={"رابط صورة المنتج "+(index+1)} type="url" value={product.image_url} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,image_url:e.target.value}:p))} placeholder="رابط صورة المنتج" />
+          <label className={label} htmlFor={`product_image_${index}`}>صورة المنتج {index + 1}</label>
+          <input id={`product_image_${index}`} className={field} type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], index)} />
+          {product.image_url && <div className="flex items-center gap-3"><img src={product.image_url} alt={`معاينة المنتج ${index+1}`} className="h-20 w-20 rounded-xl border object-cover" /><button type="button" onClick={()=>setProducts(old=>old.map((p,i)=>i===index?{...p,image_url:""}:p))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
           <input className={field} aria-label={"وصف المنتج "+(index+1)} value={product.description} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,description:e.target.value}:p))} placeholder="وصف قصير (اختياري)" maxLength={160} />
         </div>)}
       </section>
@@ -140,7 +154,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <h2 className="text-lg font-black text-slate-950">7. الشعار وروابط التواصل</h2>
         <div className="rounded-2xl border border-dashed border-slate-300 p-4">
           <label className={label} htmlFor="logo_upload">رفع شعار من الهاتف (حتى 5MB)</label>
-          <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadLogo(e.target.files?.[0])} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
+          <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadImage(e.target.files?.[0], "logo")} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
           {uploading && <p className="mt-2 text-sm font-bold text-violet-700">جاري رفع الصورة...</p>}
           {uploadError && <p role="alert" className="mt-2 text-sm font-bold text-red-600">{uploadError}</p>}
           {logo && <div className="mt-3 flex items-center gap-3"><img src={logo} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => setLogo("")} className="text-sm font-bold text-red-600">حذف الشعار</button></div>}
