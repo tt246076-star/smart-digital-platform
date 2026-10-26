@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 function socialLinks(page: any) {
   const links = [
-    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "" },
+    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\D/g, "")}` : "" },
     { label: "Instagram", url: page.instagram_url },
     { label: "Facebook", url: page.facebook_url },
     { label: "TikTok", url: page.tiktok_url },
