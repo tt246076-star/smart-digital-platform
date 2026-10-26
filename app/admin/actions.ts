@@ -9,7 +9,7 @@ export async function setUserPlan(formData: FormData) {
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminEmail = "tt246076@gmail.com";
   if (!adminEmail || user.email?.toLowerCase() !== adminEmail) redirect("/dashboard");
 
   const userId = String(formData.get("user_id") || "");
