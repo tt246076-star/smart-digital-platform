@@ -85,7 +85,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
         كلمة المرور
         <input type="password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={isLogin ? "current-password" : "new-password"} className={input} />
       </label>
-      {isLogin && <div className="text-left"><Link href="/forgot-password" className="text-sm font-bold text-brand hover:underline">نسيت كلمة المرور؟</Link></div>}
+      {isLogin && <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-center"><Link href="/forgot-password" className="inline-block text-sm font-extrabold text-blue-800 underline underline-offset-4 hover:text-blue-950">نسيت كلمة المرور؟ اضغط هنا لاسترجاع حسابك</Link></div>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
       {done && <p role="status" className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-800">{done}</p>}
       <button
