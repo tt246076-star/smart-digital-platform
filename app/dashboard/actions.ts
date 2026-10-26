@@ -10,10 +10,13 @@ export async function duplicateLandingPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   if (!id) redirect("/dashboard");
+  const { data: accessPlan } = await supabase.from("user_access_plans").select("plan_type, expires_at, max_pages").eq("user_id", user.id).maybeSingle();
+  const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
+  if (!planActive || accessPlan.plan_type === "trial" || (accessPlan.max_pages ?? 0) < 1) redirect("/dashboard?duplicateLimit=1");
   const { count: currentPages, error: countError } = await supabase
     .from("landing_pages").select("id", { count: "exact", head: true }).eq("user_id", user.id);
   const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
-  const maxPages = pageLimit?.max_pages ?? 1;
+  const maxPages = Math.min(pageLimit?.max_pages ?? 1, accessPlan?.max_pages ?? 0);
   if (countError || (currentPages ?? 0) >= maxPages) redirect("/dashboard?duplicateLimit=1");
 
   const { data: source } = await supabase.from("landing_pages")
