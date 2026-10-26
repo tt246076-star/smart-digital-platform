@@ -17,7 +17,7 @@ export default function NewLandingPage({ searchParams }: { searchParams: { error
           <p className="mt-3 leading-7 text-slate-500">أضف معلومات المحل وروابط التواصل، وسننشئ لك صفحة قابلة للمشاركة.</p>
 
           {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">
-            {error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : "تعذر حفظ الصفحة. تأكد أنك نفذت ملف SQL في Supabase ثم حاول مجددًا."}
+            {error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات في حسابك. تواصل مع الإدارة لزيادة العدد." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : "تعذر حفظ الصفحة. تأكد أنك نفذت ملفات SQL في Supabase ثم حاول مجددًا."}
           </p>}
 
           <form action={createLandingPage} className="mt-8 space-y-6">
