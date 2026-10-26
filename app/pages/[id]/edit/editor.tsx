@@ -9,6 +9,7 @@ type PageData = {
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
+  sections: { address?: string; map_url?: string; hours?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
 const themes = [
@@ -49,6 +50,14 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("desktop");
   const [seoTitle, setSeoTitle] = useState(page.seo_title || "");
   const [seoDescription, setSeoDescription] = useState(page.seo_description || "");
+  const initialSections = page.sections || {};
+  const [address, setAddress] = useState(initialSections.address || "");
+  const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
+  const [hours, setHours] = useState(initialSections.hours || "");
+  const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
+  const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
+  const [products, setProducts] = useState(() => Array.from({length:3}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
@@ -77,6 +86,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <input type="hidden" name="template" value={template} />
       <input type="hidden" name="theme" value={theme} />
       <input type="hidden" name="logo_url" value={logo} />
+      <input type="hidden" name="sections" value={sectionsJson} />
       <section>
         <h2 className="text-lg font-black text-slate-950">1. اختار القالب</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -102,13 +112,32 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div><label className={label} htmlFor="phone">رقم الهاتف</label><input className={field} id="phone" name="phone" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} /></div>
         <div><label className={label} htmlFor="whatsapp">رقم واتساب</label><input className={field} id="whatsapp" name="whatsapp" type="tel" dir="ltr" defaultValue={page.whatsapp} maxLength={30} /></div>
       </section>
+      <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <h2 className="text-lg font-black text-slate-950">4. معلومات المحل والصور</h2>
+        <div><label className={label} htmlFor="address">عنوان المحل</label><input className={field} id="address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="الشارع، البلدية، الولاية" /></div>
+        <div><label className={label} htmlFor="map_url">رابط Google Maps للمحل</label><input className={field} id="map_url" type="url" value={mapUrl} onChange={e=>setMapUrl(e.target.value)} placeholder="https://maps.google.com/..." /></div>
+        <div><label className={label} htmlFor="hours">أوقات العمل</label><textarea className={field} id="hours" rows={3} value={hours} onChange={e=>setHours(e.target.value)} placeholder={"الأحد–الخميس: 08:00–18:00\nالجمعة: مغلق"} /></div>
+        <div><label className={label} htmlFor="round_image_url">رابط صورة دائرية للمحل أو صاحب النشاط</label><input className={field} id="round_image_url" type="url" value={roundImageUrl} onChange={e=>setRoundImageUrl(e.target.value)} placeholder="https://..." /></div>
+        <div><label className={label} htmlFor="cover_image_url">رابط صورة مربعة أو صورة غلاف</label><input className={field} id="cover_image_url" type="url" value={coverImageUrl} onChange={e=>setCoverImageUrl(e.target.value)} placeholder="https://..." /></div>
+      </section>
+      <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
+        <h2 className="text-lg font-black text-slate-950">5. كتالوج المنتجات (حتى 3 منتجات)</h2>
+        <p className="text-sm text-slate-500">أضف اسم المنتج وسعره وصورته؛ المنتجات التي تتركها فارغة لن تظهر للزوار.</p>
+        {products.map((product,index)=><div key={index} className="space-y-3 rounded-xl bg-slate-50 p-3">
+          <h3 className="font-extrabold text-slate-800">المنتج {index+1}</h3>
+          <input className={field} aria-label={"اسم المنتج "+(index+1)} value={product.name} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,name:e.target.value}:p))} placeholder="اسم المنتج" maxLength={80} />
+          <input className={field} aria-label={"سعر المنتج "+(index+1)} value={product.price} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,price:e.target.value}:p))} placeholder="السعر (دج)" maxLength={30} />
+          <input className={field} aria-label={"رابط صورة المنتج "+(index+1)} type="url" value={product.image_url} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,image_url:e.target.value}:p))} placeholder="رابط صورة المنتج" />
+          <input className={field} aria-label={"وصف المنتج "+(index+1)} value={product.description} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,description:e.target.value}:p))} placeholder="وصف قصير (اختياري)" maxLength={160} />
+        </div>)}
+      </section>
       <section className="space-y-4">
-        <h2 className="text-lg font-black text-slate-950">4. الظهور في Google (SEO)</h2>
+        <h2 className="text-lg font-black text-slate-950">6. الظهور في Google (SEO)</h2>
         <div><label className={label} htmlFor="seo_title">عنوان Google</label><input className={field} id="seo_title" name="seo_title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} maxLength={60} placeholder="اسم متجرك | منتجات مميزة" /><p className="mt-1 text-xs text-slate-500">{seoTitle.length}/60 حرفًا</p></div>
         <div><label className={label} htmlFor="seo_description">وصف Google</label><textarea className={field} id="seo_description" name="seo_description" rows={3} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} maxLength={160} placeholder="وصف مختصر يساعد الزبائن على فهم ما تقدمه." /><p className="mt-1 text-xs text-slate-500">{seoDescription.length}/160 حرفًا</p></div>
       </section>
       <section className="space-y-4">
-        <h2 className="text-lg font-black text-slate-950">5. الشعار وروابط التواصل</h2>
+        <h2 className="text-lg font-black text-slate-950">7. الشعار وروابط التواصل</h2>
         <div className="rounded-2xl border border-dashed border-slate-300 p-4">
           <label className={label} htmlFor="logo_upload">رفع شعار من الهاتف (حتى 5MB)</label>
           <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadLogo(e.target.files?.[0])} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
