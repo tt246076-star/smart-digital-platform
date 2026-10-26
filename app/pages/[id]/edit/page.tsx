@@ -12,7 +12,7 @@ export default async function EditLandingPage({ params, searchParams }: {
   if (authError || !user) redirect("/login");
 
   const { data: page, error } = await supabase.from("landing_pages")
-    .select("id, slug, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme")
+    .select("id, slug, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme, seo_title, seo_description")
     .eq("id", params.id).eq("user_id", user.id).maybeSingle();
 
   if (error || !page) notFound();
