@@ -41,6 +41,12 @@ export async function createLandingPage(formData: FormData) {
   const phone = String(formData.get("phone") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const logo_url = cleanUrl(formData.get("logo_url"));
+  const allowedTemplates = ["aurora","store","minimal","bold","beauty","agency","restaurant","portfolio"];
+  const allowedThemes = ["violet","ocean","sunset","emerald","rose","midnight","gold","mint","berry","slate"];
+  const requestedTemplate = String(formData.get("template") || "aurora");
+  const requestedTheme = String(formData.get("theme") || "violet");
+  const template = allowedTemplates.includes(requestedTemplate) ? requestedTemplate : "aurora";
+  const theme = allowedThemes.includes(requestedTheme) ? requestedTheme : "violet";
   const instagram_url = cleanUrl(formData.get("instagram_url"));
   const facebook_url = cleanUrl(formData.get("facebook_url"));
   const tiktok_url = cleanUrl(formData.get("tiktok_url"));
@@ -72,6 +78,8 @@ export async function createLandingPage(formData: FormData) {
       tiktok_url,
       youtube_url,
       custom_links,
+      template,
+      theme,
       is_published: true,
     })
     .select("id")
