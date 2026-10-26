@@ -36,3 +36,27 @@ export async function setUserPlan(formData: FormData) {
   revalidatePath("/dashboard");
   redirect("/admin?saved=1");
 }
+
+
+export async function deleteLandingPage(formData: FormData) {
+  const sessionClient = await createClient();
+  const { data: { user } } = await sessionClient.auth.getUser();
+  if (!user) redirect("/login");
+  if (user.email?.toLowerCase() !== "tt246076@gmail.com") redirect("/dashboard");
+
+  const pageId = String(formData.get("page_id") || "");
+  if (!pageId) redirect("/admin?error=1");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) redirect("/admin?error=1");
+
+  const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { error } = await admin.from("landing_pages").delete().eq("id", pageId);
+  if (error) {
+    console.error("Admin page deletion failed:", error.message);
+    redirect("/admin?error=1");
+  }
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  redirect("/admin?deleted=1");
+}
