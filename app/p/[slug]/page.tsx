@@ -40,11 +40,13 @@ export default async function PublicLandingPage({ params, searchParams }: {
 }) {
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
-    .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description")
+    .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
     .eq("slug", params.slug).eq("is_published", true).maybeSingle();
   if (!page) notFound();
 
   const links = socialLinks(page);
+  const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {address?:string;map_url?:string;hours?:string;round_image_url?:string;cover_image_url?:string;products?:{name:string;price:string;image_url:string;description:string}[]};
+  const products = Array.isArray(sections.products) ? sections.products : [];
   const theme = themes[page.theme || "violet"] || themes.violet;
   const template = page.template || "aurora";
   const isMinimal = template === "minimal";
@@ -62,7 +64,8 @@ export default async function PublicLandingPage({ params, searchParams }: {
       <div className={`relative mx-auto overflow-hidden ${isStore || isAgency || isPortfolio ? "max-w-3xl rounded-2xl" : "max-w-2xl rounded-[2rem]"} ${isBold || isAgency ? "border-2 shadow-2xl" : "border shadow-xl"}`} style={{ borderColor: theme.main + "35", background: "#fff", animation: "landingEnter .65s ease-out both" }}>
         <div className="h-2" style={{ background: isMinimal || isPortfolio ? theme.main : isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }} />
         <section className={`px-6 pb-9 pt-10 text-center sm:px-12 sm:pb-12 ${isStore ? "sm:pt-8" : "sm:pt-12"}`}>
-          {page.logo_url ? <img src={page.logo_url} alt={page.business_name} className={`mx-auto mb-5 object-cover shadow-md ${isStore ? "h-20 w-20 rounded-xl" : "h-24 w-24 rounded-3xl"}`} /> :
+          {sections.cover_image_url && <img src={sections.cover_image_url} alt={page.business_name + " صورة الغلاف"} className="mb-6 max-h-72 w-full rounded-2xl object-cover" />}
+          {sections.round_image_url ? <img src={sections.round_image_url} alt={page.business_name} className="mx-auto mb-5 h-28 w-28 rounded-full border-4 object-cover shadow-lg" style={{borderColor:theme.main}} /> : page.logo_url ? <img src={page.logo_url} alt={page.business_name} className={`mx-auto mb-5 object-cover shadow-md ${isStore ? "h-20 w-20 rounded-xl" : "h-24 w-24 rounded-full"}`} /> :
             <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-3xl text-4xl font-black text-white shadow-lg" style={{ background: isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }}>{page.business_name.slice(0, 1)}</div>}
           <p className="text-xs font-black tracking-[0.18em]" style={{ color: theme.main }}>{isStore ? "متجر رسمي" : isBeauty ? "الجمال يبدأ من هنا" : isAgency ? "حلول احترافية لأعمالك" : isPortfolio ? "معرض الأعمال" : "أهلًا بكم في"}</p>
           <h1 className={`mt-3 font-black tracking-tight ${isBold ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`} style={{ color: isBold ? theme.dark : theme.dark }}>{page.business_name}</h1>
@@ -70,8 +73,27 @@ export default async function PublicLandingPage({ params, searchParams }: {
           {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p>}
           {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 font-black text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:min-w-64" style={{ background: theme.gradient }}>اتصل بنا · {page.phone}</a>}
           {links.length > 0 && <div className={`mx-auto mt-4 grid max-w-lg gap-3 ${isStore ? "sm:grid-cols-2" : "grid-cols-1"}`}>
-            {links.map((link: { label: string; url: string }, index: number) => <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center justify-between rounded-2xl border px-5 py-4 text-right text-sm font-extrabold transition duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: theme.main + "30", color: theme.dark, background: index === 0 ? theme.soft : "#fff" }}><span>{link.label}</span><span className="transition-transform group-hover:-translate-x-1" style={{ color: theme.main }}>↗</span></a>)}
+            {links.map((link: { label: string; url: string }, index: number) => {
+              const label = link.label.toLowerCase();
+              const icon = label.includes("whatsapp") ? "◉" : label.includes("instagram") ? "◎" : label.includes("facebook") ? "f" : label.includes("tiktok") ? "♪" : label.includes("youtube") ? "▶" : label.includes("اتصل") ? "☎" : "↗";
+              return <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="group flex items-center gap-3 rounded-2xl border px-5 py-4 text-right text-sm font-extrabold transition duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: theme.main + "30", color: theme.dark, background: index === 0 ? theme.soft : "#fff" }}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black text-white" style={{background:theme.gradient}}>{icon}</span><span className="flex-1">{link.label}</span><span className="transition-transform group-hover:-translate-x-1" style={{ color: theme.main }}>↗</span></a>;
+            })}
           </div>}
+          {sections.address && <section className="mx-auto mt-8 max-w-xl rounded-2xl border p-5 text-right" style={{borderColor:theme.main+"30",background:theme.soft}}>
+            <h2 className="font-black" style={{color:theme.dark}}>📍 عنوان المحل</h2><p className="mt-2 text-sm leading-7 text-slate-600">{sections.address}</p>
+            {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-xl px-4 py-2 text-sm font-extrabold text-white" style={{background:theme.gradient}}>🗺️ افتح الموقع على الخريطة</a>}
+          </section>}
+          {sections.hours && <section className="mx-auto mt-4 max-w-xl rounded-2xl border p-5 text-right" style={{borderColor:theme.main+"30"}}>
+            <h2 className="font-black" style={{color:theme.dark}}>🕒 أوقات العمل</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>
+          </section>}
+          {products.length > 0 && <section className="mx-auto mt-8 max-w-3xl text-right">
+            <h2 className="mb-4 text-2xl font-black" style={{color:theme.dark}}>🛍️ كتالوج المنتجات</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{products.map((product,i)=><article key={i} className="overflow-hidden rounded-2xl border bg-white text-right shadow-sm transition hover:-translate-y-1 hover:shadow-lg" style={{borderColor:theme.main+"30"}}>
+              {product.image_url ? <img src={product.image_url} alt={product.name || "صورة المنتج"} className="h-44 w-full object-cover" /> : <div className="flex h-36 items-center justify-center text-4xl" style={{background:theme.soft}}>🛍️</div>}
+              <div className="p-4">{product.name && <h3 className="font-black" style={{color:theme.dark}}>{product.name}</h3>}{product.description && <p className="mt-2 text-sm leading-6 text-slate-500">{product.description}</p>}{product.price && <p className="mt-3 text-lg font-black" style={{color:theme.main}}>{product.price} دج</p>}
+              {page.phone && <a href={`tel:${page.phone}`} className="mt-3 inline-flex w-full justify-center rounded-xl px-4 py-3 text-sm font-black text-white" style={{background:theme.gradient}}>اطلب / استفسر</a>}</div>
+            </article>)}</div>
+          </section>}
           <div className="mx-auto mt-8 h-px max-w-xs" style={{ background: theme.main + "25" }} />
           <p className="mt-5 text-xs font-medium text-slate-400">صُنعت هذه الصفحة باستخدام بطاقاتي ✦</p>
         </section>
