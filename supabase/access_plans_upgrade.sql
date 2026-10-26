@@ -11,6 +11,10 @@ create table if not exists public.user_access_plans (
 );
 
 alter table public.user_access_plans enable row level security;
+
+-- Trial users have zero page allowance; permit 0 in the synced limit table.
+alter table public.user_page_limits drop constraint if exists user_page_limits_max_pages_check;
+alter table public.user_page_limits add constraint user_page_limits_max_pages_check check (max_pages >= 0 and max_pages <= 100);
 drop policy if exists "Users can read their own access plan" on public.user_access_plans;
 create policy "Users can read their own access plan"
 on public.user_access_plans for select to authenticated
