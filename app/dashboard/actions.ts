@@ -10,6 +10,11 @@ export async function duplicateLandingPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   if (!id) redirect("/dashboard");
+  const { count: currentPages, error: countError } = await supabase
+    .from("landing_pages").select("id", { count: "exact", head: true }).eq("user_id", user.id);
+  const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
+  const maxPages = pageLimit?.max_pages ?? 1;
+  if (countError || (currentPages ?? 0) >= maxPages) redirect("/dashboard?duplicateLimit=1");
 
   const { data: source } = await supabase.from("landing_pages")
     .select("business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme, seo_title, seo_description, sections")
