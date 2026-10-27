@@ -73,6 +73,7 @@ export async function createLandingPage(formData: FormData) {
     address: String(formData.get("address") || "").trim().slice(0,200),
     map_url: cleanSectionUrl(formData.get("map_url")),
     hours: String(formData.get("hours") || "").trim().slice(0,1000),
+    card_color: /^#[0-9a-fA-F]{6}$/.test(String(formData.get("card_color") || "")) ? String(formData.get("card_color")) : "#ffffff",
     round_image_url: cleanSectionUrl(formData.get("round_image_url")),
     cover_image_url: cleanSectionUrl(formData.get("cover_image_url")),
     products,
