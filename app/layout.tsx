@@ -8,6 +8,7 @@ const cairo = Cairo({ subsets: ["arabic", "latin"], display: "swap" });
 export const metadata: Metadata = {
   title: `${SITE.name} | بطاقات رقمية ذكية`,
   description: SITE.tagline,
+  icons: { icon: "/brand/bitakaty-icon.svg", shortcut: "/brand/bitakaty-icon.svg", apple: "/brand/bitakaty-icon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
