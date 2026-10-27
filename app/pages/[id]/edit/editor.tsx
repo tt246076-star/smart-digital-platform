@@ -15,13 +15,15 @@ type PageData = {
 };
 
 const templates = [
-  {id:"profile",name:"Profile",hint:"بطاقة تواصل كاملة"},
+  {id:"profile",name:"Profile",hint:"بطاقة نشاط كاملة"},
+  {id:"store",name:"Store",hint:"متجر ومنتجات"},
+  {id:"aurora",name:"Aurora",hint:"واجهة عصرية متدرجة"},
   {id:"bold",name:"Bold",hint:"جريء ولافت"},
   {id:"minimal",name:"Minimal",hint:"بسيط وراقي"},
   {id:"agency",name:"Agency",hint:"خدمات وشركات"},
   {id:"beauty",name:"Beauty",hint:"جمال وعناية"},
-  {id:"portfolio",name:"Portfolio",hint:"أعمال شخصية"},
-  {id:"restaurant",name:"Restaurant",hint:"مطاعم ومقاهي"},
+  {id:"portfolio",name:"Portfolio",hint:"عرض الأعمال"},
+  {id:"restaurant",name:"Restaurant",hint:"مطاعم ومقاهٍ"},
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
@@ -65,6 +67,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
+  const todayKey = weekDays[new Date().getDay()][0];
+  const todayHours = hours[todayKey];
 
   async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
     if (!file) return;
@@ -101,7 +105,14 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <h2 className="text-lg font-black text-slate-950">1. اختر القالب</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {templates.map(item=><button key={item.id} type="button" onClick={()=>setTemplate(item.id)} className={`rounded-2xl border p-3 text-right transition ${template===item.id?"border-violet-600 bg-violet-50 ring-2 ring-violet-100":"border-slate-200 bg-white hover:border-slate-300"}`}>
-            <span className="mb-3 block h-10 rounded-lg border border-slate-200" style={{background:item.id==="bold"?"#fef2f2":item.id==="beauty"?"#fff1f2":item.id==="agency"?"#f1f5f9":item.id==="portfolio"?"#f8fafc":item.id==="restaurant"?"#fff7ed":"#ffffff"}} />
+            <span className="mb-3 block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <span className={`block h-5 ${item.id==="bold"?"h-7":item.id==="minimal"?"h-2":item.id==="beauty"?"h-6":item.id==="restaurant"?"h-8":item.id==="portfolio"?"h-2":item.id==="store"?"h-4":"h-5"}`} style={{background:item.id==="bold"?"linear-gradient(90deg,#7f1d1d,#ef4444)":item.id==="beauty"?"linear-gradient(90deg,#f9a8d4,#831843)":item.id==="agency"?"linear-gradient(90deg,#334155,#94a3b8)":item.id==="portfolio"?"#111827":item.id==="restaurant"?"linear-gradient(90deg,#f59e0b,#7c2d12)":item.id==="store"?"linear-gradient(90deg,#0f766e,#14b8a6)":item.id==="minimal"?"#e5e7eb":"linear-gradient(90deg,#6366f1,#8b5cf6)"}} />
+              <span className="flex items-center gap-1.5 p-2">
+                <span className={`h-4 w-4 shrink-0 border border-slate-200 bg-slate-100 ${item.id==="minimal"?"rounded-sm":item.id==="bold"||item.id==="beauty"?"rounded-full":"rounded-md"}`} />
+                <span className="min-w-0 flex-1 space-y-1"><span className="block h-1.5 w-4/5 rounded bg-slate-300" /><span className="block h-1 w-3/5 rounded bg-slate-200" /></span>
+              </span>
+              <span className="mx-2 mb-2 block h-2 rounded-full" style={{background:item.id==="restaurant"?"#f59e0b":item.id==="beauty"?"#ec4899":item.id==="agency"?"#334155":item.id==="store"?"#0f766e":"#64748b"}} />
+            </span>
             <span className="block font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
           </button>)}
         </div>
@@ -195,40 +206,64 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       </div><aside className="min-w-0 xl:sticky xl:top-4 xl:self-start">
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
-        <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ ...vars, background: "var(--bg)" }}>
-          <div className={`mx-auto overflow-hidden rounded-3xl border shadow-sm transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"}`} style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-            {template === "profile" ? (
-              <div className="px-5 pb-6 pt-8 text-center">
-                {logo ? <img src={logo} alt="" className="mx-auto mb-3 h-16 w-16 rounded-full border-2 object-cover" style={{ borderColor: "var(--primary)" }} /> : <div className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-full border text-2xl" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>★</div>}
-                <h3 className="text-xl font-black">{business || "اسم متجرك"}</h3>
-                <p className="mt-2 text-sm font-bold" style={{ color: "var(--muted)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
-                <p className="mx-auto mt-2 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-                <div className="mt-4 space-y-2">
-                  <div className="rounded-xl border px-4 py-2.5 text-sm font-bold" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>رابط</div>
-                  <div className="rounded-xl border px-4 py-2.5 text-sm font-bold" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>رابط</div>
-                </div>
-                <div className="mt-4 rounded-full px-4 py-3 text-sm font-extrabold text-white" style={{ background: "var(--call-button)" }}>{phone ? `اتصال · ${phone}` : "اتصل الآن"}</div>
-              </div>
+        <div className="mt-3 rounded-3xl p-3 sm:p-4" style={{ ...vars, background: "var(--bg)" }}>
+          <div className={`mx-auto overflow-hidden border shadow-xl transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${template === "bold" ? "rounded-none border-2" : template === "minimal" || template === "portfolio" ? "rounded-xl" : template === "beauty" ? "rounded-[2.5rem]" : "rounded-3xl"}`} style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
+            {coverImageUrl ? (
+              <div className="h-36 overflow-hidden sm:h-48"><img src={coverImageUrl} alt="" className="h-full w-full object-cover" /></div>
             ) : (
-              <>
-                <div className="h-16" style={{ background: "var(--gradient)" }} />
-                <div className="px-5 pb-6 text-center">
-                  {logo ? <img src={logo} alt="" className="relative mx-auto -mt-10 mb-3 h-20 w-20 rounded-full border-4 object-cover" style={{ borderColor: "var(--surface)" }} /> : <div className="relative mx-auto -mt-10 mb-3 grid h-20 w-20 place-items-center rounded-full border-4 text-3xl font-black" style={{ borderColor: "var(--surface)", background: "var(--gradient)", color: "var(--on-primary)" }}>{business.slice(0,1) || "م"}</div>}
-                  <h3 className="text-2xl font-black">{business || "اسم متجرك"}</h3>
-                  <p className="mt-2 text-sm font-bold" style={{ color: "var(--primary-text)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
-                  <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-                  <div className="mt-4 flex justify-center gap-5 text-xs font-extrabold">
-                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>☎</span>اتصال</span>
-                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--whatsapp)", color: "#fff" }}>◉</span>واتساب</span>
-                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--primary)", color: "var(--on-primary)" }}>＋</span>حفظ</span>
-                  </div>
-                  <div className="mt-4 rounded-xl px-4 py-3 text-sm font-extrabold" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
-                  <p className="mt-4 text-xs" style={{ color: "var(--muted)" }}>الثيم: {activeDef.name} · القالب: {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
-                </div>
-              </>
+              <div className={`relative overflow-hidden ${template === "minimal" || template === "portfolio" ? "h-3" : template === "bold" ? "h-36 sm:h-44" : template === "beauty" ? "h-28 sm:h-36" : template === "restaurant" ? "h-32 sm:h-40" : template === "agency" ? "h-20 sm:h-28" : "h-24 sm:h-32"}`} style={{ background: template === "minimal" || template === "portfolio" ? "var(--primary)" : "var(--gradient)" }}>
+                {template !== "minimal" && template !== "portfolio" && <span className="absolute -left-8 -top-12 h-36 w-36 rounded-full border-[18px] border-white/10" />}
+              </div>
             )}
+            <div className={`relative px-4 pb-6 sm:px-6 sm:pb-8 ${template === "bold" ? "text-center" : ""}`}>
+              <div className={`flex gap-3 ${template === "bold" ? "-mt-16 flex-col items-center text-center" : template === "minimal" || template === "portfolio" ? "-mt-4 flex-col items-center sm:flex-row sm:items-center" : "-mt-10 flex-col items-center sm:-mt-12 sm:flex-row sm:items-end"}`}>
+                {roundImageUrl || logo ? (
+                  <img src={roundImageUrl || logo} alt="" className={`h-20 w-20 shrink-0 border-4 object-cover shadow-lg sm:h-24 sm:w-24 ${template === "bold" || template === "beauty" ? "rounded-full" : template === "minimal" ? "rounded-md" : "rounded-2xl"}`} style={{ borderColor: "var(--surface)", background: "var(--surface)" }} />
+                ) : (
+                  <div className={`grid h-20 w-20 shrink-0 place-items-center border-4 text-3xl font-black text-white shadow-lg sm:h-24 sm:w-24 ${template === "bold" || template === "beauty" ? "rounded-full" : template === "minimal" ? "rounded-md" : "rounded-2xl"}`} style={{ borderColor: "var(--surface)", background: "var(--gradient)" }}>{business.slice(0,1) || "م"}</div>
+                )}
+                <div className={`min-w-0 flex-1 pb-1 ${template === "bold" ? "w-full text-center" : "text-center sm:text-right"}`}>
+                  <span className="mb-2 inline-flex rounded-full px-3 py-1.5 text-xs font-extrabold" style={{ background: "var(--tint)", color: "var(--primary)" }}>{template === "restaurant" ? "مطعم ومقهى" : template === "store" ? "المتجر الرسمي" : template === "agency" ? "خدمات وأعمال" : template === "beauty" ? "جمال وعناية" : template === "portfolio" ? "معرض الأعمال" : "مرحبًا بكم"}</span>
+                  <h3 className="text-2xl font-black leading-tight sm:text-3xl">{business || "اسم نشاطك التجاري"}</h3>
+                  <p className="mt-2 text-sm font-bold" style={{ color: "var(--muted)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
+                </div>
+              </div>
+              <p className="mx-auto mt-4 max-w-xl whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm font-black">
+                <span style={{ color: "#f5bd35" }}>★★★★★</span><span>5.0</span><span className="text-xs" style={{ color: "var(--muted)" }}>(8 تقييم)</span>
+              </div>
+              <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}>
+                <div className="flex items-center justify-between gap-3"><span className="font-black">أوقات العمل</span><span className="text-sm font-extrabold" style={{ color: "var(--primary)" }}>◷ جدول الأسبوع</span></div>
+                <div className="mt-3 flex items-center justify-between gap-3 text-sm"><span style={{ color: "var(--muted)" }}>اليوم</span><span className="font-bold">{todayHours.open ? `${todayHours.from} – ${todayHours.to}` : "مغلق"}</span></div>
+                <div className="mt-2 text-xs font-bold" style={{ color: "var(--muted)" }}>تتغير الأوقات حسب البيانات التي تدخلها في محرر الصفحة</div>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="flex flex-col items-center gap-2 text-xs font-extrabold"><span className="grid h-12 w-12 place-items-center rounded-full text-xl text-white" style={{ background: "var(--whatsapp)" }}>◉</span>واتساب</div>
+                <div className="flex flex-col items-center gap-2 text-xs font-extrabold"><span className="grid h-12 w-12 place-items-center rounded-full text-xl text-white" style={{ background: "var(--call-button)" }}>☎</span>اتصال</div>
+                <div className="flex flex-col items-center gap-2 text-xs font-extrabold"><span className="grid h-12 w-12 place-items-center rounded-full text-xl text-white" style={{ background: "var(--call-button)" }}>☎</span>اتصال 2</div>
+                <div className="flex flex-col items-center gap-2 text-xs font-extrabold"><span className="grid h-12 w-12 place-items-center rounded-full text-xl text-white" style={{ background: "var(--whatsapp)" }}>◉</span>واتساب 2</div>
+              </div>
+              <div className="mt-4 flex justify-center"><span className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-extrabold text-white" style={{ background: "var(--primary)" }}>＋ حفظ جهة الاتصال</span></div>
+              {(page.instagram_url || page.facebook_url || page.tiktok_url || page.youtube_url || page.custom_links?.length) && (
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  {[page.facebook_url && "Facebook", page.instagram_url && "Instagram", page.tiktok_url && "TikTok", page.youtube_url && "YouTube", ...(page.custom_links || []).map((link) => link.label)].filter(Boolean).map((name, index) => <span key={String(name)+index} className="rounded-xl border px-3 py-2 text-xs font-bold" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>{name}</span>)}
+                </div>
+              )}
+              {(address || mapUrl) && <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}><span className="font-black" style={{ color: "var(--primary)" }}>موقعنا على الخريطة</span><span className="text-xs" style={{ color: "var(--muted)" }}>{address || "عرض الموقع"}</span></div>}
+              {products.some((product) => product.name || product.image_url || product.price) && (
+                <section className="mt-6">
+                  <div className="mb-3 flex items-center justify-between"><h4 className="text-lg font-black">✨ {template === "restaurant" ? "قائمة الطعام" : template === "store" ? "المنتجات" : "كتالوج الأعمال"}</h4><span className="text-xs" style={{ color: "var(--muted)" }}>{products.filter((product) => product.name || product.image_url || product.price).length} عناصر</span></div>
+                  <div className={`grid gap-3 ${template === "minimal" || template === "portfolio" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2"}`}>
+                    {products.filter((product) => product.name || product.image_url || product.price).map((product, index) => <article key={index} className={`overflow-hidden border ${template === "minimal" ? "rounded-lg" : template === "bold" || template === "portfolio" ? "rounded-none" : template === "beauty" ? "rounded-3xl" : "rounded-2xl"}`} style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+                      {product.image_url ? <img src={product.image_url} alt={product.name || ""} className="aspect-[4/3] w-full object-cover" /> : <div className="grid aspect-[4/3] place-items-center text-3xl" style={{ background: "var(--tint)", color: "var(--primary)" }}>▧</div>}
+                      <div className="p-3"><p className="font-black">{product.name || "اسم المنتج"}</p>{product.price && <p className="mt-1 text-sm font-extrabold" style={{ color: "var(--primary)" }}>{product.price}</p>}{product.description && <p className="mt-1 text-xs leading-5" style={{ color: "var(--muted)" }}>{product.description}</p>}</div>
+                    </article>)}
+                  </div>
+                </section>
+              )}
+            </div>
           </div>
-          <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>المعاينة تعرض ألوان الثيم نفسها المستعملة في الصفحة المنشورة؛ شكل القالب الكامل يظهر بعد النشر.</p>
+          <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>هذه معاينة مباشرة للقالب والثيم ومحتوى الصفحة؛ اختيار قالب آخر يغيّر شكل البطاقة كاملة.</p>
         </div>
       </section>
       <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
