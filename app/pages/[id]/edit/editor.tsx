@@ -121,6 +121,15 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           {themes.map((item) => <button key={item.id} type="button" onClick={() => setTheme(item.id)} aria-pressed={theme === item.id} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold transition ${theme === item.id ? "border-slate-900 ring-2 ring-slate-200" : "border-slate-200"}`}><span className="h-5 w-5 rounded-full" style={{ background: item.main }} />{item.name}{theme === item.id ? " ✓" : ""}</button>)}
         </div>
       </section>
+      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-lg font-black text-slate-950">لون خلفية البطاقة</h2>
+        <p className="text-sm leading-6 text-slate-500">اختار أي لون تحبه من لوحة الألوان أو أدخل كود HEX. اللون يطبق على خلفية البطاقة المنشورة.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input aria-label="اختيار لون البطاقة" type="color" value={cardColor} onChange={e=>setCardColor(e.target.value)} className="h-14 w-20 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/>
+          <input aria-label="كود لون البطاقة" type="text" value={cardColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setCardColor(v);else if(v===""||v==="#")setCardColor(v)}} onBlur={()=>{if(!/^#[0-9a-fA-F]{6}$/.test(cardColor))setCardColor("#ffffff")}} maxLength={7} dir="ltr" className={field+" max-w-36 uppercase"} placeholder="#ffffff"/>
+          <span className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold" style={{backgroundColor:cardColor,color:"#111827"}}>معاينة اللون</span>
+        </div>
+      </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
         <div><label className={label} htmlFor="business_name">اسم النشاط *</label><input className={field} id="business_name" name="business_name" value={business} onChange={(e) => setBusiness(e.target.value)} required maxLength={100} /></div>
@@ -133,7 +142,17 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <h2 className="text-lg font-black text-slate-950">4. معلومات المحل والصور</h2>
         <div><label className={label} htmlFor="address">عنوان المحل</label><input className={field} id="address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="الشارع، البلدية، الولاية" /></div>
         <div><label className={label} htmlFor="map_url">رابط Google Maps للمحل</label><input className={field} id="map_url" type="url" value={mapUrl} onChange={e=>setMapUrl(e.target.value)} placeholder="https://maps.google.com/..." /></div>
-        <div><label className={label} htmlFor="hours">أوقات العمل</label><textarea className={field} id="hours" rows={3} value={hours} onChange={e=>setHours(e.target.value)} placeholder={"الأحد–الخميس: 08:00–18:00\nالجمعة: مغلق"} /></div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="mb-3"><h3 className="font-extrabold text-slate-900">أوقات العمل الأسبوعية</h3><p className="mt-1 text-sm leading-6 text-slate-500">علّم الأيام المفتوحة وحدد وقت الفتح والإغلاق. ما راح يظهرلك كود JSON.</p></div>
+          <div className="space-y-3">
+            {weekDays.map(([key,dayLabel])=>{const day=hours[key];return <div key={key} className="grid gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-[minmax(90px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)] sm:items-center">
+              <label className="flex items-center gap-2 font-extrabold text-slate-800"><input type="checkbox" checked={day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],open:e.target.checked}}))} className="h-5 w-5 accent-emerald-600"/>{dayLabel}</label>
+              <label className="text-xs font-bold text-slate-500">يفتح في<input aria-label={dayLabel+" وقت الفتح"} type="time" value={day.from} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],from:e.target.value}}))} className={field+" disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"}/></label>
+              <label className="text-xs font-bold text-slate-500">يغلق في<input aria-label={dayLabel+" وقت الإغلاق"} type="time" value={day.to} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],to:e.target.value}}))} className={field+" disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"}/></label>
+              <p className={`text-xs font-extrabold sm:col-span-3 ${day.open?"text-emerald-700":"text-slate-400"}`}>{day.open?"يعمل هذا اليوم":"مغلق هذا اليوم"}</p>
+            </div>})}
+          </div>
+        </div>
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
           <label className={label} htmlFor="round_image_upload">صورة دائرية للمحل أو صاحب النشاط</label>
           <input id="round_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "round")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
