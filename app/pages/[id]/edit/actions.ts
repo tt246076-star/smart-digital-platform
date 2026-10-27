@@ -46,13 +46,25 @@ export async function updateLandingPage(formData: FormData) {
   try { const raw = JSON.parse(String(formData.get("sections") || "{}")); if (raw && typeof raw === "object" && !Array.isArray(raw)) sections = raw; } catch { sections = {}; }
   const cleanSectionUrl = (v: unknown) => { try { const u = new URL(String(v || "")); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
   sections = {
-    address: String(sections.address || "").trim().slice(0,200),
+    address: String(sections.address || "").trim().slice(0, 200),
     map_url: cleanSectionUrl(sections.map_url),
-    hours: String(sections.hours || "").trim().slice(0,1000),
-    card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || "")) ? String(sections.card_color) : "#ffffff",
+    hours: String(sections.hours || "").trim().slice(0, 1000),
+    card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || ""))
+      ? String(sections.card_color)
+      : "#ffffff",
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
-    products: Array.isArray(sections.products) ? sections.products.slice(0,maxProducts).map((p:any)=>({name:String(p?.name||"").trim().slice(0,80),price:String(p?.price||"").trim().slice(0,30),image_url:cleanSectionUrl(p?.image_url),description:String(p?.description||"").trim().slice(0,160)})).filter((p:any)=>p.name || p.image_url || p.price) : [],
+    products: Array.isArray(sections.products)
+      ? sections.products
+          .slice(0, maxProducts)
+          .map((p: any) => ({
+            name: String(p?.name || "").trim().slice(0, 80),
+            price: String(p?.price || "").trim().slice(0, 30),
+            image_url: cleanSectionUrl(p?.image_url),
+            description: String(p?.description || "").trim().slice(0, 160),
+          }))
+          .filter((p: any) => p.name || p.image_url || p.price)
+      : [],
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "violet");
