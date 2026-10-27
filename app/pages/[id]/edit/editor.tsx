@@ -13,18 +13,7 @@ type PageData = {
   sections: { address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
-const themes = [
-  { id: "sunset", name: "غروب", main: "#ea580c", soft: "#fff7ed", dark: "#431407" },
-  { id: "ocean", name: "أزرق", main: "#0284c7", soft: "#f0f9ff", dark: "#082f49" },
-  { id: "violet", name: "بنفسجي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" },
-  { id: "midnight", name: "ليلي", main: "#6366f1", soft: "#eef2ff", dark: "#111827" },
-  { id: "rose", name: "وردي", main: "#e11d48", soft: "#fff1f2", dark: "#4c0519" },
-  { id: "emerald", name: "أخضر", main: "#059669", soft: "#ecfdf5", dark: "#022c22" },
-  { id: "berry", name: "توتي", main: "#a21caf", soft: "#fdf4ff", dark: "#4a044e" },
-  { id: "mint", name: "نعناعي", main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a" },
-  { id: "gold", name: "ذهبي", main: "#b7791f", soft: "#fffbeb", dark: "#422006" },
-  { id: "slate", name: "رمادي", main: "#475569", soft: "#f8fafc", dark: "#0f172a" },
-];
+const themes = [{ id: "violet", name: "افتراضي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" }];
 const templates = [
   { id: "bold", name: "Bold", hint: "جريء ولافت" },
   { id: "minimal", name: "Minimal", hint: "بسيط وراقي" },
@@ -100,12 +89,13 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   }
 
   return (
-    <form action={updateLandingPage} className="mt-8 space-y-8">
+    <form action={updateLandingPage} className="mt-8">
       <input type="hidden" name="id" value={page.id} />
       <input type="hidden" name="template" value={template} />
       <input type="hidden" name="theme" value={theme} />
       <input type="hidden" name="logo_url" value={logo} />
       <input type="hidden" name="sections" value={sectionsJson} />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]"><div className="min-w-0 space-y-8">
       <section>
         <h2 className="text-lg font-black text-slate-950">1. اختار القالب</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -115,41 +105,6 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
             </div>
             <span className="block text-sm font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
           </button>)}
-        </div>
-      </section>
-      <section>
-        <h2 className="text-lg font-black text-slate-950">2. اختار اللون الرئيسي</h2>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {themes.map((item) => <button key={item.id} type="button" onClick={() => { setTheme(item.id); setAccentColor(item.main); }} aria-pressed={theme === item.id} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold transition ${theme === item.id ? "border-slate-900 ring-2 ring-slate-200" : "border-slate-200"}`}><span className="h-5 w-5 rounded-full" style={{ background: item.main }} />{item.name}{theme === item.id ? " ✓" : ""}</button>)}
-        </div>
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <label className="block text-sm font-extrabold text-slate-800" htmlFor="custom-main-color">أو اختار أي لون تحبّه</label>
-          <p className="mt-1 text-xs leading-5 text-slate-500">اختار من لوحة الألوان أو أدخل كود HEX. اللون يتطبّق على الأزرار والعناوين والزخارف، والقالب يبقى بنفس شكله.</p>
-          <div className="mt-3 flex items-center gap-3">
-            <input id="custom-main-color" aria-label="اختيار أي لون رئيسي" type="color" value={accentColor} onChange={e=>setAccentColor(e.target.value)} className="h-12 w-16 cursor-pointer rounded-xl border border-slate-300 bg-white p-1" />
-            <input aria-label="كود اللون الرئيسي المخصص" type="text" value={accentColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setAccentColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 max-w-40 uppercase"} placeholder="#7c3aed" />
-            <span className="h-10 flex-1 rounded-xl border border-white shadow-sm" style={{backgroundColor:accentColor}} aria-hidden="true" />
-          </div>
-        </div>
-      </section>
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-black text-slate-950">ألوان البطاقة المتناسقة</h2>
-        <p className="text-sm leading-6 text-slate-500">بدّل 3 ألوان فقط: خلفية البطاقة، اللون الرئيسي للأزرار والعناوين، وخلفية البطاقات الداخلية. نفس الألوان تتطبق تلقائيًا على واتساب والمنتجات ومعلومات المحل وأوقات العمل، بلا ما تعدّل كل بطاقة وحدها.</p>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="block text-sm font-extrabold text-slate-800">خلفية البطاقة
-            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار لون خلفية البطاقة" type="color" value={cardColor} onChange={e=>setCardColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود لون خلفية البطاقة" type="text" value={cardColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setCardColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#ffffff"/></div>
-          </label>
-          <label className="block text-sm font-extrabold text-slate-800">اللون الرئيسي
-            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار اللون الرئيسي" type="color" value={accentColor} onChange={e=>setAccentColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود اللون الرئيسي" type="text" value={accentColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setAccentColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#7c3aed"/></div>
-          </label>
-          <label className="block text-sm font-extrabold text-slate-800">خلفية البطاقات الداخلية
-            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار خلفية البطاقات الداخلية" type="color" value={panelColor} onChange={e=>setPanelColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود خلفية البطاقات الداخلية" type="text" value={panelColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setPanelColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#f8fafc"/></div>
-          </label>
-        </div>
-        <div className="flex flex-wrap gap-2 rounded-2xl border p-3" style={{backgroundColor:cardColor,borderColor:accentColor}}>
-          <span className="rounded-xl px-4 py-3 text-sm font-black text-white" style={{backgroundColor:accentColor}}>زر التواصل</span>
-          <span className="rounded-xl border px-4 py-3 text-sm font-bold" style={{backgroundColor:panelColor,borderColor:accentColor,color:"#1f2937"}}>بطاقة المنتجات والواتساب</span>
-          <span className="rounded-xl px-4 py-3 text-sm font-bold" style={{color:accentColor}}>عنوان رئيسي</span>
         </div>
       </section>
       <section className="space-y-4">
@@ -219,6 +174,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div><label className={label} htmlFor="youtube_url">YouTube</label><input className={field} id="youtube_url" name="youtube_url" type="url" defaultValue={page.youtube_url} placeholder="https://youtube.com/..." /></div>
         <div className="grid gap-4 sm:grid-cols-2"><div><label className={label} htmlFor="custom_label">اسم رابط إضافي</label><input className={field} id="custom_label" name="custom_label" defaultValue={page.custom_links?.[0]?.label || ""} maxLength={40} placeholder="موقع المتجر" /></div><div><label className={label} htmlFor="custom_url">الرابط الإضافي</label><input className={field} id="custom_url" name="custom_url" type="url" defaultValue={page.custom_links?.[0]?.url || ""} placeholder="https://..." /></div></div>
       </section>
+      </div><aside className="min-w-0 xl:sticky xl:top-4 xl:self-start">
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
         <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: activeTheme.soft }}>
@@ -236,6 +192,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           </div>
         </div>
       </section>
+      </aside></div>
       <button disabled={uploading} type="submit" className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50">حفظ التعديلات ونشر الصفحة ✨</button>
     </form>
   );
