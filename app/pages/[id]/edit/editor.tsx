@@ -132,6 +132,13 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-black text-slate-950">2. محرر الألوان الكامل</h2>
         <p className="text-sm leading-6 text-slate-500">كل الألوان تبدأ بالأبيض. بدّل لون كل جزء وشوف النتيجة مباشرة في المعاينة الجانبية.</p>
+        <h3 className="font-extrabold text-slate-800">اختار من 20 مجموعة ألوان جاهزة</h3>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {themes.map(item=><button key={item.id} type="button" onClick={()=>{setTheme(item.id);setAccentColor(item.main);setPanelColor(item.soft);setButtonColor(item.main);setCardColor("#ffffff");setPageBackgroundColor("#ffffff");setTextColor(item.dark);}} className={`flex items-center gap-2 rounded-xl border p-2 text-right ${theme===item.id?"border-violet-600 ring-2 ring-violet-100":"border-slate-200"}`}>
+            <span className="h-8 w-8 shrink-0 rounded-lg" style={{background:item.main}}/><span className="text-xs font-bold text-slate-700">{item.name}</span>
+          </button>)}
+        </div>
+        <p className="text-xs leading-5 text-slate-500">المجموعات الجاهزة تغيّر لون الأزرار والأيقونات وخلفية الأقسام. وتقدر بعدها تبدّل كل لون وحده من الاختيارات التالية.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             {label:"خلفية الصفحة",value:pageBackgroundColor,set:setPageBackgroundColor},
