@@ -49,9 +49,9 @@ export async function updateLandingPage(formData: FormData) {
     address: String(sections.address || "").trim().slice(0, 200),
     map_url: cleanSectionUrl(sections.map_url),
     hours: String(sections.hours || "").trim().slice(0, 1000),
-    card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || ""))
-      ? String(sections.card_color)
-      : "#ffffff",
+    card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || "")) ? String(sections.card_color) : "#ffffff",
+    accent_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.accent_color || "")) ? String(sections.accent_color) : "",
+    panel_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.panel_color || "")) ? String(sections.panel_color) : "#f8fafc",
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
     products: Array.isArray(sections.products)
