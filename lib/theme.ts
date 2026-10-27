@@ -1,4 +1,3 @@
-"use client";
 import type { CSSProperties } from "react";
 export const THEMES = [
  { id:"white",name:"أبيض",primary:"#f8fafc",soft:"#f3f4f6",dark:"#334155",bg:"#f4f4f5",surface:"#ffffff",border:"#e5e7eb",text:"#111827",muted:"#64748b",defaultMode:"light" },
