@@ -10,7 +10,7 @@ type PageData = {
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { address?: string; map_url?: string; hours?: string; card_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
+  sections: { address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
 const themes = [
@@ -68,15 +68,13 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [address, setAddress] = useState(initialSections.address || "");
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
-  const [cardColor, setCardColor] = useState(
-    /^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "")
-      ? initialSections.card_color!
-      : "#ffffff"
-  );
+  const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
+  const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : (themes.find(item => item.id === page.theme)?.main || "#7c3aed"));
+  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#f8fafc");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,accent_color:accentColor,panel_color:panelColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
@@ -128,12 +126,23 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-black text-slate-950">لون خلفية البطاقة</h2>
-        <p className="text-sm leading-6 text-slate-500">اختار أي لون تحبه من لوحة الألوان أو أدخل كود HEX. اللون يطبق على خلفية البطاقة المنشورة.</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <input aria-label="اختيار لون البطاقة" type="color" value={cardColor} onChange={e=>setCardColor(e.target.value)} className="h-14 w-20 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/>
-          <input aria-label="كود لون البطاقة" type="text" value={cardColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setCardColor(v);else if(v===""||v==="#")setCardColor(v)}} onBlur={()=>{if(!/^#[0-9a-fA-F]{6}$/.test(cardColor))setCardColor("#ffffff")}} maxLength={7} dir="ltr" className={field+" max-w-36 uppercase"} placeholder="#ffffff"/>
-          <span className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold" style={{backgroundColor:cardColor,color:"#111827"}}>معاينة اللون</span>
+        <h2 className="text-lg font-black text-slate-950">ألوان البطاقة المتناسقة</h2>
+        <p className="text-sm leading-6 text-slate-500">بدّل 3 ألوان فقط: خلفية البطاقة، اللون الرئيسي للأزرار والعناوين، وخلفية البطاقات الداخلية. نفس الألوان تتطبق تلقائيًا على واتساب والمنتجات ومعلومات المحل وأوقات العمل، بلا ما تعدّل كل بطاقة وحدها.</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block text-sm font-extrabold text-slate-800">خلفية البطاقة
+            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار لون خلفية البطاقة" type="color" value={cardColor} onChange={e=>setCardColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود لون خلفية البطاقة" type="text" value={cardColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setCardColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#ffffff"/></div>
+          </label>
+          <label className="block text-sm font-extrabold text-slate-800">اللون الرئيسي
+            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار اللون الرئيسي" type="color" value={accentColor} onChange={e=>setAccentColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود اللون الرئيسي" type="text" value={accentColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setAccentColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#7c3aed"/></div>
+          </label>
+          <label className="block text-sm font-extrabold text-slate-800">خلفية البطاقات الداخلية
+            <div className="mt-2 flex items-center gap-2"><input aria-label="اختيار خلفية البطاقات الداخلية" type="color" value={panelColor} onChange={e=>setPanelColor(e.target.value)} className="h-12 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"/><input aria-label="كود خلفية البطاقات الداخلية" type="text" value={panelColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setPanelColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 uppercase"} placeholder="#f8fafc"/></div>
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2 rounded-2xl border p-3" style={{backgroundColor:cardColor,borderColor:accentColor}}>
+          <span className="rounded-xl px-4 py-3 text-sm font-black text-white" style={{backgroundColor:accentColor}}>زر التواصل</span>
+          <span className="rounded-xl border px-4 py-3 text-sm font-bold" style={{backgroundColor:panelColor,borderColor:accentColor,color:"#1f2937"}}>بطاقة المنتجات والواتساب</span>
+          <span className="rounded-xl px-4 py-3 text-sm font-bold" style={{color:accentColor}}>عنوان رئيسي</span>
         </div>
       </section>
       <section className="space-y-4">
