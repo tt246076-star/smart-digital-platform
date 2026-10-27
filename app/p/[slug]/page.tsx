@@ -60,7 +60,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
-    address?: string; map_url?: string; hours?: string; round_image_url?: string; cover_image_url?: string;
+    address?: string; map_url?: string; hours?: string; card_color?: string; round_image_url?: string; cover_image_url?: string;
     products?: { name: string; price: string; image_url: string; description: string }[];
   };
   const products = Array.isArray(sections.products) ? sections.products : [];
@@ -107,7 +107,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700"><svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10 1.5 12.4 3l2.8-.1 1.1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1.1 2.6-2.8-.1L10 18.5l-2.4-1.5-2.8.1-1.1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1.1-2.6 2.8.1L10 1.5Zm-1.1 11.8 5-5-1.2-1.2-3.8 3.8-1.7-1.7L6 10.4l2.9 2.9Z"/></svg>على منصة بطاقتي</span>
         </nav>
 
-        <article className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,.09)]">
+        <article className="overflow-hidden rounded-[2rem] border border-slate-200/80 shadow-[0_24px_80px_rgba(15,23,42,.09)]" style={{backgroundColor: /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color : "#ffffff"}}>
           <header className="relative">
             {sections.cover_image_url ? <div className="relative h-56 sm:h-80">
               <img src={sections.cover_image_url} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
