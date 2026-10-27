@@ -23,7 +23,7 @@ function socialLinks(page: any) {
   ].filter((link) => link.url);
 }
 
-function BrandMark({ kind }: { kind: string }) {
+function BrandMark({ kind, circle = false }: { kind: string; circle?: boolean }) {
   const paths: Record<string, string> = {
     facebook: "M24 12a12 12 0 1 0-13.875 11.85v-8.38H7.08V12h3.045V9.35c0-3.005 1.79-4.665 4.53-4.665 1.31 0 2.68.235 2.68.235v2.95h-1.51c-1.49 0-1.955.925-1.955 1.875V12h3.325l-.53 3.47h-2.795v8.38A12.003 12.003 0 0 0 24 12",
     whatsapp: "M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.8 1.48h.01C18.66 23.83 24 18.49 24 11.91c0-3.18-1.24-6.17-3.48-8.43ZM12.09 21.8a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.73.98.99-3.64-.24-.38a9.84 9.84 0 0 1-1.51-5.25c0-5.47 4.45-9.92 9.92-9.92 2.65 0 5.14 1.03 7.01 2.91a9.86 9.86 0 0 1 2.9 7.02c0 5.47-4.45 9.87-9.93 9.87Zm5.44-7.42c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.5 1.69.64.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z",
@@ -32,8 +32,8 @@ function BrandMark({ kind }: { kind: string }) {
     youtube: "M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"
   };
   const bg: Record<string,string> = { facebook:"#1877F2", whatsapp:"#25D366", instagram:"linear-gradient(135deg,#833AB4 0%,#FD1D1D 55%,#FCAF45 100%)", tiktok:"#101010", youtube:"#FF0033" };
-  return <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-200 group-hover:scale-105" style={{background:bg[kind] || "#64748b"}}>
-    {paths[kind] ? <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="currentColor"><path d={paths[kind]}/></svg> : <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2h4a4 4 0 0 1 4 4v4M10 22H6a4 4 0 0 1-4-4v-4M22 2 12 12M2 22l7-7"/></svg>}
+  return <span className={`flex shrink-0 items-center justify-center text-white shadow-md transition-transform duration-200 group-hover:scale-105 ${circle ? "h-[68px] w-[68px] rounded-full" : "h-12 w-12 rounded-2xl"}`} style={{background:bg[kind] || "#64748b"}}>
+    {paths[kind] ? <svg viewBox="0 0 24 24" width={circle ? "30" : "25"} height={circle ? "30" : "25"} aria-hidden="true" fill="currentColor"><path d={paths[kind]}/></svg> : <svg viewBox="0 0 24 24" width={circle ? "30" : "25"} height={circle ? "30" : "25"} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2h4a4 4 0 0 1 4 4v4M10 22H6a4 4 0 0 1-4-4v-4M22 2 12 12M2 22l7-7"/></svg>}
   </span>;
 }
 
@@ -57,12 +57,12 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
-    address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string;
+    address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
     products?: { name: string; price: string; image_url: string; description: string }[];
   };
   const products = Array.isArray(sections.products) ? sections.products : [];
   const template: string = page.template || "minimal";
-  const resolvedTheme = resolveTheme(page.theme || "violet", pagePrimary(sections) || undefined, sections.theme_mode);
+  const resolvedTheme = resolveTheme(page.theme || "blue", pagePrimary(sections) || undefined, sections.theme_mode);
   const customAccent = resolvedTheme.palette.accent;
   const customPanel = resolvedTheme.palette.tint;
   const pageBackground = resolvedTheme.bg;
@@ -104,6 +104,150 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const openFromYesterday = !!previousHours?.open && Number.isFinite(previousStart) && Number.isFinite(previousEnd) && previousStart > previousEnd && currentMinute < previousEnd;
   const isOpenNow = !!weeklyHours && (openToday || openFromYesterday);
   const todayStatus = weeklyHours ? (isOpenNow ? "مفتوح الآن" : "مغلق الآن") : "";
+
+  const profileVCard = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `FN:${page.business_name.replace(/[\\r\\n]/g, " ")}`,
+    page.phone ? `TEL;TYPE=CELL:${page.phone.replace(/[\\r\\n]/g, "")}` : "",
+    page.whatsapp ? `NOTE:WhatsApp ${page.whatsapp.replace(/[\\r\\n]/g, "")}` : "",
+    "END:VCARD",
+  ].filter(Boolean).join("\\r\\n");
+  const profileSocials = links.filter((link: {label:string;url:string;kind?:string}) => ["facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
+  const profileExtraLinks = links.filter((link: {label:string;url:string;kind?:string}) => !["whatsapp", "facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
+
+  if (template === "profile") {
+    return (
+      <main dir="rtl" className="min-h-screen px-0 py-0 sm:px-4 sm:py-6" style={{ backgroundColor: resolvedTheme.bg, color: resolvedTheme.text }}>
+        <LandingPageAnalytics slug={params.slug} />
+        <article className="mx-auto min-h-screen max-w-lg overflow-hidden border shadow-2xl sm:min-h-0 sm:rounded-[1.4rem]" style={{ backgroundColor: resolvedTheme.surface, borderColor: resolvedTheme.border, color: resolvedTheme.text }}>
+          <header className="relative">
+            {sections.cover_image_url ? (
+              <div className="relative h-56 sm:h-64">
+                <img src={sections.cover_image_url} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+              </div>
+            ) : (
+              <div className="relative h-48 sm:h-56" style={{ background: `radial-gradient(circle at 50% 0%, ${resolvedTheme.primary}70, transparent 65%), ${resolvedTheme.bg}` }}>
+                <div className="absolute inset-x-8 top-8 h-px opacity-30" style={{ background: resolvedTheme.primary }} />
+                <div className="absolute inset-x-12 bottom-6 h-px opacity-20" style={{ background: resolvedTheme.primary }} />
+              </div>
+            )}
+            <div className="relative -mt-[4.5rem] px-5 pb-5 text-center sm:px-8">
+              <div className="mx-auto mb-4 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 shadow-xl" style={{ borderColor: resolvedTheme.surface, background: resolvedTheme.surface, boxShadow: `0 0 0 3px ${resolvedTheme.primary}55, 0 12px 35px #0005` }}>
+                {displayImage ? <img src={displayImage} alt={page.business_name} className="h-full w-full rounded-full object-cover" /> : <span className="text-4xl font-black" style={{ color: resolvedTheme.primary }}>✦</span>}
+              </div>
+              <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{ color: resolvedTheme.text }}>{page.business_name}</h1>
+              {page.headline && <p className="mt-2 text-sm font-semibold leading-7 sm:text-base" style={{ color: resolvedTheme.muted }}>{page.headline}</p>}
+              {page.description && <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: resolvedTheme.muted }}>{page.description}</p>}
+              <span className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint, color: resolvedTheme.text }}>
+                {isRestaurant ? "مطعم ومأكولات" : isStore ? "المتجر الرسمي" : "بطاقة تواصل"}
+              </span>
+              {sections.rating_average && Number(sections.rating_average) > 0 && (
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm font-black" aria-label={`التقييم ${sections.rating_average} من 5`}>
+                  <span style={{ color: "#f5bd35" }}>{"★".repeat(Math.max(0, Math.min(5, Math.round(Number(sections.rating_average)))))}</span>
+                  <span style={{ color: "#f5bd35" }}>{Number(sections.rating_average).toFixed(1)}</span>
+                  {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
+                </div>
+              )}
+            </div>
+          </header>
+
+          {(weeklyHours || sections.hours) && (
+            <section className="mx-5 mb-5 rounded-3xl border p-4 sm:mx-7" style={{ background: resolvedTheme.palette.tint, borderColor: resolvedTheme.border }}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl text-lg" style={{ background: resolvedTheme.surface, color: resolvedTheme.primary }}>◷</span>
+                  <h2 className="font-black">أوقات العمل</h2>
+                </div>
+                {todayStatus && <span className="inline-flex items-center gap-1.5 text-xs font-black" style={{ color: isOpenNow ? "#22c55e" : "#fb7185" }}><span className="h-2.5 w-2.5 rounded-full" style={{ background: isOpenNow ? "#22c55e" : "#fb7185" }} />{todayStatus}</span>}
+              </div>
+              <details className="mt-3">
+                <summary className="cursor-pointer rounded-xl border px-4 py-2.5 text-center text-sm font-bold" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.text }}>كل الأوقات⌄</summary>
+                {weeklyHours ? (
+                  <div className="mt-2 space-y-1">
+                    {Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key, label]) => {
+                      const hoursForDay = weeklyHours?.[key];
+                      return <div key={key} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs" style={{ background: resolvedTheme.surface }}>
+                        <span className="font-bold">{label}</span>
+                        <span style={{ color: hoursForDay?.open ? resolvedTheme.muted : "#fb7185" }}>{hoursForDay?.open ? `${hoursForDay.from} – ${hoursForDay.to}` : "مغلق"}</span>
+                      </div>;
+                    })}
+                  </div>
+                ) : <p className="mt-2 whitespace-pre-wrap text-sm leading-7" style={{ color: resolvedTheme.muted }}>{sections.hours}</p>}
+              </details>
+            </section>
+          )}
+
+          {(page.phone || page.whatsapp || profileExtraLinks.length > 0) && (
+            <section className="px-5 pb-6 sm:px-7">
+              <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-4">
+                {page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g, "")}`} data-track-event="contact" target="_blank" rel="noopener noreferrer" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
+                  <BrandMark kind="whatsapp" circle /> <span>واتساب</span>
+                </a>}
+                {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
+                  <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full text-white shadow-lg" style={{ background: "#16a34a" }}>
+                    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg>
+                  </span><span>اتصال</span>
+                </a>}
+                {profileExtraLinks.map((link: {label:string;url:string;kind?:string}, index:number) => <a key={link.label+index} href={link.url} target="_blank" rel="noopener noreferrer" data-track-event="contact" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
+                  <BrandMark kind={link.kind || "custom"} circle /><span>{link.label}</span>
+                </a>)}
+              </div>
+              {page.phone && (
+                <a href={`data:text/vcard;charset=utf-8,${encodeURIComponent(profileVCard)}`} download={`${page.business_name.replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "-") || "contact"}.vcf`} className="mx-auto mt-6 flex w-fit flex-col items-center gap-2 text-xs font-bold">
+                  <span className="grid h-16 w-16 place-items-center rounded-full text-white shadow-lg" style={{ background: "#df244c" }}>
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6"/></svg>
+                  </span>
+                  <span>حفظ جهة الاتصال</span>
+                </a>
+              )}
+            </section>
+          )}
+
+          {profileSocials.length > 0 && (
+            <section className="px-5 pb-6 sm:px-7">
+              <div className="flex flex-wrap justify-start gap-3">
+                {profileSocials.map((link: {label:string;url:string;kind?:string}, index:number) => <a key={link.label+index} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="grid h-24 w-24 place-items-center rounded-3xl border" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
+                  <BrandMark kind={link.kind || "custom"} />
+                </a>)}
+              </div>
+            </section>
+          )}
+
+          {(sections.address || sections.map_url) && (
+            <section className="px-5 pb-6 sm:px-7">
+              {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-3xl border p-4" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
+                <span className="font-black" style={{ color: resolvedTheme.primary }}>موقعنا على الخريطة</span>
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-green-600 text-white text-xl">⌖</span>
+              </a>}
+              {sections.address && <p className="mt-3 px-2 text-sm leading-7" style={{ color: resolvedTheme.muted }}>{sections.address}</p>}
+            </section>
+          )}
+
+          {products.length > 0 && (
+            <section className="px-5 pb-7 sm:px-7">
+              <div className="mb-4 flex items-center gap-3"><span className="h-px flex-1" style={{ background: resolvedTheme.border }} /><h2 className="whitespace-nowrap text-sm font-black" style={{ color: resolvedTheme.muted }}>كتالوج الأعمال ✨</h2><span className="h-px flex-1" style={{ background: resolvedTheme.border }} /></div>
+              <div className="space-y-4">
+                {products.map((product, index) => <article key={index} className="overflow-hidden rounded-3xl border" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
+                  {product.image_url && <img src={product.image_url} alt={product.name || "صورة من الأعمال"} className="max-h-[330px] w-full object-cover" />}
+                  {(product.name || product.description || product.price) && <div className="p-4">
+                    {product.name && <h3 className="font-black">{product.name}</h3>}
+                    {product.description && <p className="mt-2 whitespace-pre-wrap text-sm leading-7" style={{ color: resolvedTheme.muted }}>{product.description}</p>}
+                    {product.price && <p className="mt-3 font-black" style={{ color: resolvedTheme.primary }}>{product.price} دج</p>}
+                  </div>}
+                </article>)}
+              </div>
+            </section>
+          )}
+
+          <footer className="border-t px-5 py-5 text-center text-xs" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
+            © {new Date().getFullYear()} {page.business_name}
+          </footer>
+        </article>
+      </main>
+    );
+  }
 
   return (
     <main dir="rtl" className="min-h-screen px-3 py-5 text-slate-900 sm:px-6 sm:py-8" style={{ backgroundColor: pageBackground, color: customText }}>
