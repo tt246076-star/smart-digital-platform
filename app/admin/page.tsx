@@ -22,7 +22,8 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
   const [usersResult, plansResult, pagesResult, productLimitsResult] = await Promise.all([
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from("user_access_plans").select("user_id, plan_type, expires_at, max_pages, advanced_features"),
-    admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200)
+    admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
+    admin.from("user_product_limits").select("user_id, max_products")
   ]);
   const users = usersResult.data?.users || [];
   const plansData = plansResult.data || [];
