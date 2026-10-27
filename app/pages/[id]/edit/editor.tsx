@@ -223,7 +223,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
               <h3 className="mt-2 text-2xl font-black" style={{ color: textColor }}>{business || "اسم متجرك"}</h3>
               <p className="mt-2 font-bold" style={{color:textColor}}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
               <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{color:textColor}}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-              <div className="mt-5 rounded-xl px-4 py-3 text-sm font-extrabold text-white" style={{ background: buttonColor, color: buttonColor.toLowerCase() === "#ffffff" ? textColor : "#ffffff" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
+              <div className="mt-5 rounded-xl px-4 py-3 text-sm font-extrabold text-white" style={{ background: "#16a34a", color: "#ffffff" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
               <p className="mt-4 text-xs text-slate-400">تصميم {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
             </div>
           </div>
