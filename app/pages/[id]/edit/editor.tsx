@@ -14,26 +14,16 @@ type PageData = {
 };
 
 const themes = [
-  {id:"violet",name:"بنفسجي",main:"#7c3aed",soft:"#f5f3ff",dark:"#4c1d95"},
+  {id:"violet",name:"بنفسجي",main:"#6d4aff",soft:"#f0ecff",dark:"#25164f"},
   {id:"ocean",name:"أزرق بحري",main:"#087eaa",soft:"#e7f7fc",dark:"#103746"},
-  {id:"sunset",name:"غروب",main:"#e76b36",soft:"#fff1e9",dark:"#7c2d12"},
-  {id:"emerald",name:"زمردي",main:"#16805d",soft:"#e7f7ef",dark:"#064e3b"},
-  {id:"rose",name:"وردي",main:"#d94678",soft:"#fff0f5",dark:"#831843"},
+  {id:"sunset",name:"غروب",main:"#e76b36",soft:"#fff1e9",dark:"#512714"},
+  {id:"emerald",name:"زمردي",main:"#16805d",soft:"#e7f7ef",dark:"#143b2c"},
+  {id:"rose",name:"وردي",main:"#d94678",soft:"#fff0f5",dark:"#55172e"},
   {id:"midnight",name:"ليلي",main:"#475569",soft:"#eef2f7",dark:"#172033"},
-  {id:"gold",name:"ذهبي",main:"#a97716",soft:"#fff8e5",dark:"#713f12"},
-  {id:"mint",name:"نعناعي",main:"#0f9488",soft:"#e6faf6",dark:"#134e4a"},
-  {id:"berry",name:"توتي",main:"#9333a8",soft:"#faedff",dark:"#581c87"},
+  {id:"gold",name:"ذهبي",main:"#a97716",soft:"#fff8e5",dark:"#44300c"},
+  {id:"mint",name:"نعناعي",main:"#0f9488",soft:"#e6faf6",dark:"#123f3b"},
+  {id:"berry",name:"توتي",main:"#9333a8",soft:"#faedff",dark:"#42134c"},
   {id:"slate",name:"رمادي",main:"#475569",soft:"#f1f5f9",dark:"#1e293b"},
-  {id:"coral",name:"مرجاني",main:"#e45b64",soft:"#fff1f2",dark:"#881337"},
-  {id:"cobalt",name:"كوبالت",main:"#1d4ed8",soft:"#eff6ff",dark:"#1e3a8a"},
-  {id:"lime",name:"ليموني",main:"#4d7c0f",soft:"#f7fee7",dark:"#365314"},
-  {id:"teal",name:"تركوازي",main:"#0f766e",soft:"#f0fdfa",dark:"#134e4a"},
-  {id:"indigo",name:"نيلي",main:"#4f46e5",soft:"#eef2ff",dark:"#312e81"},
-  {id:"orange",name:"برتقالي",main:"#ea580c",soft:"#fff7ed",dark:"#7c2d12"},
-  {id:"sky",name:"سماوي",main:"#0284c7",soft:"#f0f9ff",dark:"#0c4a6e"},
-  {id:"fuchsia",name:"فوشيا",main:"#c026d3",soft:"#fdf4ff",dark:"#701a75"},
-  {id:"brown",name:"بني",main:"#92400e",soft:"#fffbeb",dark:"#451a03"},
-  {id:"charcoal",name:"فحمي",main:"#374151",soft:"#f3f4f6",dark:"#111827"},
 ];
 const templates = [
   {id:"bold",name:"Bold",hint:"جريء ولافت"},
@@ -132,13 +122,13 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-black text-slate-950">2. محرر الألوان الكامل</h2>
         <p className="text-sm leading-6 text-slate-500">كل الألوان تبدأ بالأبيض. بدّل لون كل جزء وشوف النتيجة مباشرة في المعاينة الجانبية.</p>
-        <h3 className="font-extrabold text-slate-800">اختار من 20 مجموعة ألوان جاهزة</h3>
+        <h3 className="font-extrabold text-slate-800">اختار من 10 مجموعات ألوان متناسقة</h3>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {themes.map(item=><button key={item.id} type="button" onClick={()=>{setTheme(item.id);setAccentColor(item.main);setPanelColor(item.soft);setButtonColor(item.main);setCardColor("#ffffff");setPageBackgroundColor("#ffffff");setTextColor(item.dark);}} className={`flex items-center gap-2 rounded-xl border p-2 text-right ${theme===item.id?"border-violet-600 ring-2 ring-violet-100":"border-slate-200"}`}>
             <span className="h-8 w-8 shrink-0 rounded-lg" style={{background:item.main}}/><span className="text-xs font-bold text-slate-700">{item.name}</span>
           </button>)}
         </div>
-        <p className="text-xs leading-5 text-slate-500">المجموعات الجاهزة تغيّر لون الأزرار والأيقونات وخلفية الأقسام. وتقدر بعدها تبدّل كل لون وحده من الاختيارات التالية.</p>
+        <p className="text-xs leading-5 text-slate-500">المجموعات متناسقة مع القوالب المنشورة. تقدر تبدّل لون الخلفية أو البطاقة أو النصوص أو الأزرار وحدها إذا حبيت.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             {label:"خلفية الصفحة",value:pageBackgroundColor,set:setPageBackgroundColor},
