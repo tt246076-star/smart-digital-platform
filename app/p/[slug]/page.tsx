@@ -139,9 +139,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                 <div className="h-full w-full overflow-hidden rounded-full">
                   {displayImage ? <img src={displayImage} alt={page.business_name} className="h-full w-full rounded-full object-cover" /> : <span className="grid h-full w-full place-items-center text-4xl font-black" style={{ color: resolvedTheme.primary }}>✦</span>}
                 </div>
-                {displayImage && <span title="ملف موثّق على منصة بطاقتي" aria-label="ملف موثّق على منصة بطاقتي" className="absolute -bottom-1 -left-1 grid h-8 w-8 place-items-center rounded-full border-[3px] border-white bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 animate-pulse">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
-                </span>}
+                {displayImage && <span title="شارة الملف الشخصي على منصة بطاقتي" aria-label="شارة الملف الشخصي على منصة بطاقتي" className="absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full border-[3px] shadow-lg" style={{ background: "linear-gradient(145deg, #ffffff, #eaf3ff)", borderColor: resolvedTheme.surface, color: "#2563eb", boxShadow: "0 3px 12px #0003, 0 0 0 2px #60a5fa55" }}><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M16 2.5 20 5l4.8-.2 1.9 4.4 3.8 2.9-1.4 4.6 1.4 4.6-3.8 2.9-1.9 4.4-4.8-.2-4 2.5-4-2.5-4.8.2-1.9-4.4-3.8-2.9 1.4-4.6-1.4-4.6 3.8-2.9 1.9-4.4 4.8.2Z" fill="currentColor"/><path d="m9.5 16.3 4.1 4.1 8.9-9" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
               </div>
               <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{ color: resolvedTheme.text }}>{page.business_name}</h1>
               {page.headline && <p className="mt-2 text-sm font-semibold leading-7 sm:text-base" style={{ color: resolvedTheme.muted }}>{page.headline}</p>}
@@ -250,10 +248,10 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
           <footer className="border-t px-5 py-6 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
             <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
-            <a href="/" className="group mx-auto mt-4 inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-black shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ borderColor: resolvedTheme.primary + "55", background: `linear-gradient(110deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})`, color: resolvedTheme.primary }}>
-              <span aria-hidden="true" className="text-lg drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] animate-pulse">✦</span>
-              <span className="bg-gradient-to-l from-amber-500 via-yellow-300 to-amber-600 bg-clip-text text-transparent">تم الإنشاء بواسطة منصة بطاقتي</span>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_0_7px_rgba(250,204,21,0.65)] animate-pulse"><path d="M10 1.5 12.4 3l2.8-.1 1.1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1.1 2.6-2.8-.1L10 18.5l-2.4-1.5-2.8.1-1.1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1.1-2.6 2.8.1L10 1.5Zm-1.1 11.8 5-5-1.2-1.2-3.8 3.8-1.7-1.7L6 10.4l2.9 2.9Z"/></svg>
+            <a href="/" className="group mx-auto mt-4 flex w-fit flex-col items-center gap-2 rounded-2xl border px-6 py-4 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ borderColor: resolvedTheme.primary + "45", background: `linear-gradient(145deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})` }}>
+              <span className="grid h-11 w-11 place-items-center rounded-full shadow-sm transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" style={{ background: resolvedTheme.primary + "16", color: resolvedTheme.primary }}><svg viewBox="0 0 32 32" width="30" height="30" fill="none" aria-hidden="true"><path d="M16 2.5 20 5l4.8-.2 1.9 4.4 3.8 2.9-1.4 4.6 1.4 4.6-3.8 2.9-1.9 4.4-4.8-.2-4 2.5-4-2.5-4.8.2-1.9-4.4-3.8-2.9 1.4-4.6-1.4-4.6 3.8-2.9 1.9-4.4 4.8.2Z" fill="currentColor" opacity=".22"/><path d="m9.5 16.3 4.1 4.1 8.9-9" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+              <span className="text-sm font-black tracking-wide" style={{ color: resolvedTheme.primary }}>تم الإنشاء بواسطة منصة بطاقتي</span>
+              <span className="h-1 w-10 rounded-full transition-all duration-300 group-hover:w-16" style={{ background: `linear-gradient(90deg, #f59e0b, ${resolvedTheme.primary})` }} />
             </a>
           </footer>
         </article>
