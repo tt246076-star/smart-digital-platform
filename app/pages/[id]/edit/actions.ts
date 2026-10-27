@@ -72,7 +72,7 @@ export async function updateLandingPage(formData: FormData) {
       : [],
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
-  const requestedTheme = String(formData.get("theme") || "violet");
+  const requestedTheme = String(formData.get("theme") || "blue");
   const template = ["profile", "aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"].includes(requestedTemplate) ? requestedTemplate : "aurora";
   const theme = ["white", "black", "blue", "violet", "sunset", "emerald", "ocean", "rose", "gold", "glass", "volcano", "midnight", "mint", "berry", "slate"].includes(requestedTheme) ? requestedTheme : "blue";
 
