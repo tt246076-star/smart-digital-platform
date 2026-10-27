@@ -139,7 +139,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                 <div className="h-full w-full overflow-hidden rounded-full">
                   {displayImage ? <img src={displayImage} alt={page.business_name} className="h-full w-full rounded-full object-cover" /> : <span className="grid h-full w-full place-items-center text-4xl font-black" style={{ color: resolvedTheme.primary }}>✦</span>}
                 </div>
-                {displayImage && <span title="شارة الملف الشخصي على منصة بطاقتي" aria-label="شارة الملف الشخصي على منصة بطاقتي" className="absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center rounded-full border-[3px] shadow-lg" style={{ background: "linear-gradient(145deg, #ffffff, #eaf3ff)", borderColor: resolvedTheme.surface, color: "#2563eb", boxShadow: "0 3px 12px #0003, 0 0 0 2px #60a5fa55" }}><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M16 2.5 20 5l4.8-.2 1.9 4.4 3.8 2.9-1.4 4.6 1.4 4.6-3.8 2.9-1.9 4.4-4.8-.2-4 2.5-4-2.5-4.8.2-1.9-4.4-3.8-2.9 1.4-4.6-1.4-4.6 3.8-2.9 1.9-4.4 4.8.2Z" fill="currentColor"/><path d="m9.5 16.3 4.1 4.1 8.9-9" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
+                {displayImage && <span title="شارة الملف الشخصي على منصة بطاقتي" aria-label="شارة الملف الشخصي على منصة بطاقتي" className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full" style={{ color: "#1685ff", filter: "drop-shadow(0 2px 5px #0005)" }}><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d="M12 1.5a10.5 10.5 0 1 0 0 21 10.5 10.5 0 0 0 0-21Z"/><path d="m7.1 12.3 3.1 3.1 6.8-7" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg></span>}
               </div>
               <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{ color: resolvedTheme.text }}>{page.business_name}</h1>
               {page.headline && <p className="mt-2 text-sm font-semibold leading-7 sm:text-base" style={{ color: resolvedTheme.muted }}>{page.headline}</p>}
@@ -147,13 +147,14 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
               <span className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint, color: resolvedTheme.text }}>
                 {isRestaurant ? "مطعم ومأكولات" : isStore ? "المتجر الرسمي" : "بطاقة تواصل"}
               </span>
-              {sections.rating_average && Number(sections.rating_average) > 0 && (
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm font-black" aria-label={`التقييم ${sections.rating_average} من 5`}>
-                  <span style={{ color: resolvedTheme.primary }}>{"★".repeat(Math.max(0, Math.min(5, Math.round(Number(sections.rating_average)))))}</span>
-                  <span style={{ color: resolvedTheme.primary }}>{Number(sections.rating_average).toFixed(1)}</span>
+              {(sections.rating_average && Number(sections.rating_average) > 0) ? (
+                <div className="mx-auto mt-4 flex w-fit items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-black shadow-sm" style={{ borderColor: resolvedTheme.primary + "55", background: resolvedTheme.palette.tint }} aria-label={`التقييم ${sections.rating_average} من 5`}>
+                  <span style={{ color: "#f5b51b" }}>{"★".repeat(Math.max(0, Math.min(5, Math.round(Number(sections.rating_average)))))}</span>
+                  <span style={{ color: resolvedTheme.text }}>{Number(sections.rating_average).toFixed(1)}</span>
                   {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
                 </div>
-              )}
+              ) : null}
+              {sections.google_review_url && <a href={sections.google_review_url} target="_blank" rel="noreferrer" className="mx-auto mt-2 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold transition hover:-translate-y-0.5" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.surface, color: resolvedTheme.text }}>⭐ قيّمنا على Google</a>}
               {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: resolvedTheme.primary, color: resolvedTheme.primaryText }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
             </div>
           </header>
@@ -246,12 +247,13 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </section>
           )}
 
-          <footer className="border-t px-5 py-6 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
+          <footer className="border-t px-5 py-7 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
             <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
-            <a href="/" className="group mx-auto mt-4 flex w-fit flex-col items-center gap-2 rounded-2xl border px-6 py-4 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ borderColor: resolvedTheme.primary + "45", background: `linear-gradient(145deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})` }}>
-              <span className="grid h-11 w-11 place-items-center rounded-full shadow-sm transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" style={{ background: resolvedTheme.primary + "16", color: resolvedTheme.primary }}><svg viewBox="0 0 32 32" width="30" height="30" fill="none" aria-hidden="true"><path d="M16 2.5 20 5l4.8-.2 1.9 4.4 3.8 2.9-1.4 4.6 1.4 4.6-3.8 2.9-1.9 4.4-4.8-.2-4 2.5-4-2.5-4.8.2-1.9-4.4-3.8-2.9 1.4-4.6-1.4-4.6 3.8-2.9 1.9-4.4 4.8.2Z" fill="currentColor" opacity=".22"/><path d="m9.5 16.3 4.1 4.1 8.9-9" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+            <a href="/" className="group mx-auto mt-4 flex w-fit flex-col items-center gap-2 rounded-2xl border px-7 py-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: resolvedTheme.primary + "55", background: `linear-gradient(145deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})` }}>
+              <span className="grid h-11 w-11 place-items-center rounded-full transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" style={{ color: resolvedTheme.primary }}><svg viewBox="0 0 32 32" width="30" height="30" fill="none" aria-hidden="true"><path d="M16 2.5 20 5l4.8-.2 1.9 4.4 3.8 2.9-1.4 4.6 1.4 4.6-3.8 2.9-1.9 4.4-4.8-.2-4 2.5-4-2.5-4.8.2-1.9-4.4-3.8-2.9 1.4-4.6-1.4-4.6 3.8-2.9 1.9-4.4 4.8.2Z" fill="currentColor" opacity=".22"/><path d="m9.5 16.3 4.1 4.1 8.9-9" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
               <span className="text-sm font-black tracking-wide" style={{ color: resolvedTheme.primary }}>تم الإنشاء بواسطة منصة بطاقتي</span>
-              <span className="h-1 w-10 rounded-full transition-all duration-300 group-hover:w-16" style={{ background: `linear-gradient(90deg, #f59e0b, ${resolvedTheme.primary})` }} />
+              <span className="text-sm font-black transition-colors duration-300" style={{ color: resolvedTheme.text }}>اطلب بطاقتك الآن</span>
+              <span className="h-1 w-12 rounded-full transition-all duration-300 group-hover:w-20" style={{ background: `linear-gradient(90deg, #f59e0b, ${resolvedTheme.primary})` }} />
             </a>
           </footer>
         </article>
