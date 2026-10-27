@@ -66,8 +66,12 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const initialSections = page.sections || {};
   const [address, setAddress] = useState(initialSections.address || "");
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
-  const [hours, setHours] = useState<Record<DayKey,DayHours>>(() => readHours(initialSections.hours));
-  const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
+  const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
+  const [cardColor, setCardColor] = useState(
+    /^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "")
+      ? initialSections.card_color!
+      : "#ffffff"
+  );
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
