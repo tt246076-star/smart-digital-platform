@@ -14,7 +14,7 @@ function readableSurface(hex: string, whiteRatio = 0.9) {
 
 function socialLinks(page: any) {
   return [
-    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "", kind: "whatsapp" },
+    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\D/g, "")}` : "", kind: "whatsapp" },
     { label: "Facebook", url: page.facebook_url, kind: "facebook" },
     { label: "Instagram", url: page.instagram_url, kind: "instagram" },
     { label: "TikTok", url: page.tiktok_url, kind: "tiktok" },
@@ -108,11 +108,11 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const profileVCard = [
     "BEGIN:VCARD",
     "VERSION:3.0",
-    `FN:${page.business_name.replace(/[\\r\\n]/g, " ")}`,
-    page.phone ? `TEL;TYPE=CELL:${page.phone.replace(/[\\r\\n]/g, "")}` : "",
-    page.whatsapp ? `NOTE:WhatsApp ${page.whatsapp.replace(/[\\r\\n]/g, "")}` : "",
+    `FN:${page.business_name.replace(/[\r\n]/g, " ")}`,
+    page.phone ? `TEL;TYPE=CELL:${page.phone.replace(/[\r\n]/g, "")}` : "",
+    page.whatsapp ? `NOTE:WhatsApp ${page.whatsapp.replace(/[\r\n]/g, "")}` : "",
     "END:VCARD",
-  ].filter(Boolean).join("\\r\\n");
+  ].filter(Boolean).join("\r\n");
   const profileSocials = links.filter((link: {label:string;url:string;kind?:string}) => ["facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
   const profileExtraLinks = links.filter((link: {label:string;url:string;kind?:string}) => !["whatsapp", "facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
 
@@ -182,7 +182,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
           {(page.phone || page.whatsapp || profileExtraLinks.length > 0) && (
             <section className="px-5 pb-6 sm:px-7">
               <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-4">
-                {page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g, "")}`} data-track-event="contact" target="_blank" rel="noopener noreferrer" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
+                {page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\D/g, "")}`} data-track-event="contact" target="_blank" rel="noopener noreferrer" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
                   <BrandMark kind="whatsapp" circle /> <span>واتساب</span>
                 </a>}
                 {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
@@ -307,7 +307,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             <aside className="space-y-4">
               {sections.address && <section className="rounded-3xl border p-5" style={{backgroundColor:customPanel,borderColor:customAccent+"35"}}><span className="grid h-11 w-11 place-items-center rounded-xl text-xl" style={{background:palette.tint,color:palette.accent}}>⌖</span><h2 className="mt-4 font-black" style={{color:cardText}}>زورونا</h2><p className="mt-2 text-sm leading-7" style={{color:cardMuted}}>{sections.address}</p>{sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-black" style={{borderColor:palette.accent,color:palette.accent}}>افتح الموقع على الخريطة ↗</a>}</section>}
               {sections.hours && <section className="rounded-2xl border p-4 shadow-sm" style={{backgroundColor:customPanel,borderColor:customAccent+"35"}}><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl text-lg" style={{backgroundColor:customPanel,color:customAccent}}>◷</span><h2 className="font-black" style={{color:cardText}}>أوقات العمل</h2></div>{todayStatus && <span aria-live="polite" className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isOpenNow?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayStatus}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl px-3 py-2.5 text-sm font-extrabold" style={{backgroundColor:customPanel,color:cardText}}>عرض جدول الأسبوع <span className="float-left">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-xs" style={{backgroundColor:customPanel}}><span className="font-bold" style={{color:cardText}}>{label}</span><span className={h?.open?"font-bold text-emerald-700":"font-bold text-slate-400"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7" style={{color:cardMuted}}>{sections.hours}</p>}</div></details></section>}
-              <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient,color:"#ffffff"}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
+              <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient,color:"#ffffff"}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
             </aside>
           </div>
         </article>
