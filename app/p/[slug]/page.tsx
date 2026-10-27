@@ -1,19 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
-
-const palettes: Record<string, { accent: string; tint: string; ink: string; gradient: string }> = {
-  violet: { accent: "#6d4aff", tint: "#f0ecff", ink: "#25164f", gradient: "linear-gradient(135deg,#8b5cf6,#5b35d5)" },
-  ocean: { accent: "#087eaa", tint: "#e7f7fc", ink: "#103746", gradient: "linear-gradient(135deg,#19a7ce,#087eaa)" },
-  sunset: { accent: "#e76b36", tint: "#fff1e9", ink: "#512714", gradient: "linear-gradient(135deg,#fb923c,#e34c43)" },
-  emerald: { accent: "#16805d", tint: "#e7f7ef", ink: "#143b2c", gradient: "linear-gradient(135deg,#34b879,#087f5b)" },
-  rose: { accent: "#d94678", tint: "#fff0f5", ink: "#55172e", gradient: "linear-gradient(135deg,#f472b6,#c02665)" },
-  midnight: { accent: "#475569", tint: "#eef2f7", ink: "#172033", gradient: "linear-gradient(135deg,#64748b,#334155)" },
-  gold: { accent: "#a97716", tint: "#fff8e5", ink: "#44300c", gradient: "linear-gradient(135deg,#e8bd56,#a97716)" },
-  mint: { accent: "#0f9488", tint: "#e6faf6", ink: "#123f3b", gradient: "linear-gradient(135deg,#5eead4,#0f9488)" },
-  berry: { accent: "#9333a8", tint: "#faedff", ink: "#42134c", gradient: "linear-gradient(135deg,#c084fc,#9333a8)" },
-  slate: { accent: "#475569", tint: "#f1f5f9", ink: "#1e293b", gradient: "linear-gradient(135deg,#94a3b8,#475569)" },
-};
+import { resolveTheme, pagePrimary } from "@/lib/theme";
 
 
 function readableSurface(hex: string, whiteRatio = 0.9) {
@@ -69,20 +57,19 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
-    address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string;
+    address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string;
     products?: { name: string; price: string; image_url: string; description: string }[];
   };
   const products = Array.isArray(sections.products) ? sections.products : [];
-  const basePalette = palettes[page.theme || "violet"] || palettes.violet;
-  const customAccent = /^#[0-9a-fA-F]{6}$/.test(sections.accent_color || "") ? sections.accent_color! : "#334155";
   const template: string = page.template || "minimal";
-  const selectedPanel = /^#[0-9a-fA-F]{6}$/.test(sections.panel_color || "") ? sections.panel_color! : "#f8fafc";
-  const pageBackground = /^#[0-9a-fA-F]{6}$/.test((sections as any).page_background_color || "") ? (sections as any).page_background_color : "#ffffff";
-  const customText = /^#[0-9a-fA-F]{6}$/.test((sections as any).text_color || "") ? (sections as any).text_color : "#111827";
-  const customButton = /^#[0-9a-fA-F]{6}$/.test((sections as any).button_color || "") ? (sections as any).button_color : "#334155";
-  const customPanel = selectedPanel;
-  const palette = { ...basePalette, accent: customAccent, tint: customPanel, gradient: customButton };
-  const selectedCardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : "#ffffff";
+  const resolvedTheme = resolveTheme(page.theme || "violet", pagePrimary(sections) || undefined, sections.theme_mode);
+  const customAccent = resolvedTheme.palette.accent;
+  const customPanel = resolvedTheme.palette.tint;
+  const pageBackground = resolvedTheme.bg;
+  const customText = resolvedTheme.text;
+  const customButton = resolvedTheme.palette.gradient;
+  const palette = { ...resolvedTheme.palette, accent: customAccent, tint: customPanel, gradient: customButton };
+  const selectedCardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : resolvedTheme.surface;
   const cardBackground = selectedCardBackground;
   const cardText = customText;
   const cardMuted = cardText === "#ffffff" ? "#e2e8f0" : "#475569";
