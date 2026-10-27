@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { updateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
-import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
+import { resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
 type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
@@ -15,15 +15,8 @@ type PageData = {
 };
 
 const templates = [
-  {id:"profile",name:"Profile",hint:"بطاقة نشاط كاملة"},
-  {id:"store",name:"Store",hint:"متجر ومنتجات"},
-  {id:"aurora",name:"Aurora",hint:"واجهة عصرية متدرجة"},
-  {id:"bold",name:"Bold",hint:"جريء ولافت"},
-  {id:"minimal",name:"Minimal",hint:"بسيط وراقي"},
-  {id:"agency",name:"Agency",hint:"خدمات وشركات"},
-  {id:"beauty",name:"Beauty",hint:"جمال وعناية"},
-  {id:"portfolio",name:"Portfolio",hint:"عرض الأعمال"},
-  {id:"restaurant",name:"Restaurant",hint:"مطاعم ومقاهٍ"},
+  {id:"store",name:"Store",hint:"بطاقة متجر بكتالوج المنتجات"},
+  {id:"aurora",name:"Aurora",hint:"بطاقة نشاط كاملة بتصميم متدرّج"},
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
@@ -42,8 +35,8 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(page.template || "profile");
-  const [theme, setTheme] = useState(() => normalizeThemeId(page.theme || "blue"));
+  const [template, setTemplate] = useState(page.template === "store" ? "store" : "aurora");
+  const [theme, setTheme] = useState("white");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -64,8 +57,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
-  const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
-  const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
+  const activeDef = { id: "white" };
+  const resolved = resolveTheme("white", primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
@@ -115,25 +108,6 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
             </span>
             <span className="block font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
           </button>)}
-        </div>
-      </section>
-      <section className="space-y-4 rounded-3xl border border-zinc-800 bg-[#09090b] p-4 text-white">
-        <h2 className="text-lg font-black text-white">2. الثيم والألوان</h2>
-        <p className="text-sm leading-6 text-zinc-400">اختار المظهر الخاص ببطاقتك. تتبدل معاينة البطاقة مباشرة، مع الحفاظ على وضوح النصوص وزر الاتصال الأخضر.</p>
-        <div className="grid grid-cols-3 gap-2.5">
-          {THEMES.map((item) => {
-            const p = resolveTheme(item.id).palette;
-            const active = normalizeThemeId(theme) === item.id;
-            return (
-              <button key={item.id} type="button" aria-pressed={active} onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }}
-                className={`flex min-h-[90px] flex-col items-center justify-center rounded-2xl border bg-[#111114] px-2 py-3 text-center transition ${active ? "border-blue-500 ring-2 ring-blue-500/35" : "border-zinc-800 hover:border-zinc-600"}`}>
-                <span className="mb-2 grid h-11 w-11 place-items-center rounded-full border-2 text-base font-black shadow-sm" style={{ background: item.primary, borderColor: item.id === "white" ? "#d4d4d8" : item.primary, color: p.ink }}>
-                  {active ? <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-current text-sm">✓</span> : null}
-                </span>
-                <span className="block text-xs font-bold text-zinc-100">{item.name}</span>
-              </button>
-            );
-          })}
         </div>
       </section>
       <section className="space-y-4">
