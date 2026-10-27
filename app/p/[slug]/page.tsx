@@ -170,14 +170,14 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                 {todayStatus && <span className="inline-flex items-center gap-1.5 text-xs font-black" style={{ color: isOpenNow ? "#22c55e" : "#fb7185" }}><span className="h-2.5 w-2.5 rounded-full" style={{ background: isOpenNow ? "#22c55e" : "#fb7185" }} />{todayStatus}</span>}
               </div>
               <details className="mt-3">
-                <summary className="cursor-pointer rounded-xl border px-4 py-2.5 text-center text-sm font-bold" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.text }}>كل الأوقات⌄</summary>
+                <summary className="cursor-pointer rounded-xl border px-4 py-3.5 text-center text-base font-extrabold shadow-sm" style={{ borderColor: resolvedTheme.primary + "66", background: resolvedTheme.surface, color: resolvedTheme.text }}>عرض جدول أوقات العمل <span className="mr-2 text-lg" aria-hidden="true">⌄</span></summary>
                 {weeklyHours ? (
                   <div className="mt-2 space-y-1">
                     {Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key, label]) => {
                       const hoursForDay = weeklyHours?.[key];
-                      return <div key={key} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs" style={{ background: resolvedTheme.surface }}>
-                        <span className="font-bold">{label}</span>
-                        <span style={{ color: hoursForDay?.open ? resolvedTheme.muted : "#fb7185" }}>{hoursForDay?.open ? `${hoursForDay.from} – ${hoursForDay.to}` : "مغلق"}</span>
+                      return <div key={key} className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm sm:text-base" style={{ background: resolvedTheme.surface, borderColor: resolvedTheme.border }}>
+                        <span className="font-extrabold" style={{ color: resolvedTheme.text }}>{label}</span>
+                        <span className="text-sm font-bold tabular-nums sm:text-base" dir="ltr" style={{ color: hoursForDay?.open ? resolvedTheme.text : "#e11d48" }}>{hoursForDay?.open ? `${hoursForDay.from} – ${hoursForDay.to}` : "مغلق"}</span>
                       </div>;
                     })}
                   </div>
