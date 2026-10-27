@@ -135,8 +135,13 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
               </div>
             )}
             <div className="relative -mt-[4.5rem] px-5 pb-5 text-center sm:px-8">
-              <div className="mx-auto mb-4 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 shadow-xl" style={{ borderColor: resolvedTheme.surface, background: resolvedTheme.surface, boxShadow: `0 0 0 3px ${resolvedTheme.primary}55, 0 12px 35px #0005` }}>
-                {displayImage ? <img src={displayImage} alt={page.business_name} className="h-full w-full rounded-full object-cover" /> : <span className="text-4xl font-black" style={{ color: resolvedTheme.primary }}>✦</span>}
+              <div className="relative mx-auto mb-4 grid h-28 w-28 place-items-center overflow-visible rounded-full border-4 shadow-xl" style={{ borderColor: resolvedTheme.surface, background: resolvedTheme.surface, boxShadow: `0 0 0 3px ${resolvedTheme.primary}55, 0 12px 35px #0005` }}>
+                <div className="h-full w-full overflow-hidden rounded-full">
+                  {displayImage ? <img src={displayImage} alt={page.business_name} className="h-full w-full rounded-full object-cover" /> : <span className="grid h-full w-full place-items-center text-4xl font-black" style={{ color: resolvedTheme.primary }}>✦</span>}
+                </div>
+                {displayImage && <span title="ملف موثّق على منصة بطاقتي" aria-label="ملف موثّق على منصة بطاقتي" className="absolute -bottom-1 -left-1 grid h-8 w-8 place-items-center rounded-full border-[3px] border-white bg-blue-600 text-white shadow-lg ring-2 ring-blue-200 animate-pulse">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                </span>}
               </div>
               <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{ color: resolvedTheme.text }}>{page.business_name}</h1>
               {page.headline && <p className="mt-2 text-sm font-semibold leading-7 sm:text-base" style={{ color: resolvedTheme.muted }}>{page.headline}</p>}
@@ -243,8 +248,13 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </section>
           )}
 
-          <footer className="border-t px-5 py-5 text-center text-xs" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
-            © {new Date().getFullYear()} {page.business_name}
+          <footer className="border-t px-5 py-6 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
+            <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
+            <a href="/" className="group mx-auto mt-4 inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-black shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ borderColor: resolvedTheme.primary + "55", background: `linear-gradient(110deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})`, color: resolvedTheme.primary }}>
+              <span aria-hidden="true" className="text-lg drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] animate-pulse">✦</span>
+              <span className="bg-gradient-to-l from-amber-500 via-yellow-300 to-amber-600 bg-clip-text text-transparent">تم الإنشاء بواسطة منصة بطاقتي</span>
+              <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_0_7px_rgba(250,204,21,0.65)] animate-pulse"><path d="M10 1.5 12.4 3l2.8-.1 1.1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1.1 2.6-2.8-.1L10 18.5l-2.4-1.5-2.8.1-1.1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1.1-2.6 2.8.1L10 1.5Zm-1.1 11.8 5-5-1.2-1.2-3.8 3.8-1.7-1.7L6 10.4l2.9 2.9Z"/></svg>
+            </a>
           </footer>
         </article>
       </main>
@@ -314,7 +324,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
           </div>
         </article>
 
-        <footer className="flex flex-col items-center justify-between gap-2 px-2 py-6 text-xs text-slate-400 sm:flex-row"><span>© {new Date().getFullYear()} {page.business_name}</span><a href="/" className="rounded-xl bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5">تم إنشاء بواسطة منصة بطاقتي</a></footer>
+        <footer className="flex flex-col items-center justify-between gap-3 px-2 py-6 text-xs text-slate-400 sm:flex-row"><span>© {new Date().getFullYear()} {page.business_name}</span><a href="/" className="group inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-gradient-to-r from-violet-950 via-violet-800 to-fuchsia-700 px-5 py-3 text-sm font-black text-white shadow-[0_0_22px_rgba(217,119,6,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(217,119,6,0.45)]"><span className="text-lg text-amber-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.9)] animate-pulse">✦</span><span>تم الإنشاء بواسطة منصة بطاقتي</span><svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" className="text-amber-300 animate-pulse" aria-hidden="true"><path d="M10 1.5 12.4 3l2.8-.1 1.1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1.1 2.6-2.8-.1L10 18.5l-2.4-1.5-2.8.1-1.1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1.1-2.6 2.8.1L10 1.5Zm-1.1 11.8 5-5-1.2-1.2-3.8 3.8-1.7-1.7L6 10.4l2.9 2.9Z"/></svg></a></footer>
       </div>
     </main>
   );
