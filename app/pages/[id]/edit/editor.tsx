@@ -56,7 +56,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [hours, setHours] = useState(initialSections.hours || "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
-  const [products, setProducts] = useState(() => Array.from({length:3}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
+  const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
@@ -136,7 +136,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <h2 className="text-lg font-black text-slate-950">5. كتالوج المنتجات (حتى 3 منتجات)</h2>
         <p className="text-sm text-slate-500">أضف اسم المنتج وسعره وصورته؛ المنتجات التي تتركها فارغة لن تظهر للزوار.</p>
         {products.map((product,index)=><div key={index} className="space-y-3 rounded-xl bg-slate-50 p-3">
-          <h3 className="font-extrabold text-slate-800">المنتج {index+1}</h3>
+          <div className="flex items-center justify-between gap-3"><h3 className="font-extrabold text-slate-800">المنتج {index+1}</h3><button type="button" onClick={()=>setProducts(old=>old.filter((_,i)=>i!==index))} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600">حذف المنتج</button></div>
           <input className={field} aria-label={"اسم المنتج "+(index+1)} value={product.name} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,name:e.target.value}:p))} placeholder="اسم المنتج" maxLength={80} />
           <input className={field} aria-label={"سعر المنتج "+(index+1)} value={product.price} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,price:e.target.value}:p))} placeholder="السعر (دج)" maxLength={30} />
           <label className={label} htmlFor={`product_image_${index}`}>صورة المنتج {index + 1}</label>
