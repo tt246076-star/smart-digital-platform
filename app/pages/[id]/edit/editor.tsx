@@ -197,20 +197,36 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
         <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ ...vars, background: "var(--bg)" }}>
           <div className={`mx-auto overflow-hidden rounded-3xl border shadow-sm transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"}`} style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-            <div className="h-16" style={{ background: "var(--gradient)" }} />
-            <div className="px-5 pb-6 text-center">
-              {logo ? <img src={logo} alt="" className="relative mx-auto -mt-10 mb-3 h-20 w-20 rounded-full border-4 object-cover" style={{ borderColor: "var(--surface)" }} /> : <div className="relative mx-auto -mt-10 mb-3 grid h-20 w-20 place-items-center rounded-full border-4 text-3xl font-black" style={{ borderColor: "var(--surface)", background: "var(--gradient)", color: "var(--on-primary)" }}>{business.slice(0,1) || "م"}</div>}
-              <h3 className="text-2xl font-black">{business || "اسم متجرك"}</h3>
-              <p className="mt-2 text-sm font-bold" style={{ color: "var(--primary-text)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
-              <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-              <div className="mt-4 flex justify-center gap-5 text-xs font-extrabold">
-                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>☎</span>اتصال</span>
-                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--whatsapp)", color: "#fff" }}>◉</span>واتساب</span>
-                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--primary)", color: "var(--on-primary)" }}>＋</span>حفظ</span>
+            {template === "profile" ? (
+              <div className="px-5 pb-6 pt-8 text-center">
+                {logo ? <img src={logo} alt="" className="mx-auto mb-3 h-16 w-16 rounded-full border-2 object-cover" style={{ borderColor: "var(--primary)" }} /> : <div className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-full border text-2xl" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>★</div>}
+                <h3 className="text-xl font-black">{business || "اسم متجرك"}</h3>
+                <p className="mt-2 text-sm font-bold" style={{ color: "var(--muted)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
+                <p className="mx-auto mt-2 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
+                <div className="mt-4 space-y-2">
+                  <div className="rounded-xl border px-4 py-2.5 text-sm font-bold" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>رابط</div>
+                  <div className="rounded-xl border px-4 py-2.5 text-sm font-bold" style={{ borderColor: "var(--border)", background: "var(--tint)", color: "var(--primary)" }}>رابط</div>
+                </div>
+                <div className="mt-4 rounded-full px-4 py-3 text-sm font-extrabold text-white" style={{ background: "var(--call-button)" }}>{phone ? `اتصال · ${phone}` : "اتصل الآن"}</div>
               </div>
-              <div className="mt-4 rounded-xl px-4 py-3 text-sm font-extrabold" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
-              <p className="mt-4 text-xs" style={{ color: "var(--muted)" }}>الثيم: {activeDef.name} · القالب: {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
-            </div>
+            ) : (
+              <>
+                <div className="h-16" style={{ background: "var(--gradient)" }} />
+                <div className="px-5 pb-6 text-center">
+                  {logo ? <img src={logo} alt="" className="relative mx-auto -mt-10 mb-3 h-20 w-20 rounded-full border-4 object-cover" style={{ borderColor: "var(--surface)" }} /> : <div className="relative mx-auto -mt-10 mb-3 grid h-20 w-20 place-items-center rounded-full border-4 text-3xl font-black" style={{ borderColor: "var(--surface)", background: "var(--gradient)", color: "var(--on-primary)" }}>{business.slice(0,1) || "م"}</div>}
+                  <h3 className="text-2xl font-black">{business || "اسم متجرك"}</h3>
+                  <p className="mt-2 text-sm font-bold" style={{ color: "var(--primary-text)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
+                  <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
+                  <div className="mt-4 flex justify-center gap-5 text-xs font-extrabold">
+                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>☎</span>اتصال</span>
+                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--whatsapp)", color: "#fff" }}>◉</span>واتساب</span>
+                    <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--primary)", color: "var(--on-primary)" }}>＋</span>حفظ</span>
+                  </div>
+                  <div className="mt-4 rounded-xl px-4 py-3 text-sm font-extrabold" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
+                  <p className="mt-4 text-xs" style={{ color: "var(--muted)" }}>الثيم: {activeDef.name} · القالب: {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
+                </div>
+              </>
+            )}
           </div>
           <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>المعاينة تعرض ألوان الثيم نفسها المستعملة في الصفحة المنشورة؛ شكل القالب الكامل يظهر بعد النشر.</p>
         </div>
