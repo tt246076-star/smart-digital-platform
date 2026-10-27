@@ -93,14 +93,10 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <input type="hidden" name="sections" value={sectionsJson} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]"><div className="min-w-0 space-y-8">
       <section>
-        <h2 className="text-lg font-black text-slate-950">1. اختار القالب</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {templates.map((item) => <button key={item.id} type="button" onClick={() => setTemplate(item.id)} className={`rounded-2xl border p-3 text-right transition hover:-translate-y-0.5 hover:shadow-md ${template === item.id ? "border-violet-500 bg-violet-50 ring-2 ring-violet-200" : "border-slate-200 bg-white"}`}>
-            <div className={`mb-3 h-14 overflow-hidden border ${item.id === "minimal" || item.id === "portfolio" ? "rounded-md" : item.id === "bold" ? "rounded-none border-2" : item.id === "beauty" ? "rounded-2xl" : "rounded-lg"}`} style={{ background: item.id === "minimal" || item.id === "portfolio" ? "#ffffff" : item.id === "bold" || item.id === "agency" ? activeTheme.dark : item.id === "store" || item.id === "restaurant" ? activeTheme.soft : item.id === "beauty" ? "linear-gradient(135deg,#fbcfe8,#fce7f3)" : `linear-gradient(135deg,${activeTheme.main},#111827)`, borderColor: activeTheme.main }}>
-              {item.id === "minimal" || item.id === "portfolio" ? <><div className="mx-2 mt-2 h-1 w-1/3" style={{background:activeTheme.main}}/><div className="mx-2 mt-2 h-1 w-3/4 bg-slate-200"/><div className="mx-2 mt-1 h-1 w-1/2 bg-slate-100"/></> : item.id === "bold" ? <div className="m-2 h-8 border-2 border-white/80"/> : item.id === "beauty" ? <div className="mx-auto mt-2 h-9 w-9 rounded-full border-4 border-white/80"/> : item.id === "restaurant" ? <div className="m-2 flex gap-1"><div className="h-8 flex-1 rounded bg-white/80"/><div className="h-8 flex-1 rounded bg-white/50"/></div> : item.id === "store" ? <div className="m-2 grid grid-cols-3 gap-1"><div className="h-7 rounded bg-white/80"/><div className="h-7 rounded bg-white/60"/><div className="h-7 rounded bg-white/40"/></div> : <><div className="mx-2 mt-2 h-2 w-1/2 rounded-full bg-white/80" /><div className="mx-2 mt-1 h-1.5 w-3/4 rounded-full bg-white/40" /></>}
-            </div>
-            <span className="block text-sm font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
-          </button>)}
+        <h2 className="text-lg font-black text-slate-950">1. القالب الوحيد</h2>
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-3"><div className="grid h-14 w-14 place-items-center rounded-xl border border-slate-200 bg-white text-xl text-slate-500">▤</div><div><p className="font-black text-slate-900">قالب بسيط ومحايد</p><p className="mt-1 text-sm text-slate-500">بدون ألوان مفروضة أو أشكال جاهزة.</p></div></div>
+          <p className="mt-3 text-sm leading-6 text-slate-600">خصص لون الخلفية والبطاقة والأقسام والنصوص والأزرار من محرر الألوان.</p>
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
