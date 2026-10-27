@@ -134,6 +134,21 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </div>
           </section>}
 
+          {sections.hours && <section className="mx-4 mt-5 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm sm:mx-7 sm:p-6">
+            <div className="mx-auto max-w-3xl">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-2xl text-amber-700">◷</span><div><h2 className="text-lg font-black text-slate-900 sm:text-xl">أوقات العمل</h2><p className="mt-1 text-sm text-slate-500">جدول الأسبوع</p></div></div>
+                {todayStatus && <span aria-live="polite" className={`shrink-0 rounded-full px-3 py-2 text-xs font-black sm:text-sm ${isOpenNow?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayStatus}</span>}
+              </div>
+              <details className="mt-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-3 text-sm font-extrabold text-white shadow-sm" style={{background:palette.gradient}}>عرض جدول أوقات الأسبوع <span className="text-xl leading-none">⌄</span></summary>
+                <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-[1fr_1.2fr] items-center gap-3 bg-slate-100 px-4 py-3 text-xs font-black text-slate-600"><span>اليوم</span><span className="text-left">ساعات العمل</span></div>
+                  {weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label],i)=>{const h=weeklyHours?.[key];return <div key={key} className={`grid grid-cols-[1fr_1.2fr] items-center gap-3 border-t border-slate-100 px-4 py-3 text-sm ${i%2===0?"bg-white":"bg-slate-50"}`}><span className="font-extrabold text-slate-800">{label}</span><span dir="ltr" className={`text-left font-bold ${h?.open?"text-emerald-700":"text-slate-400"}`}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="p-3 text-sm leading-7 text-slate-600">{sections.hours}</p>}
+                </div>
+              </details>
+            </div>
+          </section>}
           <div className="grid gap-5 px-4 py-5 sm:px-7 sm:py-6 lg:grid-cols-[minmax(0,1fr)_230px] lg:gap-6">
             <div className="min-w-0">
               {page.description && <section className="mb-9"><div className="mb-3 flex items-center gap-3"><span className="h-8 w-1.5 rounded-full" style={{background:palette.accent}}/><h2 className="text-xl font-black text-slate-950">من نحن</h2></div><p className="whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p></section>}
@@ -155,7 +170,6 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
             <aside className="space-y-4">
               {sections.address && <section className="rounded-3xl border border-slate-200 bg-white p-5"><span className="grid h-11 w-11 place-items-center rounded-xl text-xl" style={{background:palette.tint,color:palette.accent}}>⌖</span><h2 className="mt-4 font-black text-slate-900">زورونا</h2><p className="mt-2 text-sm leading-7 text-slate-600">{sections.address}</p>{sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-black" style={{borderColor:palette.accent,color:palette.accent}}>افتح الموقع على الخريطة ↗</a>}</section>}
-              {sections.hours && <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-lg text-amber-700">◷</span><h2 className="font-black text-slate-900">أوقات العمل</h2></div>{todayStatus && <span aria-live="polite" className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isOpenNow?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayStatus}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-extrabold text-slate-700">عرض جدول الأسبوع <span className="float-left">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-xs"><span className="font-bold text-slate-700">{label}</span><span className={h?.open?"font-bold text-emerald-700":"font-bold text-slate-400"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>}</div></details></section>}
               <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
             </aside>
           </div>
