@@ -2,25 +2,27 @@
 import { createClient } from "@/lib/supabase/server";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 
-const themes: Record<string, { main: string; soft: string; dark: string; gradient: string }> = {
-  violet: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  ocean: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  sunset: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  emerald: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  rose: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  midnight: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  gold: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  mint: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  berry: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
-  slate: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+const palettes: Record<string, { accent: string; tint: string; ink: string; gradient: string }> = {
+  violet: { accent: "#6d4aff", tint: "#f0ecff", ink: "#25164f", gradient: "linear-gradient(135deg,#8b5cf6,#5b35d5)" },
+  ocean: { accent: "#087eaa", tint: "#e7f7fc", ink: "#103746", gradient: "linear-gradient(135deg,#19a7ce,#087eaa)" },
+  sunset: { accent: "#e76b36", tint: "#fff1e9", ink: "#512714", gradient: "linear-gradient(135deg,#fb923c,#e34c43)" },
+  emerald: { accent: "#16805d", tint: "#e7f7ef", ink: "#143b2c", gradient: "linear-gradient(135deg,#34b879,#087f5b)" },
+  rose: { accent: "#d94678", tint: "#fff0f5", ink: "#55172e", gradient: "linear-gradient(135deg,#f472b6,#c02665)" },
+  midnight: { accent: "#475569", tint: "#eef2f7", ink: "#172033", gradient: "linear-gradient(135deg,#64748b,#334155)" },
+  gold: { accent: "#a97716", tint: "#fff8e5", ink: "#44300c", gradient: "linear-gradient(135deg,#e8bd56,#a97716)" },
+  mint: { accent: "#0f9488", tint: "#e6faf6", ink: "#123f3b", gradient: "linear-gradient(135deg,#5eead4,#0f9488)" },
+  berry: { accent: "#9333a8", tint: "#faedff", ink: "#42134c", gradient: "linear-gradient(135deg,#c084fc,#9333a8)" },
+  slate: { accent: "#475569", tint: "#f1f5f9", ink: "#1e293b", gradient: "linear-gradient(135deg,#94a3b8,#475569)" },
 };
 
 function socialLinks(page: any) {
   return [
-    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "" },
-    { label: "Instagram", url: page.instagram_url }, { label: "Facebook", url: page.facebook_url },
-    { label: "TikTok", url: page.tiktok_url }, { label: "YouTube", url: page.youtube_url },
-    ...(Array.isArray(page.custom_links) ? page.custom_links : []),
+    { label: "واتساب", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "", kind: "whatsapp" },
+    { label: "إنستغرام", url: page.instagram_url, kind: "instagram" },
+    { label: "فيسبوك", url: page.facebook_url, kind: "facebook" },
+    { label: "تيك توك", url: page.tiktok_url, kind: "tiktok" },
+    { label: "يوتيوب", url: page.youtube_url, kind: "youtube" },
+    ...(Array.isArray(page.custom_links) ? page.custom_links.map((x: any) => ({ ...x, kind: "custom" })) : []),
   ].filter((link) => link.url);
 }
 
@@ -35,9 +37,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return { title, description, openGraph: { title, description, type: "website" } };
 }
 
-export default async function PublicLandingPage({ params }: {
-  params: { slug: string }; searchParams?: { updated?: string };
-}) {
+export default async function PublicLandingPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
     .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
@@ -45,63 +45,121 @@ export default async function PublicLandingPage({ params }: {
   if (!page) notFound();
 
   const links = socialLinks(page);
-  const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {address?:string;map_url?:string;hours?:string;round_image_url?:string;cover_image_url?:string;products?:{name:string;price:string;image_url:string;description:string}[]};
+  const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
+    address?: string; map_url?: string; hours?: string; round_image_url?: string; cover_image_url?: string;
+    products?: { name: string; price: string; image_url: string; description: string }[];
+  };
   const products = Array.isArray(sections.products) ? sections.products : [];
-  const theme = themes[page.theme || "gold"] || themes.gold;
-  const isStore = page.template === "store" || page.template === "restaurant";
+  const palette = palettes[page.theme || "violet"] || palettes.violet;
+  const template = page.template || "aurora";
+  const isRestaurant = template === "restaurant";
+  const isBeauty = template === "beauty";
+  const isMinimal = template === "minimal";
+  const isBold = template === "bold";
+  const isStore = template === "store" || isRestaurant;
+  const displayImage = sections.round_image_url || page.logo_url;
 
   return (
-    <main dir="rtl" className="relative min-h-screen overflow-hidden bg-[#090909] px-4 py-8 text-[#f7f0df] sm:px-6 sm:py-14">
+    <main dir="rtl" className="min-h-screen bg-[#f5f7fb] px-3 py-4 text-slate-800 sm:px-6 sm:py-8" style={{ ["--brand" as any]: palette.accent, ["--brand-tint" as any]: palette.tint, ["--brand-ink" as any]: palette.ink }}>
       <LandingPageAnalytics slug={params.slug} />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-[#b88932]/15 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-[#b88932]/10 blur-3xl" />
-      <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[2rem] border border-[#c6a45a]/35 bg-[#10100f] shadow-[0_30px_100px_rgba(0,0,0,.55)]">
-        <div className="h-1.5 bg-gradient-to-l from-[#f4df9b] via-[#c6a45a] to-[#72501b]" />
-        {sections.cover_image_url && <div className="relative h-48 sm:h-72"><img src={sections.cover_image_url} alt={page.business_name + " صورة الغلاف"} className="h-full w-full object-cover opacity-90" /><div className="absolute inset-0 bg-gradient-to-t from-[#10100f] via-transparent to-black/10" /></div>}
-        <section className="px-5 pb-8 pt-8 text-center sm:px-12 sm:pb-12 sm:pt-10">
-          <div className="mx-auto mb-6 flex items-center justify-center gap-3">
-            <span className="h-px w-10 bg-[#c6a45a]/70" />
-            <span className="text-[10px] font-black tracking-[.35em] text-[#d9bd76]">بطاقاتي · B I T A Q A T I</span>
-            <span className="h-px w-10 bg-[#c6a45a]/70" />
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-4 flex items-center justify-between px-1">
+          <a href="/" className="flex items-center gap-2 text-sm font-black text-slate-700"><span className="flex h-8 w-8 items-center justify-center rounded-xl text-sm text-white" style={{ background: palette.gradient }}>ب</span> بطاقاتي</a>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500">الصفحة الرسمية للنشاط</span>
+        </header>
+
+        <div className={`overflow-hidden border border-slate-200/80 bg-white shadow-[0_18px_70px_rgba(15,23,42,.08)] ${isMinimal ? "rounded-2xl" : "rounded-[1.75rem] sm:rounded-[2rem]"}`}>
+          <section className="relative">
+            {sections.cover_image_url ? (
+              <div className={`relative overflow-hidden ${isRestaurant ? "h-56 sm:h-80" : "h-44 sm:h-64"}`}>
+                <img src={sections.cover_image_url} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                <div className="absolute bottom-5 right-5 left-5 sm:bottom-7 sm:right-8 sm:left-8">
+                  <span className="inline-flex rounded-full bg-white/90 px-3 py-1 text-xs font-bold" style={{ color: palette.accent }}>{isRestaurant ? "قائمة المحل ومعلوماته" : isBeauty ? "الجمال يبدأ من هنا" : isStore ? "تسوّق واكتشف" : "مرحبًا بكم"}</span>
+                  <h1 className="mt-3 text-2xl font-black text-white drop-shadow sm:text-4xl">{page.business_name}</h1>
+                </div>
+              </div>
+            ) : (
+              <div className="relative overflow-hidden px-5 pb-7 pt-8 sm:px-10 sm:pb-10 sm:pt-10" style={{ background: isBold ? palette.gradient : palette.tint }}>
+                {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -left-12 -top-20 h-48 w-48 rounded-full border-[28px] border-white/30" />}
+                <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-right">
+                  {displayImage ? <img src={displayImage} alt={page.business_name} className="h-24 w-24 shrink-0 rounded-2xl border-4 border-white bg-white object-cover shadow-md sm:h-28 sm:w-28" /> :
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-4 border-white text-4xl font-black text-white shadow-md sm:h-28 sm:w-28" style={{ background: palette.gradient }}>{page.business_name.slice(0, 1)}</div>}
+                  <div className="min-w-0 flex-1">
+                    <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-bold" style={{ color: palette.accent }}>{isRestaurant ? "مطعم ومأكولات" : isBeauty ? "جمال وعناية" : isStore ? "المتجر الرسمي" : template === "agency" ? "خدمات احترافية" : "أهلًا وسهلًا بكم"}</span>
+                    <h1 className={`mt-3 font-black leading-tight ${isBold ? "text-3xl text-white sm:text-5xl" : "text-3xl text-slate-900 sm:text-4xl"}`}>{page.business_name}</h1>
+                    {page.headline && <p className={`mt-2 text-sm font-semibold leading-7 sm:text-base ${isBold ? "text-white/90" : "text-slate-600"}`}>{page.headline}</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <div className="grid gap-8 px-4 py-6 sm:px-8 sm:py-9 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-10">
+            <div className="min-w-0">
+              {page.description && <section className="mb-7">
+                <h2 className="mb-2 flex items-center gap-2 text-lg font-black text-slate-900"><span className="h-5 w-1.5 rounded-full" style={{ background: palette.accent }} />نبذة عنّا</h2>
+                <p className="whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p>
+              </section>}
+
+              {products.length > 0 && <section>
+                <div className="mb-4 flex items-end justify-between gap-3">
+                  <div><p className="text-xs font-bold" style={{ color: palette.accent }}>{isRestaurant ? "ماذا نقدّم؟" : "اختياراتنا لكم"}</p><h2 className="mt-1 text-xl font-black text-slate-900 sm:text-2xl">{isRestaurant ? "القائمة" : isStore ? "منتجات المحل" : "المنتجات والخدمات"}</h2></div>
+                  <span className="rounded-full px-3 py-1.5 text-xs font-bold" style={{ color: palette.accent, background: palette.tint }}>{products.length} {products.length === 1 ? "عنصر" : "عناصر"}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+                  {products.map((product, i) => <article key={i} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <div className="relative aspect-[4/3] overflow-hidden" style={{ background: palette.tint }}>
+                      {product.image_url ? <img src={product.image_url} alt={product.name || "صورة المنتج"} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]" /> : <div className="flex h-full items-center justify-center text-4xl" style={{ color: palette.accent }}>{isRestaurant ? "🍽️" : "🛍️"}</div>}
+                      {product.price && <span className="absolute bottom-2 right-2 rounded-lg bg-white/95 px-2.5 py-1.5 text-xs font-black shadow-sm" style={{ color: palette.accent }}>{product.price} دج</span>}
+                    </div>
+                    <div className="p-3 sm:p-4">
+                      {product.name && <h3 className="line-clamp-2 font-black leading-6 text-slate-900">{product.name}</h3>}
+                      {product.description && <p className="mt-1.5 line-clamp-3 text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6">{product.description}</p>}
+                      {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-3 flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-black text-white transition hover:opacity-90 sm:text-sm" style={{ background: palette.gradient }}>{isRestaurant ? "اتصل للطلب" : "استفسر عن المنتج"}</a>}
+                      {!page.phone && page.whatsapp && <a data-track-event="contact" href={`https://wa.me/${page.whatsapp.replace(/\\D/g, "")}`} className="mt-3 flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-black text-white" style={{ background: palette.gradient }}>اطلب عبر واتساب</a>}
+                    </div>
+                  </article>)}
+                </div>
+              </section>}
+
+              {products.length === 0 && <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" style={{ background: palette.tint }}>✦</div>
+                <h2 className="mt-3 font-black text-slate-800">{isRestaurant ? "أهلًا بكم في مطعمنا" : "يسعدنا تواصلكم معنا"}</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-500">تواصلوا معنا لمعرفة المزيد عن خدماتنا.</p>
+              </div>}
+            </div>
+
+            <aside className="space-y-4">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <h2 className="mb-4 text-base font-black text-slate-900">تواصل معنا</h2>
+                <div className="space-y-2.5">
+                  {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-black text-white" style={{ background: palette.gradient }}><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-lg">☎</span><span>اتصال هاتفي<small className="block mt-0.5 font-medium text-white/80" dir="ltr">{page.phone}</small></span></a>}
+                  {links.map((link: { label: string; url: string; kind?: string }, i: number) => <a data-track-event="contact" key={`${link.label}-${i}`} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-white">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg text-base font-black" style={{ background: palette.tint, color: palette.accent }}>{link.kind === "whatsapp" ? "◉" : link.kind === "instagram" ? "◎" : link.kind === "facebook" ? "f" : link.kind === "tiktok" ? "♪" : link.kind === "youtube" ? "▶" : "↗"}</span><span className="flex-1">{link.label}</span><span className="text-slate-400">↗</span>
+                  </a>)}
+                </div>
+              </section>
+
+              {sections.address && <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <h2 className="mb-2 flex items-center gap-2 font-black text-slate-900"><span style={{ color: palette.accent }}>⌖</span> عنوان المحل</h2>
+                <p className="text-sm leading-7 text-slate-600">{sections.address}</p>
+                {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-black" style={{ borderColor: palette.accent, color: palette.accent }}>افتح الخريطة ↗</a>}
+              </section>}
+
+              {sections.hours && <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <h2 className="mb-3 flex items-center gap-2 font-black text-slate-900"><span style={{ color: palette.accent }}>◷</span> أوقات العمل</h2>
+                <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>
+              </section>}
+            </aside>
           </div>
-          {sections.round_image_url ? <img src={sections.round_image_url} alt={page.business_name} className="mx-auto mb-5 h-28 w-28 rounded-full border-2 border-[#d9bd76] object-cover p-1 shadow-[0_0_35px_rgba(198,164,90,.15)]" /> : page.logo_url ? <img src={page.logo_url} alt={page.business_name} className="mx-auto mb-5 h-24 w-24 rounded-2xl border border-[#c6a45a]/50 bg-black object-cover p-1 shadow-lg" /> :
-            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-2xl border border-[#d9bd76]/70 bg-gradient-to-br from-[#f2d58a] to-[#8d6523] text-4xl font-black text-[#17120a] shadow-[0_0_40px_rgba(198,164,90,.15)]">{page.business_name.slice(0, 1)}</div>}
-          <p className="text-xs font-bold tracking-[.15em] text-[#c6a45a]">{isStore ? "المتجر الرسمي" : "مرحبًا بكم"}</p>
-          <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#fff8e8] sm:text-5xl">{page.business_name}</h1>
-          {page.headline && <p className="mx-auto mt-4 max-w-xl text-base font-bold leading-8 text-[#d9bd76] sm:text-xl">{page.headline}</p>}
-          {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-[#c7c0b1] sm:text-base">{page.description}</p>}
-          {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-xl border border-[#f4df9b] bg-gradient-to-l from-[#f2d58a] to-[#b88932] px-6 py-4 font-black text-[#17120a] shadow-[0_8px_30px_rgba(184,137,50,.18)] transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto sm:min-w-64">اتصل بنا <span className="mx-2 text-lg">☎</span>{page.phone}</a>}
-          {links.length > 0 && <div className="mx-auto mt-5 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
-            {links.map((link: { label: string; url: string }, index: number) => {
-              const label = link.label.toLowerCase();
-              const icon = label.includes("whatsapp") ? "◉" : label.includes("instagram") ? "◎" : label.includes("facebook") ? "f" : label.includes("tiktok") ? "♪" : label.includes("youtube") ? "▶" : label.includes("اتصل") ? "☎" : "↗";
-              return <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="group flex items-center gap-3 rounded-xl border border-[#c6a45a]/25 bg-[#171613] px-4 py-3.5 text-right text-sm font-bold text-[#f6edda] transition duration-300 hover:-translate-y-0.5 hover:border-[#d9bd76] hover:bg-[#211d14]">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#c6a45a]/50 bg-[#c6a45a]/10 text-lg font-black text-[#e2c575]">{icon}</span>
-                <span className="flex-1">{link.label}</span><span className="text-[#c6a45a] transition-transform group-hover:-translate-x-1">↗</span>
-              </a>;
-            })}
-          </div>}
-          {sections.address && <section className="mx-auto mt-7 max-w-xl rounded-xl border border-[#c6a45a]/25 bg-[#171613] p-5 text-right">
-            <h2 className="font-black text-[#e2c575]">📍 عنوان المحل</h2><p className="mt-2 text-sm leading-7 text-[#c7c0b1]">{sections.address}</p>
-            {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-lg bg-[#c6a45a] px-4 py-2 text-sm font-black text-[#17120a]">🗺️ افتح الموقع على الخريطة</a>}
-          </section>}
-          {sections.hours && <section className="mx-auto mt-4 max-w-xl rounded-xl border border-[#c6a45a]/25 p-5 text-right">
-            <h2 className="font-black text-[#e2c575]">🕒 أوقات العمل</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#c7c0b1]">{sections.hours}</p>
-          </section>}
-          {products.length > 0 && <section className="mx-auto mt-9 max-w-3xl text-right">
-            <div className="mb-5 flex items-center gap-3"><span className="h-px flex-1 bg-[#c6a45a]/25" /><h2 className="whitespace-nowrap text-xl font-black text-[#f4df9b] sm:text-2xl">كتالوج المنتجات</h2><span className="h-px flex-1 bg-[#c6a45a]/25" /></div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{products.map((product,i)=><article key={i} className="overflow-hidden rounded-xl border border-[#c6a45a]/25 bg-[#171613] text-right transition hover:-translate-y-1 hover:border-[#d9bd76]/70 hover:shadow-[0_15px_40px_rgba(0,0,0,.25)]">
-              {product.image_url ? <img src={product.image_url} alt={product.name || "صورة المنتج"} className="h-44 w-full object-cover" /> : <div className="flex h-36 items-center justify-center bg-[#211d14] text-4xl">🛍️</div>}
-              <div className="p-4">{product.name && <h3 className="font-black text-[#fff8e8]">{product.name}</h3>}{product.description && <p className="mt-2 text-sm leading-6 text-[#c7c0b1]">{product.description}</p>}{product.price && <p className="mt-3 text-lg font-black text-[#e2c575]">{product.price} دج</p>}
-              {page.phone && <a href={`tel:${page.phone}`} className="mt-3 inline-flex w-full justify-center rounded-lg bg-gradient-to-l from-[#f2d58a] to-[#b88932] px-4 py-3 text-sm font-black text-[#17120a]">اطلب / استفسر</a>}</div>
-            </article>)}</div>
-          </section>}
-          <div className="mx-auto mt-9 h-px max-w-xs bg-gradient-to-l from-transparent via-[#c6a45a]/50 to-transparent" />
-          <p className="mt-5 text-xs font-medium text-[#8f8778]">صُنعت هذه الصفحة باستخدام <span className="font-bold text-[#c6a45a]">بطاقاتي</span> ✦</p>
-        </section>
+        </div>
+
+        <footer className="flex flex-col items-center justify-between gap-2 px-2 py-5 text-xs text-slate-400 sm:flex-row">
+          <span>© {new Date().getFullYear()} {page.business_name}</span>
+          <a href="/" className="font-bold transition hover:text-slate-600">صفحة منشأة عبر بطاقاتي</a>
+        </footer>
       </div>
-      <p className="relative mt-5 text-center text-[10px] tracking-widest text-[#746b5a]">ELEGANCE IN EVERY DETAIL</p>
-      <style>{`@media (prefers-reduced-motion: no-preference) { main > div:nth-of-type(3) { animation: cardEnter .7s ease-out both; } } @keyframes cardEnter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }`}</style>
     </main>
   );
 }
