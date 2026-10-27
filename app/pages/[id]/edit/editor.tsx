@@ -50,7 +50,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
   const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
   const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : "#334155");
-  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#ffffff");
+  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#f8fafc");
   const [pageBackgroundColor, setPageBackgroundColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).page_background_color || "") ? (initialSections as any).page_background_color : "#ffffff");
   const [textColor, setTextColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).text_color || "") ? (initialSections as any).text_color : "#111827");
   const [buttonColor, setButtonColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).button_color || "") ? (initialSections as any).button_color : "#334155");
@@ -59,7 +59,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,accent_color:accentColor,panel_color:panelColor,page_background_color:pageBackgroundColor,text_color:textColor,button_color:buttonColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
-  const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
+  const previewClass = useMemo(() => "rounded-2xl border shadow-sm", []);
 
   async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
     if (!file) return;
@@ -189,9 +189,9 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
         <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: pageBackgroundColor }}>
           <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: accentColor + "55", background: cardColor, color: textColor }}>
-            <div className="h-2" style={{ background: template === "minimal" || template === "portfolio" ? activeTheme.main : template === "beauty" ? "linear-gradient(90deg,#f472b6,#be185d)" : `linear-gradient(90deg,${activeTheme.main},${activeTheme.dark})` }} />
+            <div className="h-2" style={{ background: accentColor }} />
             <div className="px-5 py-7 text-center">
-              {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: activeTheme.main }}>{business.slice(0,1) || "م"}</div>}
+              {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: accentColor }}>{business.slice(0,1) || "م"}</div>}
               <p className="text-xs font-black" style={{ color: accentColor }}>مرحبًا بكم</p>
               <h3 className="mt-2 text-2xl font-black" style={{ color: textColor }}>{business || "اسم متجرك"}</h3>
               <p className="mt-2 font-bold" style={{color:textColor}}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
