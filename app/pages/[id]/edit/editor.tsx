@@ -14,26 +14,24 @@ type PageData = {
 };
 
 const themes = [
-  { id: "violet", name: "بنفسجي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" },
-  { id: "ocean", name: "أزرق", main: "#0284c7", soft: "#f0f9ff", dark: "#082f49" },
   { id: "sunset", name: "غروب", main: "#ea580c", soft: "#fff7ed", dark: "#431407" },
-  { id: "emerald", name: "أخضر", main: "#059669", soft: "#ecfdf5", dark: "#022c22" },
-  { id: "rose", name: "وردي", main: "#e11d48", soft: "#fff1f2", dark: "#4c0519" },
+  { id: "ocean", name: "أزرق", main: "#0284c7", soft: "#f0f9ff", dark: "#082f49" },
+  { id: "violet", name: "بنفسجي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" },
   { id: "midnight", name: "ليلي", main: "#6366f1", soft: "#eef2ff", dark: "#111827" },
-  { id: "gold", name: "ذهبي", main: "#b7791f", soft: "#fffbeb", dark: "#422006" },
-  { id: "mint", name: "نعناعي", main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a" },
+  { id: "rose", name: "وردي", main: "#e11d48", soft: "#fff1f2", dark: "#4c0519" },
+  { id: "emerald", name: "أخضر", main: "#059669", soft: "#ecfdf5", dark: "#022c22" },
   { id: "berry", name: "توتي", main: "#a21caf", soft: "#fdf4ff", dark: "#4a044e" },
+  { id: "mint", name: "نعناعي", main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a" },
+  { id: "gold", name: "ذهبي", main: "#b7791f", soft: "#fffbeb", dark: "#422006" },
   { id: "slate", name: "رمادي", main: "#475569", soft: "#f8fafc", dark: "#0f172a" },
 ];
 const templates = [
-  { id: "aurora", name: "Aurora", hint: "متدرّج وعصري" },
-  { id: "store", name: "Store", hint: "متجر وبيع" },
-  { id: "minimal", name: "Minimal", hint: "بسيط وراقي" },
   { id: "bold", name: "Bold", hint: "جريء ولافت" },
-  { id: "beauty", name: "Beauty", hint: "جمال وعناية" },
+  { id: "minimal", name: "Minimal", hint: "بسيط وراقي" },
   { id: "agency", name: "Agency", hint: "خدمات وشركات" },
-  { id: "restaurant", name: "Restaurant", hint: "مطاعم ومقاهي" },
+  { id: "beauty", name: "Beauty", hint: "جمال وعناية" },
   { id: "portfolio", name: "Portfolio", hint: "أعمال شخصية" },
+  { id: "restaurant", name: "Restaurant", hint: "مطاعم ومقاهي" },
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
