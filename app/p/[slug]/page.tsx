@@ -70,6 +70,14 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const isStore = template === "store" || isRestaurant;
   const displayImage = sections.round_image_url || page.logo_url;
   const hasContact = !!(page.phone || links.length);
+  let weeklyHours: Record<string, {open:boolean;from:string;to:string}> | null = null;
+  try {
+    const parsed = sections.hours ? JSON.parse(sections.hours) : null;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) weeklyHours = parsed;
+  } catch {}
+  const todayKey = new Intl.DateTimeFormat("en-US", { weekday:"long", timeZone:"Africa/Algiers" }).format(new Date()).toLowerCase();
+  const todayHours = weeklyHours?.[todayKey];
+  const todayStatus = todayHours ? (todayHours.open ? "مفتوح حسب التوقيت المحدد" : "مغلق اليوم") : "";
 
   return (
     <main dir="rtl" className="min-h-screen bg-[#f3f5fa] px-3 py-5 text-slate-800 sm:px-6 sm:py-8">
@@ -77,7 +85,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
       <div className="mx-auto max-w-6xl">
         <nav className="mb-5 flex items-center justify-between px-1">
           <a href="/" className="flex items-center gap-2.5 text-sm font-black text-slate-700"><span className="grid h-9 w-9 place-items-center rounded-xl text-white shadow-sm" style={{background:palette.gradient}}>ب</span> بطاقاتي</a>
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500">الصفحة الرسمية</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700"><svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10 1.5 12.4 3l2.8-.1 1.1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1.1 2.6-2.8-.1L10 18.5l-2.4-1.5-2.8.1-1.1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1.1-2.6 2.8.1L10 1.5Zm-1.1 11.8 5-5-1.2-1.2-3.8 3.8-1.7-1.7L6 10.4l2.9 2.9Z"/></svg>على منصة بطاقتي</span>
         </nav>
 
         <article className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,.09)]">
@@ -85,14 +93,14 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             {sections.cover_image_url ? <div className="relative h-56 sm:h-80">
               <img src={sections.cover_image_url} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/15 to-transparent" />
-            </div> : <div className="h-24 sm:h-36" style={{background:`radial-gradient(circle at 15% 20%, #ffffffaa, transparent 25%), ${palette.gradient}`}} />}
+            </div> : <div className="h-16 sm:h-24" style={{background:`radial-gradient(circle at 15% 20%, #ffffffaa, transparent 25%), ${palette.gradient}`}} />}
             <div className="relative px-5 pb-6 sm:px-10 sm:pb-9">
-              <div className="-mt-14 flex flex-col items-center gap-4 sm:-mt-16 sm:flex-row sm:items-end sm:gap-6">
-                {displayImage ? <img src={displayImage} alt={page.business_name} className="h-28 w-28 rounded-[1.7rem] border-[5px] border-white bg-white object-cover shadow-xl sm:h-36 sm:w-36" /> :
-                  <div className="grid h-28 w-28 place-items-center rounded-[1.7rem] border-[5px] border-white text-4xl font-black text-white shadow-xl sm:h-36 sm:w-36" style={{background:palette.gradient}}>{page.business_name.slice(0,1)}</div>}
+              <div className="-mt-10 flex flex-col items-center gap-3 sm:-mt-12 sm:flex-row sm:items-end sm:gap-4">
+                {displayImage ? <img src={displayImage} alt={page.business_name} className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-xl sm:h-24 sm:w-24" /> :
+                  <div className="grid h-20 w-20 place-items-center rounded-2xl border-4 border-white text-3xl font-black text-white shadow-xl sm:h-24 sm:w-24" style={{background:palette.gradient}}>{page.business_name.slice(0,1)}</div>}
                 <div className="min-w-0 flex-1 pb-1 text-center sm:text-right">
                   <div className="mb-2 inline-flex rounded-full px-3 py-1 text-xs font-extrabold" style={{background:palette.tint,color:palette.accent}}>{isRestaurant ? "مطعم ومأكولات" : isStore ? "المتجر الرسمي" : "مرحبًا بكم"}</div>
-                  <h1 className="text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{page.business_name}</h1>
+                  <h1 className="text-2xl font-black leading-tight text-slate-950 sm:text-3xl">{page.business_name}</h1>
                   {page.headline && <p className="mt-2 text-sm font-medium leading-7 text-slate-500 sm:text-base">{page.headline}</p>}
                 </div>
                 {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="inline-flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5" style={{background:palette.gradient}}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg> اتصل الآن</a>}
@@ -101,13 +109,13 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
           </header>
 
           {hasContact && <section className="border-y border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-10">
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg></span><span className="text-right"><strong className="block text-sm text-slate-900">الهاتف</strong><small dir="ltr" className="mt-1 block text-slate-500">{page.phone}</small></span></a>}
               {links.map((link: {label:string;url:string;kind?:string},i:number)=><a key={link.label+i} data-track-event="contact" href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><SocialIcon kind={link.kind || "custom"}/><span className="text-sm font-extrabold text-slate-700">{link.label}</span></a>)}
             </div>
           </section>}
 
-          <div className="grid gap-8 px-5 py-7 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_270px] lg:gap-10">
+          <div className="grid gap-5 px-4 py-5 sm:px-7 sm:py-6 lg:grid-cols-[minmax(0,1fr)_230px] lg:gap-6">
             <div className="min-w-0">
               {page.description && <section className="mb-9"><div className="mb-3 flex items-center gap-3"><span className="h-8 w-1.5 rounded-full" style={{background:palette.accent}}/><h2 className="text-xl font-black text-slate-950">من نحن</h2></div><p className="whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p></section>}
               <section>
@@ -128,13 +136,13 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
             <aside className="space-y-4">
               {sections.address && <section className="rounded-3xl border border-slate-200 bg-white p-5"><span className="grid h-11 w-11 place-items-center rounded-xl text-xl" style={{background:palette.tint,color:palette.accent}}>⌖</span><h2 className="mt-4 font-black text-slate-900">زورونا</h2><p className="mt-2 text-sm leading-7 text-slate-600">{sections.address}</p>{sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-black" style={{borderColor:palette.accent,color:palette.accent}}>افتح الموقع على الخريطة ↗</a>}</section>}
-              {sections.hours && <section className="rounded-3xl border border-slate-200 bg-white p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-xl text-amber-700">◷</span><h2 className="mt-4 font-black text-slate-900">أوقات العمل</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p></section>}
+              {sections.hours && <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-lg text-amber-700">◷</span><h2 className="font-black text-slate-900">أوقات العمل</h2></div>{todayStatus && <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${todayHours?.open?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayHours?.open?"مفتوح":"مغلق"}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-extrabold text-slate-700">عرض جدول الأسبوع <span className="float-left">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-xs"><span className="font-bold text-slate-700">{label}</span><span className={h?.open?"font-bold text-emerald-700":"font-bold text-slate-400"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>}</div></details></section>}
               <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
             </aside>
           </div>
         </article>
 
-        <footer className="flex flex-col items-center justify-between gap-2 px-2 py-6 text-xs text-slate-400 sm:flex-row"><span>© {new Date().getFullYear()} {page.business_name}</span><a href="/" className="font-bold transition hover:text-slate-600">صفحة منشأة عبر بطاقاتي</a></footer>
+        <footer className="flex flex-col items-center justify-between gap-2 px-2 py-6 text-xs text-slate-400 sm:flex-row"><span>© {new Date().getFullYear()} {page.business_name}</span><a href="/" className="rounded-xl bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5">تم إنشاء بواسطة منصة بطاقتي</a></footer>
       </div>
     </main>
   );
