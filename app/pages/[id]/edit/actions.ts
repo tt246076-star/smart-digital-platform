@@ -48,6 +48,9 @@ export async function updateLandingPage(formData: FormData) {
   sections = {
     address: String(sections.address || "").trim().slice(0, 200),
     map_url: cleanSectionUrl(sections.map_url),
+    google_review_url: cleanSectionUrl(sections.google_review_url),
+    rating_average: Number.isFinite(Number(sections.rating_average)) && Number(sections.rating_average) >= 0 && Number(sections.rating_average) <= 5 ? Number(sections.rating_average) : undefined,
+    rating_count: Number.isFinite(Number(sections.rating_count)) && Number(sections.rating_count) >= 0 ? Math.floor(Number(sections.rating_count)) : undefined,
     hours: String(sections.hours || "").trim().slice(0, 1000),
     card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || "")) ? String(sections.card_color) : "#ffffff",
     accent_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.accent_color || "")) ? String(sections.accent_color) : "",
