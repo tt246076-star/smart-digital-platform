@@ -122,7 +122,16 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <section>
         <h2 className="text-lg font-black text-slate-950">2. اختار اللون الرئيسي</h2>
         <div className="mt-3 flex flex-wrap gap-3">
-          {themes.map((item) => <button key={item.id} type="button" onClick={() => setTheme(item.id)} aria-pressed={theme === item.id} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold transition ${theme === item.id ? "border-slate-900 ring-2 ring-slate-200" : "border-slate-200"}`}><span className="h-5 w-5 rounded-full" style={{ background: item.main }} />{item.name}{theme === item.id ? " ✓" : ""}</button>)}
+          {themes.map((item) => <button key={item.id} type="button" onClick={() => { setTheme(item.id); setAccentColor(item.main); }} aria-pressed={theme === item.id} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold transition ${theme === item.id ? "border-slate-900 ring-2 ring-slate-200" : "border-slate-200"}`}><span className="h-5 w-5 rounded-full" style={{ background: item.main }} />{item.name}{theme === item.id ? " ✓" : ""}</button>)}
+        </div>
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <label className="block text-sm font-extrabold text-slate-800" htmlFor="custom-main-color">أو اختار أي لون تحبّه</label>
+          <p className="mt-1 text-xs leading-5 text-slate-500">اختار من لوحة الألوان أو أدخل كود HEX. اللون يتطبّق على الأزرار والعناوين والزخارف، والقالب يبقى بنفس شكله.</p>
+          <div className="mt-3 flex items-center gap-3">
+            <input id="custom-main-color" aria-label="اختيار أي لون رئيسي" type="color" value={accentColor} onChange={e=>setAccentColor(e.target.value)} className="h-12 w-16 cursor-pointer rounded-xl border border-slate-300 bg-white p-1" />
+            <input aria-label="كود اللون الرئيسي المخصص" type="text" value={accentColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setAccentColor(v)}} maxLength={7} dir="ltr" className={field+" mt-0 max-w-40 uppercase"} placeholder="#7c3aed" />
+            <span className="h-10 flex-1 rounded-xl border border-white shadow-sm" style={{backgroundColor:accentColor}} aria-hidden="true" />
+          </div>
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
