@@ -32,7 +32,7 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(page.template || "aurora");
+  const [template, setTemplate] = useState("simple");
   const [theme, setTheme] = useState(page.theme || "violet");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
@@ -49,11 +49,11 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
   const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
-  const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : (themes.find(item => item.id === page.theme)?.main || "#7c3aed"));
+  const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : "#334155");
   const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#ffffff");
   const [pageBackgroundColor, setPageBackgroundColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).page_background_color || "") ? (initialSections as any).page_background_color : "#ffffff");
   const [textColor, setTextColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).text_color || "") ? (initialSections as any).text_color : "#111827");
-  const [buttonColor, setButtonColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).button_color || "") ? (initialSections as any).button_color : "#7c3aed");
+  const [buttonColor, setButtonColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).button_color || "") ? (initialSections as any).button_color : "#334155");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
@@ -119,7 +119,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
             <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.label}</span><span className="text-xs text-slate-500">{item.value.toUpperCase()}</span></span>
           </label>)}
         </div>
-        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#ffffff");setPanelColor("#ffffff");setTextColor("#111827");setButtonColor("#ffffff");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع كل الألوان للأبيض</button>
+        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#334155");setPanelColor("#f8fafc");setTextColor("#111827");setButtonColor("#334155");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع كل الألوان للأبيض</button>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
