@@ -47,6 +47,29 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">نقرات التواصل</p><p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{totalClicks}</p></div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">الحساب</p><p className="mt-2 truncate text-sm font-bold text-slate-950 dark:text-white" dir="ltr">{user.email || "غير متوفر"}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">اسم المستخدم: {profile?.username || "—"}</p></div>
         </section>
+        <section className="mt-8 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white">نظرة على الصفحات</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">مقارنة الصفحات المنشورة والمسودات</p>
+            <div className="mt-6 flex items-center gap-6">
+              <div className="relative h-36 w-36 shrink-0 rounded-full" style={{ background: `conic-gradient(#10b981 0% ${pageCount ? ((pages?.filter((page) => page.is_published).length ?? 0) / pageCount) * 100 : 0}%, #cbd5e1 ${pageCount ? ((pages?.filter((page) => page.is_published).length ?? 0) / pageCount) * 100 : 0}% 100%)` }}>
+                <div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-white dark:bg-slate-900"><span className="text-3xl font-black text-slate-950 dark:text-white">{pageCount}</span><span className="text-xs text-slate-500">كل الصفحات</span></div>
+              </div>
+              <div className="space-y-4 text-sm">
+                <p className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-emerald-500" /> منشورة <strong className="mr-auto">{pages?.filter((page) => page.is_published).length ?? 0}</strong></p>
+                <p className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-slate-300" /> مسودات <strong className="mr-auto">{pageCount - (pages?.filter((page) => page.is_published).length ?? 0)}</strong></p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white">التفاعل مع صفحاتك</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">الزيارات مقارنة بنقرات التواصل</p>
+            <div className="mt-6 space-y-5">
+              <div><div className="mb-2 flex justify-between text-sm"><span className="font-bold text-slate-700 dark:text-slate-300">الزيارات</span><strong className="text-slate-950 dark:text-white">{totalViews}</strong></div><div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-blue-600" style={{ width: `${totalViews + totalClicks ? Math.max(4, totalViews / (totalViews + totalClicks) * 100) : 0}%` }} /></div></div>
+              <div><div className="mb-2 flex justify-between text-sm"><span className="font-bold text-slate-700 dark:text-slate-300">نقرات التواصل</span><strong className="text-slate-950 dark:text-white">{totalClicks}</strong></div><div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className="h-full rounded-full bg-violet-600" style={{ width: `${totalViews + totalClicks ? Math.max(4, totalClicks / (totalViews + totalClicks) * 100) : 0}%` }} /></div></div>
+            </div>
+          </div>
+        </section>
         <section className="mt-10">
           <div className="mb-5"><h2 className="text-2xl font-black text-slate-950 dark:text-white">صفحاتي</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">عاين الصفحة، أو ادخل للمحرر لتغيير القالب والألوان والمعلومات.</p></div>
           {pagesError ? <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">لم نتمكن من تحميل صفحاتك. تأكد من إنشاء جدول landing_pages في Supabase باستخدام ملف SQL.</div> :
