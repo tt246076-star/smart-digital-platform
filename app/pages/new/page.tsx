@@ -93,10 +93,10 @@ function NewLandingPageForm() {
           <section className="space-y-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">التواصل</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><label className={labelClass} htmlFor="phone">رقم الهاتف</label><input className={inputClass} id="phone" name="phone" type="tel" maxLength={30} dir="ltr" placeholder="+213..." /></div>
+              <div><label className={labelClass} htmlFor="phone"><span className="ml-2 inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">☎</span> رقم الهاتف — يظهر كزر اتصال</label><input className={inputClass} id="phone" name="phone" type="tel" maxLength={30} dir="ltr" placeholder="+213..." /></div>
               <div><label className={labelClass} htmlFor="whatsapp">رقم WhatsApp</label><input className={inputClass} id="whatsapp" name="whatsapp" type="tel" maxLength={30} dir="ltr" placeholder="+213..." /></div>
               <div><label className={labelClass} htmlFor="instagram_url">Instagram</label><input className={inputClass} id="instagram_url" name="instagram_url" type="url" placeholder="https://instagram.com/..." /></div>
-              <div><label className={labelClass} htmlFor="facebook_url">Facebook</label><input className={inputClass} id="facebook_url" name="facebook_url" type="url" placeholder="https://facebook.com/..." /></div>
+              <div><label className={labelClass} htmlFor="facebook_url"><span className="ml-2 inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 font-black text-blue-700">f</span> رابط صفحة Facebook</label><input className={inputClass} id="facebook_url" name="facebook_url" type="url" placeholder="https://facebook.com/..." /></div>
               <div><label className={labelClass} htmlFor="tiktok_url">TikTok</label><input className={inputClass} id="tiktok_url" name="tiktok_url" type="url" placeholder="https://tiktok.com/@..." /></div>
               <div><label className={labelClass} htmlFor="youtube_url">YouTube</label><input className={inputClass} id="youtube_url" name="youtube_url" type="url" placeholder="https://youtube.com/..." /></div>
             </div>
