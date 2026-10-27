@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { THEMES } from "@/lib/theme";
 import { createLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
 
@@ -71,8 +72,8 @@ function NewLandingPageForm() {
             <div><label className={labelClass} htmlFor="headline">عنوان الصفحة</label><input className={inputClass} id="headline" name="headline" maxLength={140} placeholder="كل ما تحتاجه في مكان واحد" /></div>
             <div><label className={labelClass} htmlFor="description">وصف قصير</label><textarea className={inputClass} id="description" name="description" rows={3} maxLength={1000} placeholder="عرّف الزبائن بنشاطك أو منتجاتك..." /></div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><label className={labelClass} htmlFor="template">القالب</label><select className={inputClass} id="template" name="template" defaultValue="aurora"><option value="aurora">Aurora — عصري</option><option value="store">Store — متجر</option><option value="minimal">Minimal — بسيط</option><option value="bold">Bold — جريء</option><option value="beauty">Beauty — جمال</option><option value="agency">Agency — خدمات</option><option value="restaurant">Restaurant — مطعم</option><option value="portfolio">Portfolio — أعمال</option></select></div>
-              <div><label className={labelClass} htmlFor="theme">الألوان</label><select className={inputClass} id="theme" name="theme" defaultValue="violet"><option value="violet">بنفسجي</option><option value="ocean">أزرق</option><option value="sunset">غروب</option><option value="emerald">أخضر</option><option value="rose">وردي</option><option value="midnight">ليلي</option><option value="gold">ذهبي</option><option value="mint">نعناعي</option><option value="berry">توتي</option><option value="slate">رمادي</option></select></div>
+              <div><label className={labelClass} htmlFor="template">القالب</label><select className={inputClass} id="template" name="template" defaultValue="aurora"><option value="profile">Profile — بطاقة تواصل كاملة</option><option value="aurora">Aurora — عصري</option><option value="store">Store — متجر</option><option value="minimal">Minimal — بسيط</option><option value="bold">Bold — جريء</option><option value="beauty">Beauty — جمال</option><option value="agency">Agency — خدمات</option><option value="restaurant">Restaurant — مطعم</option><option value="portfolio">Portfolio — أعمال</option></select></div>
+              <div><label className={labelClass} htmlFor="theme">الألوان</label><select className={inputClass} id="theme" name="theme" defaultValue="violet">{THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
                 <label className={labelClass} htmlFor="card_color">لون البطاقة نفسها — اختار أي لون تحبه</label>
                 <input type="hidden" name="card_color" value={cardColor} />
