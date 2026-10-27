@@ -82,7 +82,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const todayHours = weeklyHours?.[todayKey];
   const currentMinute = Number(part("hour")) * 60 + Number(part("minute"));
   const minutesOf = (time:string) => {
-    const match = /^(\\d{2}):(\\d{2})$/.exec(time || "");
+    const match = /^(\d{2}):(\d{2})$/.exec(time || "");
     return match ? Number(match[1]) * 60 + Number(match[2]) : NaN;
   };
   const dayKeys = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
