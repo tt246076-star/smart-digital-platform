@@ -63,7 +63,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const products = Array.isArray(sections.products) ? sections.products : [];
   const template: string = page.template || "minimal";
   const isReferenceTemplate = template === "store" || template === "aurora";
-  const resolvedTheme = isReferenceTemplate ? resolveTheme("volcano", "#f5bd35", "dark") : resolveTheme(page.theme || "blue", pagePrimary(sections) || undefined, sections.theme_mode);
+  const resolvedTheme = resolveTheme(page.theme || (isReferenceTemplate ? "volcano" : "blue"), pagePrimary(sections) || undefined, sections.theme_mode);
   const customAccent = resolvedTheme.palette.accent;
   const customPanel = resolvedTheme.palette.tint;
   const pageBackground = resolvedTheme.bg;
@@ -146,12 +146,12 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
               </span>
               {sections.rating_average && Number(sections.rating_average) > 0 && (
                 <div className="mt-4 flex items-center justify-center gap-2 text-sm font-black" aria-label={`التقييم ${sections.rating_average} من 5`}>
-                  <span style={{ color: "#f5bd35" }}>{"★".repeat(Math.max(0, Math.min(5, Math.round(Number(sections.rating_average)))))}</span>
-                  <span style={{ color: "#f5bd35" }}>{Number(sections.rating_average).toFixed(1)}</span>
+                  <span style={{ color: resolvedTheme.primary }}>{"★".repeat(Math.max(0, Math.min(5, Math.round(Number(sections.rating_average)))))}</span>
+                  <span style={{ color: resolvedTheme.primary }}>{Number(sections.rating_average).toFixed(1)}</span>
                   {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
                 </div>
               )}
-              {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: "#f5bd35", color: "#451018" }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
+              {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: resolvedTheme.primary, color: resolvedTheme.primaryText }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
             </div>
           </header>
 
@@ -188,7 +188,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                   <BrandMark kind="whatsapp" circle /> <span>واتساب</span>
                 </a>}
                 {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
-                  <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full text-white shadow-lg" style={{ background: "#16a34a" }}>
+                  <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full text-white shadow-lg" style={{ background: resolvedTheme.primary }}>
                     <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg>
                   </span><span>اتصال</span>
                 </a>}
@@ -198,7 +198,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
               </div>
               {page.phone && (
                 <a href={`data:text/vcard;charset=utf-8,${encodeURIComponent(profileVCard)}`} download={`${page.business_name.replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "-") || "contact"}.vcf`} className="mx-auto mt-6 flex w-fit flex-col items-center gap-2 text-xs font-bold">
-                  <span className="grid h-16 w-16 place-items-center rounded-full text-white shadow-lg" style={{ background: "#df244c" }}>
+                  <span className="grid h-16 w-16 place-items-center rounded-full text-white shadow-lg" style={{ background: resolvedTheme.primary }}>
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6"/></svg>
                   </span>
                   <span>حفظ جهة الاتصال</span>

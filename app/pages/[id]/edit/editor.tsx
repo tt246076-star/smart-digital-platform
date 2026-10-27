@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { updateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
-import { resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
+import { resolveTheme, themeVars, pagePrimary, THEMES } from "@/lib/theme";
 
 type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
@@ -36,7 +36,7 @@ const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
   const [template, setTemplate] = useState(page.template === "store" ? "store" : "aurora");
-  const [theme, setTheme] = useState("white");
+  const [theme, setTheme] = useState(page.theme || "volcano");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -57,8 +57,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
-  const activeDef = { id: "white", primary: "#f8fafc" };
-  const resolved = resolveTheme("white", primary || undefined, mode || undefined);
+  const activeDef = THEMES.find((item) => item.id === theme) || THEMES.find((item) => item.id === "volcano")!;
+  const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
@@ -204,7 +204,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
               </div>
               <p className="mx-auto mt-4 max-w-xl whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm font-black">
-                <span style={{ color: "#f5bd35" }}>★★★★★</span><span>5.0</span><span className="text-xs" style={{ color: "var(--muted)" }}>(8 تقييم)</span>
+                <span style={{ color: "var(--primary)" }}>★★★★★</span><span>5.0</span><span className="text-xs" style={{ color: "var(--muted)" }}>(8 تقييم)</span>
               </div>
               <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}>
                 <div className="flex items-center justify-between gap-3"><span className="font-black">أوقات العمل</span><span className="text-sm font-extrabold" style={{ color: "var(--primary)" }}>◷ جدول الأسبوع</span></div>
@@ -241,8 +241,15 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         </div>
       </section>
       <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-extrabold text-slate-800">خيارات الألوان المتقدمة</summary>
+        <summary className="cursor-pointer text-sm font-extrabold text-slate-800">اختر ألوان البطاقة</summary>
         <div className="mt-4 space-y-4">
+          <p className="text-sm leading-6 text-slate-600">اختيار أي لوحة يغيّر الخلفية والأزرار والإطارات وألوان النص تلقائيًا، مع ضبط وضوح الكتابة.</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {THEMES.map((item) => <button key={item.id} type="button" onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }} aria-pressed={theme === item.id} className={`flex items-center gap-3 rounded-xl border p-3 text-right transition ${theme === item.id ? "border-violet-600 ring-2 ring-violet-100" : "border-slate-200 hover:border-slate-400"}`}>
+              <span className="flex h-9 w-9 shrink-0 overflow-hidden rounded-full border border-black/10"><span className="h-full w-1/2" style={{ background: item.primary }} /><span className="h-full w-1/2" style={{ background: item.bg }} /></span>
+              <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.name}</span><span className="block text-xs text-slate-500">{item.defaultMode === "dark" ? "داكن" : "فاتح"}</span></span>
+            </button>)}
+          </div>
           <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <input type="color" aria-label="اللون الرئيسي" value={primary || activeDef.primary} onChange={(e) => setPrimary(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
             <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">لون رئيسي مخصص (اختياري)</span><span className="text-xs text-slate-500">{(primary || activeDef.primary).toUpperCase()}</span></span>
@@ -250,7 +257,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           <div role="group" aria-label="وضع الخلفية" className="flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-bold">
             {([["", "حسب الثيم"], ["light", "فاتح"], ["dark", "داكن"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={mode === v} onClick={() => setMode(v)} className={`flex-1 rounded-lg px-3 py-2 ${mode === v ? "bg-violet-600 text-white" : "text-slate-700"}`}>{l}</button>)}
           </div>
-          {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان الثيم الأصلية</button>}
+          {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان اللوحة المختارة</button>}
         </div>
       </details>
       </aside></div>
