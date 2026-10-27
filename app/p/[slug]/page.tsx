@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
+import GoogleReviewCard from "@/components/GoogleReviewCard";
 import { resolveTheme, pagePrimary } from "@/lib/theme";
 
 
