@@ -9,7 +9,7 @@ type PageData = {
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { address?: string; map_url?: string; hours?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
+  sections: { address?: string; map_url?: string; hours?: string; card_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
 const themes = [
@@ -34,6 +34,19 @@ const templates = [
   { id: "restaurant", name: "Restaurant", hint: "مطاعم ومقاهي" },
   { id: "portfolio", name: "Portfolio", hint: "أعمال شخصية" },
 ];
+const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
+type DayKey = typeof weekDays[number][0];
+type DayHours = { open: boolean; from: string; to: string };
+const defaultHours: Record<DayKey,DayHours> = Object.fromEntries(weekDays.map(([key]) => [key,{open:key!=="friday",from:"09:00",to:"18:00"}])) as Record<DayKey,DayHours>;
+function readHours(value: string | undefined): Record<DayKey,DayHours> {
+  try {
+    const parsed = JSON.parse(value || "{}");
+    return Object.fromEntries(weekDays.map(([key]) => {
+      const day = parsed?.[key];
+      return [key, { open: typeof day?.open === "boolean" ? day.open : defaultHours[key].open, from: /^\\d{2}:\\d{2}$/.test(day?.from || "") ? day.from : "09:00", to: /^\\d{2}:\\d{2}$/.test(day?.to || "") ? day.to : "18:00" }];
+    })) as Record<DayKey,DayHours>;
+  } catch { return defaultHours; }
+}
 const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100";
 const label = "block text-sm font-extrabold text-slate-800";
 
@@ -53,11 +66,11 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const initialSections = page.sections || {};
   const [address, setAddress] = useState(initialSections.address || "");
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
-  const [hours, setHours] = useState(initialSections.hours || "");
+  const [hours, setHours] = useState<Record<DayKey,DayHours>>(() => readHours(initialSections.hours));\n  const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
