@@ -13,8 +13,36 @@ type PageData = {
   sections: { address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
-const themes = [{ id: "violet", name: "افتراضي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" }];
-const templates = [{ id: "simple", name: "قالب بسيط", hint: "محايد وقابل لتخصيص الألوان" }];
+const themes = [
+  {id:"violet",name:"بنفسجي",main:"#7c3aed",soft:"#f5f3ff",dark:"#4c1d95"},
+  {id:"ocean",name:"أزرق بحري",main:"#087eaa",soft:"#e7f7fc",dark:"#103746"},
+  {id:"sunset",name:"غروب",main:"#e76b36",soft:"#fff1e9",dark:"#7c2d12"},
+  {id:"emerald",name:"زمردي",main:"#16805d",soft:"#e7f7ef",dark:"#064e3b"},
+  {id:"rose",name:"وردي",main:"#d94678",soft:"#fff0f5",dark:"#831843"},
+  {id:"midnight",name:"ليلي",main:"#475569",soft:"#eef2f7",dark:"#172033"},
+  {id:"gold",name:"ذهبي",main:"#a97716",soft:"#fff8e5",dark:"#713f12"},
+  {id:"mint",name:"نعناعي",main:"#0f9488",soft:"#e6faf6",dark:"#134e4a"},
+  {id:"berry",name:"توتي",main:"#9333a8",soft:"#faedff",dark:"#581c87"},
+  {id:"slate",name:"رمادي",main:"#475569",soft:"#f1f5f9",dark:"#1e293b"},
+  {id:"coral",name:"مرجاني",main:"#e45b64",soft:"#fff1f2",dark:"#881337"},
+  {id:"cobalt",name:"كوبالت",main:"#1d4ed8",soft:"#eff6ff",dark:"#1e3a8a"},
+  {id:"lime",name:"ليموني",main:"#4d7c0f",soft:"#f7fee7",dark:"#365314"},
+  {id:"teal",name:"تركوازي",main:"#0f766e",soft:"#f0fdfa",dark:"#134e4a"},
+  {id:"indigo",name:"نيلي",main:"#4f46e5",soft:"#eef2ff",dark:"#312e81"},
+  {id:"orange",name:"برتقالي",main:"#ea580c",soft:"#fff7ed",dark:"#7c2d12"},
+  {id:"sky",name:"سماوي",main:"#0284c7",soft:"#f0f9ff",dark:"#0c4a6e"},
+  {id:"fuchsia",name:"فوشيا",main:"#c026d3",soft:"#fdf4ff",dark:"#701a75"},
+  {id:"brown",name:"بني",main:"#92400e",soft:"#fffbeb",dark:"#451a03"},
+  {id:"charcoal",name:"فحمي",main:"#374151",soft:"#f3f4f6",dark:"#111827"},
+];
+const templates = [
+  {id:"bold",name:"Bold",hint:"جريء ولافت"},
+  {id:"minimal",name:"Minimal",hint:"بسيط وراقي"},
+  {id:"agency",name:"Agency",hint:"خدمات وشركات"},
+  {id:"beauty",name:"Beauty",hint:"جمال وعناية"},
+  {id:"portfolio",name:"Portfolio",hint:"أعمال شخصية"},
+  {id:"restaurant",name:"Restaurant",hint:"مطاعم ومقاهي"},
+];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
 type DayHours = { open: boolean; from: string; to: string };
@@ -32,7 +60,7 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState("simple");
+  const [template, setTemplate] = useState(page.template || "minimal");
   const [theme, setTheme] = useState(page.theme || "violet");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
@@ -93,10 +121,12 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <input type="hidden" name="sections" value={sectionsJson} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]"><div className="min-w-0 space-y-8">
       <section>
-        <h2 className="text-lg font-black text-slate-950">1. القالب الوحيد</h2>
-        <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-3"><div className="grid h-14 w-14 place-items-center rounded-xl border border-slate-200 bg-white text-xl text-slate-500">▤</div><div><p className="font-black text-slate-900">قالب بسيط ومحايد</p><p className="mt-1 text-sm text-slate-500">بدون ألوان مفروضة أو أشكال جاهزة.</p></div></div>
-          <p className="mt-3 text-sm leading-6 text-slate-600">خصص لون الخلفية والبطاقة والأقسام والنصوص والأزرار من محرر الألوان.</p>
+        <h2 className="text-lg font-black text-slate-950">1. اختر القالب</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {templates.map(item=><button key={item.id} type="button" onClick={()=>setTemplate(item.id)} className={`rounded-2xl border p-3 text-right transition ${template===item.id?"border-violet-600 bg-violet-50 ring-2 ring-violet-100":"border-slate-200 bg-white hover:border-slate-300"}`}>
+            <span className="mb-3 block h-10 rounded-lg border border-slate-200" style={{background:item.id==="bold"?"#fef2f2":item.id==="beauty"?"#fff1f2":item.id==="agency"?"#f1f5f9":item.id==="portfolio"?"#f8fafc":item.id==="restaurant"?"#fff7ed":"#ffffff"}} />
+            <span className="block font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
+          </button>)}
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
@@ -115,7 +145,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
             <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.label}</span><span className="text-xs text-slate-500">{item.value.toUpperCase()}</span></span>
           </label>)}
         </div>
-        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#334155");setPanelColor("#f8fafc");setTextColor("#111827");setButtonColor("#334155");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع كل الألوان للأبيض</button>
+        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#334155");setPanelColor("#f8fafc");setTextColor("#111827");setButtonColor("#334155");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع الألوان الافتراضية</button>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
