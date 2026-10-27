@@ -119,7 +119,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const todayStatus = weeklyHours ? (isOpenNow ? "مفتوح الآن" : "مغلق الآن") : "";
 
   return (
-    <main dir="rtl" className={`min-h-screen px-3 py-5 sm:px-6 sm:py-8 ${template === "bold" ? "bg-[#260707] text-white" : template === "beauty" ? "bg-rose-50 text-slate-800" : template === "agency" ? "bg-slate-950 text-white" : template === "minimal" || template === "portfolio" ? "bg-white text-slate-800" : "bg-[#f3f5fa] text-slate-800"}`}>
+    <main dir="rtl" className="min-h-screen px-3 py-5 text-slate-900 sm:px-6 sm:py-8" style={{ backgroundColor: pageBackground, color: customText }}>
       <LandingPageAnalytics slug={params.slug} />
       <div className="mx-auto max-w-6xl">
         <nav className="mb-5 flex items-center justify-between px-1">
