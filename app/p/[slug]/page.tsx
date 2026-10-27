@@ -62,7 +62,8 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   };
   const products = Array.isArray(sections.products) ? sections.products : [];
   const template: string = page.template || "minimal";
-  const resolvedTheme = resolveTheme(page.theme || "blue", pagePrimary(sections) || undefined, sections.theme_mode);
+  const isReferenceTemplate = template === "store" || template === "aurora";
+  const resolvedTheme = isReferenceTemplate ? resolveTheme("volcano", "#f5bd35", "dark") : resolveTheme(page.theme || "blue", pagePrimary(sections) || undefined, sections.theme_mode);
   const customAccent = resolvedTheme.palette.accent;
   const customPanel = resolvedTheme.palette.tint;
   const pageBackground = resolvedTheme.bg;
@@ -116,7 +117,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const profileSocials = links.filter((link: {label:string;url:string;kind?:string}) => ["facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
   const profileExtraLinks = links.filter((link: {label:string;url:string;kind?:string}) => !["whatsapp", "facebook", "instagram", "tiktok", "youtube"].includes(link.kind || ""));
 
-  if (template === "profile") {
+  if (template === "profile" || isReferenceTemplate) {
     return (
       <main dir="rtl" className="min-h-screen px-0 py-0 sm:px-4 sm:py-6" style={{ backgroundColor: resolvedTheme.bg, color: resolvedTheme.text }}>
         <LandingPageAnalytics slug={params.slug} />
@@ -150,6 +151,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                   {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
                 </div>
               )}
+              {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: "#f5bd35", color: "#451018" }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
             </div>
           </header>
 
