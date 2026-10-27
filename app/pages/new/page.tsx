@@ -10,6 +10,14 @@ const inputClass = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4
 const labelClass = "block text-sm font-bold text-slate-800";
 type Product = { name: string; price: string; image_url: string; description: string };
 
+const weekDays = [
+  ["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]
+] as const;
+type DayKey = typeof weekDays[number][0];
+type DayHours = { open: boolean; from: string; to: string };
+const defaultHours: Record<DayKey, DayHours> = Object.fromEntries(weekDays.map(([key]) => [key,{open:key!=="friday",from:"09:00",to:"18:00"}])) as Record<DayKey,DayHours>;
+
+
 function NewLandingPageForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
@@ -19,6 +27,7 @@ function NewLandingPageForm() {
   const [products, setProducts] = useState<Product[]>(Array.from({length:3},()=>({name:"",price:"",image_url:"",description:""})));
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
 
   async function uploadImage(file: File | undefined, done: (url: string) => void) {
     if (!file) return;
