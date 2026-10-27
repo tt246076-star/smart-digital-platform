@@ -26,14 +26,18 @@ function socialLinks(page: any) {
   ].filter((link) => link.url);
 }
 
-function SocialIcon({ kind }: { kind: string }) {
-  const common = "flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-black text-white shadow-sm";
-  if (kind === "facebook") return <span className={common} style={{ background: "#1877F2" }}>f</span>;
-  if (kind === "whatsapp") return <span className={common} style={{ background: "#25D366" }}>◉</span>;
-  if (kind === "instagram") return <span className={common} style={{ background: "linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45)" }}>◎</span>;
-  if (kind === "tiktok") return <span className={common} style={{ background: "#111827" }}>♪</span>;
-  if (kind === "youtube") return <span className={common} style={{ background: "#FF0033" }}>▶</span>;
-  return <span className={common} style={{ background: "#64748b" }}>↗</span>;
+function BrandMark({ kind }: { kind: string }) {
+  const paths: Record<string, string> = {
+    facebook: "M24 12a12 12 0 1 0-13.875 11.85v-8.38H7.08V12h3.045V9.35c0-3.005 1.79-4.665 4.53-4.665 1.31 0 2.68.235 2.68.235v2.95h-1.51c-1.49 0-1.955.925-1.955 1.875V12h3.325l-.53 3.47h-2.795v8.38A12.003 12.003 0 0 0 24 12",
+    whatsapp: "M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.8 1.48h.01C18.66 23.83 24 18.49 24 11.91c0-3.18-1.24-6.17-3.48-8.43ZM12.09 21.8a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.73.98.99-3.64-.24-.38a9.84 9.84 0 0 1-1.51-5.25c0-5.47 4.45-9.92 9.92-9.92 2.65 0 5.14 1.03 7.01 2.91a9.86 9.86 0 0 1 2.9 7.02c0 5.47-4.45 9.87-9.93 9.87Zm5.44-7.42c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.5 1.69.64.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z",
+    instagram: "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2.2A2.8 2.8 0 0 0 4.2 7v10A2.8 2.8 0 0 0 7 19.8h10a2.8 2.8 0 0 0 2.8-2.8V7A2.8 2.8 0 0 0 17 4.2H7Zm5 2.3a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Zm5.7-3.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Z",
+    tiktok: "M19.6 6.4a5.7 5.7 0 0 1-3.5-1.2v8.2a6.3 6.3 0 1 1-5.4-6.2v3.4a3 3 0 1 0 2.1 2.8V0h3.4a5.7 5.7 0 0 0 3.4 3.4v3Z",
+    youtube: "M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"
+  };
+  const bg: Record<string,string> = { facebook:"#1877F2", whatsapp:"#25D366", instagram:"linear-gradient(135deg,#833AB4 0%,#FD1D1D 55%,#FCAF45 100%)", tiktok:"#101010", youtube:"#FF0033" };
+  return <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-200 group-hover:scale-105" style={{background:bg[kind] || "#64748b"}}>
+    {paths[kind] ? <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="currentColor"><path d={paths[kind]}/></svg> : <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2h4a4 4 0 0 1 4 4v4M10 22H6a4 4 0 0 1-4-4v-4M22 2 12 12M2 22l7-7"/></svg>}
+  </span>;
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -91,14 +95,14 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                   <h1 className="text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{page.business_name}</h1>
                   {page.headline && <p className="mt-2 text-sm font-medium leading-7 text-slate-500 sm:text-base">{page.headline}</p>}
                 </div>
-                {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="inline-flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5" style={{background:palette.gradient}}><span className="text-xl">☎</span> اتصل الآن</a>}
+                {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="inline-flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5" style={{background:palette.gradient}}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg> اتصل الآن</a>}
               </div>
             </div>
           </header>
 
           {hasContact && <section className="border-y border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-10">
             <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-              {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-2xl text-emerald-700">☎</span><span className="text-right"><strong className="block text-sm text-slate-900">الهاتف</strong><small dir="ltr" className="mt-1 block text-slate-500">{page.phone}</small></span></a>}
+              {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.35 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z"/></svg></span><span className="text-right"><strong className="block text-sm text-slate-900">الهاتف</strong><small dir="ltr" className="mt-1 block text-slate-500">{page.phone}</small></span></a>}
               {links.map((link: {label:string;url:string;kind?:string},i:number)=><a key={link.label+i} data-track-event="contact" href={link.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><SocialIcon kind={link.kind || "custom"}/><span className="text-sm font-extrabold text-slate-700">{link.label}</span></a>)}
             </div>
           </section>}
