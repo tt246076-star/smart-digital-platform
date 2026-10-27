@@ -84,7 +84,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const palette = { ...basePalette, accent: customAccent, tint: customPanel, gradient: customButton };
   const selectedCardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : "#ffffff";
   const cardBackground = selectedCardBackground;
-  const cardText = (() => { const h = selectedCardBackground.slice(1); const rgb = [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); const luminance = rgb.map(v => { const x=v/255; return x<=0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4); }).reduce((sum,v,i)=>sum+v*[0.2126,0.7152,0.0722][i],0); return luminance > 0.42 ? "#172033" : "#ffffff"; })();
+  const cardText = customText;
   const cardMuted = cardText === "#ffffff" ? "#e2e8f0" : "#475569";
   const isRestaurant = template === "restaurant";
   const isStore = template === "store" || isRestaurant;
