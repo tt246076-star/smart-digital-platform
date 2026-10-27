@@ -57,7 +57,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
-    address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
+    address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
     products?: { name: string; price: string; image_url: string; description: string }[];
   };
   const products = Array.isArray(sections.products) ? sections.products : [];
