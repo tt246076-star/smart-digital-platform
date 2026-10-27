@@ -75,9 +75,28 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
     const parsed = sections.hours ? JSON.parse(sections.hours) : null;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) weeklyHours = parsed;
   } catch {}
-  const todayKey = new Intl.DateTimeFormat("en-US", { weekday:"long", timeZone:"Africa/Algiers" }).format(new Date()).toLowerCase();
+  const algiersNow = new Date();
+  const algiersParts = new Intl.DateTimeFormat("en-GB", { weekday:"long", hour:"2-digit", minute:"2-digit", hourCycle:"h23", timeZone:"Africa/Algiers" }).formatToParts(algiersNow);
+  const part = (type:string) => algiersParts.find((x) => x.type === type)?.value || "";
+  const todayKey = part("weekday").toLowerCase();
   const todayHours = weeklyHours?.[todayKey];
-  const todayStatus = todayHours ? (todayHours.open ? "مفتوح حسب التوقيت المحدد" : "مغلق اليوم") : "";
+  const currentMinute = Number(part("hour")) * 60 + Number(part("minute"));
+  const minutesOf = (time:string) => {
+    const match = /^(\\d{2}):(\\d{2})$/.exec(time || "");
+    return match ? Number(match[1]) * 60 + Number(match[2]) : NaN;
+  };
+  const dayKeys = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+  const todayIndex = dayKeys.indexOf(todayKey);
+  const previousKey = dayKeys[(todayIndex + 6) % 7];
+  const todayStart = todayHours ? minutesOf(todayHours.from) : NaN;
+  const todayEnd = todayHours ? minutesOf(todayHours.to) : NaN;
+  const previousHours = weeklyHours?.[previousKey];
+  const previousStart = previousHours ? minutesOf(previousHours.from) : NaN;
+  const previousEnd = previousHours ? minutesOf(previousHours.to) : NaN;
+  const openToday = !!todayHours?.open && Number.isFinite(todayStart) && Number.isFinite(todayEnd) && (todayStart === todayEnd ? false : todayStart < todayEnd ? currentMinute >= todayStart && currentMinute < todayEnd : currentMinute >= todayStart);
+  const openFromYesterday = !!previousHours?.open && Number.isFinite(previousStart) && Number.isFinite(previousEnd) && previousStart > previousEnd && currentMinute < previousEnd;
+  const isOpenNow = !!weeklyHours && (openToday || openFromYesterday);
+  const todayStatus = weeklyHours ? (isOpenNow ? "مفتوح الآن" : "مغلق الآن") : "";
 
   return (
     <main dir="rtl" className="min-h-screen bg-[#f3f5fa] px-3 py-5 text-slate-800 sm:px-6 sm:py-8">
@@ -136,7 +155,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
             <aside className="space-y-4">
               {sections.address && <section className="rounded-3xl border border-slate-200 bg-white p-5"><span className="grid h-11 w-11 place-items-center rounded-xl text-xl" style={{background:palette.tint,color:palette.accent}}>⌖</span><h2 className="mt-4 font-black text-slate-900">زورونا</h2><p className="mt-2 text-sm leading-7 text-slate-600">{sections.address}</p>{sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-black" style={{borderColor:palette.accent,color:palette.accent}}>افتح الموقع على الخريطة ↗</a>}</section>}
-              {sections.hours && <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-lg text-amber-700">◷</span><h2 className="font-black text-slate-900">أوقات العمل</h2></div>{todayStatus && <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${todayHours?.open?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayHours?.open?"مفتوح":"مغلق"}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-extrabold text-slate-700">عرض جدول الأسبوع <span className="float-left">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-xs"><span className="font-bold text-slate-700">{label}</span><span className={h?.open?"font-bold text-emerald-700":"font-bold text-slate-400"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>}</div></details></section>}
+              {sections.hours && <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-lg text-amber-700">◷</span><h2 className="font-black text-slate-900">أوقات العمل</h2></div>{todayStatus && <span aria-live="polite" className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isOpenNow?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayStatus}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-extrabold text-slate-700">عرض جدول الأسبوع <span className="float-left">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-xs"><span className="font-bold text-slate-700">{label}</span><span className={h?.open?"font-bold text-emerald-700":"font-bold text-slate-400"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>}</div></details></section>}
               <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
             </aside>
           </div>
