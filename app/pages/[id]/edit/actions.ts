@@ -52,6 +52,9 @@ export async function updateLandingPage(formData: FormData) {
     card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || "")) ? String(sections.card_color) : "#ffffff",
     accent_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.accent_color || "")) ? String(sections.accent_color) : "",
     panel_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.panel_color || "")) ? String(sections.panel_color) : "#f8fafc",
+    page_background_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.page_background_color || "")) ? String(sections.page_background_color) : "#ffffff",
+    text_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.text_color || "")) ? String(sections.text_color) : "#111827",
+    button_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.button_color || "")) ? String(sections.button_color) : "#334155",
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
     products: Array.isArray(sections.products)
