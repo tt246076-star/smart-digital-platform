@@ -155,7 +155,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
                   {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
                 </div>
               ) : null}
-              {sections.google_review_url && <a href={sections.google_review_url} target="_blank" rel="noreferrer" className="mx-auto mt-2 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold transition hover:-translate-y-0.5" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.surface, color: resolvedTheme.text }}>⭐ قيّمنا على Google</a>}
+              <GoogleReviewCard reviewUrl={sections.google_review_url} primary={resolvedTheme.primary} text={resolvedTheme.text} muted={resolvedTheme.muted} surface={resolvedTheme.palette.tint} border={resolvedTheme.border} />
               {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: resolvedTheme.primary, color: resolvedTheme.primaryText }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
             </div>
           </header>
