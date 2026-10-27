@@ -29,6 +29,8 @@ export async function createLandingPage(formData: FormData) {
   const { count: currentPages, error: countError } = await supabase.from("landing_pages")
     .select("id", { count: "exact", head: true }).eq("user_id", user.id);
   const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
+  const { data: productLimitRow } = await supabase.from("user_product_limits").select("max_products").eq("user_id", user.id).maybeSingle();
+  const maxProducts = Math.max(0, Math.min(500, productLimitRow?.max_products ?? 3));
   const maxPages = Math.min(pageLimit?.max_pages ?? 1, accessPlan?.max_pages ?? 0);
   if (countError || (currentPages ?? 0) >= maxPages) redirect("/pages/new?error=limit");
 
@@ -59,7 +61,7 @@ export async function createLandingPage(formData: FormData) {
   let products: any[] = [];
   try {
     const parsed = JSON.parse(String(formData.get("products_json") || "[]"));
-    if (Array.isArray(parsed)) products = parsed.slice(0,3).map((p:any) => ({
+    if (Array.isArray(parsed)) products = parsed.slice(0,maxProducts).map((p:any) => ({
       name: String(p?.name || "").trim().slice(0,80),
       price: String(p?.price || "").trim().slice(0,30),
       image_url: cleanSectionUrl(p?.image_url),
