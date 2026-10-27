@@ -47,7 +47,7 @@ export async function createLandingPage(formData: FormData) {
   const customLabel = String(formData.get("custom_label") || "").trim().slice(0, 40);
   const customUrl = cleanUrl(formData.get("custom_url"));
   const custom_links = customLabel && customUrl ? [{ label: customLabel, url: customUrl }] : [];
-  const allowedTemplates = ["aurora","store","minimal","bold","beauty","agency","restaurant","portfolio"];
+  const allowedTemplates = ["profile","aurora","store","minimal","bold","beauty","agency","restaurant","portfolio"]
   const allowedThemes = ["violet","ocean","sunset","emerald","rose","midnight","gold","mint","berry","slate"];
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "violet");
