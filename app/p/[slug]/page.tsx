@@ -116,7 +116,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const todayStatus = weeklyHours ? (isOpenNow ? "مفتوح الآن" : "مغلق الآن") : "";
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#f3f5fa] px-3 py-5 text-slate-800 sm:px-6 sm:py-8">
+    <main dir="rtl" className={`min-h-screen px-3 py-5 sm:px-6 sm:py-8 ${template === "bold" ? "bg-[#260707] text-white" : template === "beauty" ? "bg-rose-50 text-slate-800" : template === "agency" ? "bg-slate-950 text-white" : template === "minimal" || template === "portfolio" ? "bg-white text-slate-800" : "bg-[#f3f5fa] text-slate-800"}`}>
       <LandingPageAnalytics slug={params.slug} />
       <div className="mx-auto max-w-6xl">
         <nav className="mb-5 flex items-center justify-between px-1">
@@ -132,8 +132,8 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </div> : <div className={`${template === "minimal" ? "h-3" : template === "bold" ? "h-40 sm:h-52" : template === "beauty" ? "h-28 sm:h-40" : template === "agency" ? "h-24 sm:h-32" : template === "restaurant" ? "h-32 sm:h-44" : template === "portfolio" ? "h-2" : template === "store" ? "h-20 sm:h-28" : "h-16 sm:h-24"}`} style={{background: template === "minimal" || template === "portfolio" ? customAccent : template === "beauty" ? `linear-gradient(135deg,${customPanel},${palette.gradient})` : template === "bold" ? palette.gradient : `radial-gradient(circle at 15% 20%, #ffffffaa, transparent 25%), ${palette.gradient}`}} />}
             <div className="relative px-5 pb-6 sm:px-10 sm:pb-9">
               <div className={`${template === "bold" ? "-mt-16" : template === "minimal" || template === "portfolio" ? "-mt-5" : "-mt-10 sm:-mt-12"} flex flex-col items-center gap-3 ${template === "minimal" || template === "portfolio" ? "sm:flex-row sm:items-center" : "sm:flex-row sm:items-end"} sm:gap-4`}>
-                {displayImage ? <img src={displayImage} alt={page.business_name} className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-xl sm:h-24 sm:w-24" /> :
-                  <div className="grid h-20 w-20 place-items-center rounded-2xl border-4 border-white text-3xl font-black text-white shadow-xl sm:h-24 sm:w-24" style={{background:palette.gradient}}>{page.business_name.slice(0,1)}</div>}
+                {displayImage ? <img src={displayImage} alt={page.business_name} className={`h-20 w-20 border-4 border-white bg-white object-cover shadow-xl sm:h-24 sm:w-24 ${template === "bold" || template === "beauty" ? "rounded-full ring-4 ring-white/25" : template === "minimal" ? "rounded-md" : "rounded-2xl"}`} /> :
+                  <div className={`grid h-20 w-20 place-items-center border-4 border-white text-3xl font-black text-white shadow-xl sm:h-24 sm:w-24 ${template === "bold" || template === "beauty" ? "rounded-full ring-4 ring-white/25" : template === "minimal" ? "rounded-md" : "rounded-2xl"}`} style={{background:palette.gradient}}>{page.business_name.slice(0,1)}</div>}
                 <div className={`min-w-0 flex-1 pb-1 ${template === "bold" ? "text-center" : "text-center sm:text-right"}`}>
                   <div className="mb-2 inline-flex rounded-full px-3 py-1 text-xs font-extrabold" style={{background:palette.tint,color:palette.accent}}>{isRestaurant ? "مطعم ومأكولات" : isStore ? "المتجر الرسمي" : "مرحبًا بكم"}</div>
                   <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{color:cardText}}>{page.business_name}</h1>
