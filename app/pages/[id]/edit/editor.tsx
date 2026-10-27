@@ -67,6 +67,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
+  const todayKey = weekDays[new Date().getDay()][0];
+  const todayHours = hours[todayKey];
 
   async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
     if (!file) return;
@@ -232,7 +234,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
               </div>
               <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}>
                 <div className="flex items-center justify-between gap-3"><span className="font-black">أوقات العمل</span><span className="text-sm font-extrabold" style={{ color: "var(--primary)" }}>◷ جدول الأسبوع</span></div>
-                <div className="mt-3 flex items-center justify-between gap-3 text-sm"><span style={{ color: "var(--muted)" }}>اليوم</span><span className="font-bold">{hours.sunday.open ? `${hours.sunday.from} – ${hours.sunday.to}` : "مغلق"}</span></div>
+                <div className="mt-3 flex items-center justify-between gap-3 text-sm"><span style={{ color: "var(--muted)" }}>اليوم</span><span className="font-bold">{todayHours.open ? `${todayHours.from} – ${todayHours.to}` : "مغلق"}</span></div>
                 <div className="mt-2 text-xs font-bold" style={{ color: "var(--muted)" }}>تتغير الأوقات حسب البيانات التي تدخلها في محرر الصفحة</div>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
