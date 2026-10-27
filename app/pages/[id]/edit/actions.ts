@@ -55,6 +55,8 @@ export async function updateLandingPage(formData: FormData) {
     page_background_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.page_background_color || "")) ? String(sections.page_background_color) : "#ffffff",
     text_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.text_color || "")) ? String(sections.text_color) : "#111827",
     button_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.button_color || "")) ? String(sections.button_color) : "#334155",
+    theme_primary: /^#[0-9a-fA-F]{6}$/.test(String(sections.theme_primary || "")) ? String(sections.theme_primary) : "",
+    theme_mode: ["light", "dark"].includes(String(sections.theme_mode || "")) ? String(sections.theme_mode) : "",
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
     products: Array.isArray(sections.products)
@@ -71,7 +73,7 @@ export async function updateLandingPage(formData: FormData) {
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "violet");
-  const template = ["aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"].includes(requestedTemplate) ? requestedTemplate : "aurora";
+  const template = ["profile", "aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"].includes(requestedTemplate) ? requestedTemplate : "aurora";
   const theme = ["violet", "ocean", "sunset", "emerald", "rose", "midnight", "gold", "mint", "berry", "slate"].includes(requestedTheme) ? requestedTheme : "violet";
 
   if (!id || !business_name || business_name.length > 100) redirect(`/pages/${encodeURIComponent(id)}/edit?error=name`);
