@@ -57,7 +57,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
-  const activeDef = { id: "white" };
+  const activeDef = { id: "white", primary: "#f8fafc" };
   const resolved = resolveTheme("white", primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
   const todayKey = weekDays[new Date().getDay()][0];
