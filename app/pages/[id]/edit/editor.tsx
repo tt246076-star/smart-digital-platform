@@ -57,11 +57,14 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
   const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
   const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : (themes.find(item => item.id === page.theme)?.main || "#7c3aed"));
-  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#f8fafc");
+  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#ffffff");
+  const [pageBackgroundColor, setPageBackgroundColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).page_background_color || "") ? (initialSections as any).page_background_color : "#ffffff");
+  const [textColor, setTextColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).text_color || "") ? (initialSections as any).text_color : "#111827");
+  const [buttonColor, setButtonColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).button_color || "") ? (initialSections as any).button_color : "#7c3aed");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,accent_color:accentColor,panel_color:panelColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,accent_color:accentColor,panel_color:panelColor,page_background_color:pageBackgroundColor,text_color:textColor,button_color:buttonColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
   const activeTheme = themes.find((item) => item.id === theme) || themes[0];
   const previewClass = useMemo(() => template === "minimal" ? "rounded-2xl border bg-white" : template === "bold" || template === "agency" ? "rounded-3xl border-2 shadow-xl" : template === "store" || template === "restaurant" ? "rounded-2xl border shadow-md" : "rounded-3xl border shadow-xl", [template]);
 
@@ -106,6 +109,24 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
             <span className="block text-sm font-black text-slate-900">{item.name}</span><span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
           </button>)}
         </div>
+      </section>
+      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-lg font-black text-slate-950">2. محرر الألوان الكامل</h2>
+        <p className="text-sm leading-6 text-slate-500">كل الألوان تبدأ بالأبيض. بدّل لون كل جزء وشوف النتيجة مباشرة في المعاينة الجانبية.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            {label:"خلفية الصفحة",value:pageBackgroundColor,set:setPageBackgroundColor},
+            {label:"خلفية البطاقة",value:cardColor,set:setCardColor},
+            {label:"لون العناصر والأيقونات",value:accentColor,set:setAccentColor},
+            {label:"خلفية الأقسام",value:panelColor,set:setPanelColor},
+            {label:"لون الكتابة",value:textColor,set:setTextColor},
+            {label:"لون أزرار التواصل",value:buttonColor,set:setButtonColor},
+          ].map((item)=><label key={item.label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
+            <input type="color" aria-label={item.label} value={item.value} onChange={e=>item.set(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0"/>
+            <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.label}</span><span className="text-xs text-slate-500">{item.value.toUpperCase()}</span></span>
+          </label>)}
+        </div>
+        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#ffffff");setPanelColor("#ffffff");setTextColor("#111827");setButtonColor("#ffffff");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع كل الألوان للأبيض</button>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
@@ -177,16 +198,16 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       </div><aside className="min-w-0 xl:sticky xl:top-4 xl:self-start">
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
-        <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: activeTheme.soft }}>
-          <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: activeTheme.main + "30", background: cardColor }}>
+        <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: pageBackgroundColor }}>
+          <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: accentColor + "55", background: cardColor, color: textColor }}>
             <div className="h-2" style={{ background: template === "minimal" || template === "portfolio" ? activeTheme.main : template === "beauty" ? "linear-gradient(90deg,#f472b6,#be185d)" : `linear-gradient(90deg,${activeTheme.main},${activeTheme.dark})` }} />
             <div className="px-5 py-7 text-center">
               {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: activeTheme.main }}>{business.slice(0,1) || "م"}</div>}
-              <p className="text-xs font-black" style={{ color: activeTheme.main }}>مرحبًا بكم</p>
-              <h3 className="mt-2 text-2xl font-black" style={{ color: activeTheme.dark }}>{business || "اسم متجرك"}</h3>
-              <p className="mt-2 font-bold text-slate-700">{headline || "عنوان جذاب لنشاطك التجاري"}</p>
-              <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7 text-slate-500">{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-              <div className="mt-5 rounded-xl px-4 py-3 text-sm font-extrabold text-white" style={{ background: activeTheme.main }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
+              <p className="text-xs font-black" style={{ color: accentColor }}>مرحبًا بكم</p>
+              <h3 className="mt-2 text-2xl font-black" style={{ color: textColor }}>{business || "اسم متجرك"}</h3>
+              <p className="mt-2 font-bold" style={{color:textColor}}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
+              <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{color:textColor}}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
+              <div className="mt-5 rounded-xl px-4 py-3 text-sm font-extrabold text-white" style={{ background: buttonColor, color: buttonColor.toLowerCase() === "#ffffff" ? textColor : "#ffffff" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
               <p className="mt-4 text-xs text-slate-400">تصميم {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
             </div>
           </div>
