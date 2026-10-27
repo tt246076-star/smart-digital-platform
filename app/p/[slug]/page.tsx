@@ -15,6 +15,15 @@ const palettes: Record<string, { accent: string; tint: string; ink: string; grad
   slate: { accent: "#475569", tint: "#f1f5f9", ink: "#1e293b", gradient: "linear-gradient(135deg,#94a3b8,#475569)" },
 };
 
+
+function readableSurface(hex: string, whiteRatio = 0.9) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return "#ffffff";
+  const n = hex.slice(1);
+  const channels = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16));
+  const mixed = channels.map((c) => Math.round(c * (1 - whiteRatio) + 255 * whiteRatio));
+  return "#" + mixed.map((c) => c.toString(16).padStart(2, "0")).join("");
+}
+
 function socialLinks(page: any) {
   return [
     { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "", kind: "whatsapp" },
@@ -66,9 +75,11 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const products = Array.isArray(sections.products) ? sections.products : [];
   const basePalette = palettes[page.theme || "violet"] || palettes.violet;
   const customAccent = /^#[0-9a-fA-F]{6}$/.test(sections.accent_color || "") ? sections.accent_color! : basePalette.accent;
-  const customPanel = /^#[0-9a-fA-F]{6}$/.test(sections.panel_color || "") ? sections.panel_color! : "#f8fafc";
+  const selectedPanel = /^#[0-9a-fA-F]{6}$/.test(sections.panel_color || "") ? sections.panel_color! : "#f8fafc";
+  const customPanel = readableSurface(selectedPanel, 0.9);
   const palette = { ...basePalette, accent: customAccent, tint: customPanel, gradient: `linear-gradient(135deg,${customAccent},${basePalette.accent})` };
-  const cardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : "#ffffff";
+  const selectedCardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : "#ffffff";
+  const cardBackground = readableSurface(selectedCardBackground, 0.88);
   const template = page.template || "aurora";
   const isRestaurant = template === "restaurant";
   const isStore = template === "store" || isRestaurant;
