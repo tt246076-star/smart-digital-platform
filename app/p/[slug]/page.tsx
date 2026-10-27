@@ -1,23 +1,23 @@
-import { notFound } from "next/navigation";
+"import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 
 const themes: Record<string, { main: string; soft: string; dark: string; gradient: string }> = {
-  violet: { main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b", gradient: "linear-gradient(120deg,#7c3aed,#312e81)" },
-  ocean: { main: "#0284c7", soft: "#f0f9ff", dark: "#082f49", gradient: "linear-gradient(120deg,#0284c7,#0f172a)" },
-  sunset: { main: "#ea580c", soft: "#fff7ed", dark: "#431407", gradient: "linear-gradient(120deg,#f97316,#be123c)" },
-  emerald: { main: "#059669", soft: "#ecfdf5", dark: "#022c22", gradient: "linear-gradient(120deg,#059669,#064e3b)" },
-  rose: { main: "#e11d48", soft: "#fff1f2", dark: "#4c0519", gradient: "linear-gradient(120deg,#e11d48,#881337)" },
-  midnight: { main: "#6366f1", soft: "#eef2ff", dark: "#111827", gradient: "linear-gradient(120deg,#6366f1,#111827)" },
-  gold: { main: "#b7791f", soft: "#fffbeb", dark: "#422006", gradient: "linear-gradient(120deg,#f59e0b,#78350f)" },
-  mint: { main: "#0d9488", soft: "#f0fdfa", dark: "#134e4a", gradient: "linear-gradient(120deg,#2dd4bf,#134e4a)" },
-  berry: { main: "#a21caf", soft: "#fdf4ff", dark: "#4a044e", gradient: "linear-gradient(120deg,#d946ef,#701a75)" },
-  slate: { main: "#475569", soft: "#f8fafc", dark: "#0f172a", gradient: "linear-gradient(120deg,#64748b,#0f172a)" },
+  violet: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  ocean: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  sunset: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  emerald: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  rose: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  midnight: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  gold: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  mint: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  berry: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
+  slate: { main: "#d6b15e", soft: "#15130f", dark: "#f7f0df", gradient: "linear-gradient(135deg,#f2d58a,#a77a25)" },
 };
 
 function socialLinks(page: any) {
   return [
-    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\D/g, "")}` : "" },
+    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\\D/g, "")}` : "" },
     { label: "Instagram", url: page.instagram_url }, { label: "Facebook", url: page.facebook_url },
     { label: "TikTok", url: page.tiktok_url }, { label: "YouTube", url: page.youtube_url },
     ...(Array.isArray(page.custom_links) ? page.custom_links : []),
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return { title, description, openGraph: { title, description, type: "website" } };
 }
 
-export default async function PublicLandingPage({ params, searchParams }: {
+export default async function PublicLandingPage({ params }: {
   params: { slug: string }; searchParams?: { updated?: string };
 }) {
   const supabase = await createClient();
@@ -47,58 +47,61 @@ export default async function PublicLandingPage({ params, searchParams }: {
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {address?:string;map_url?:string;hours?:string;round_image_url?:string;cover_image_url?:string;products?:{name:string;price:string;image_url:string;description:string}[]};
   const products = Array.isArray(sections.products) ? sections.products : [];
-  const theme = themes[page.theme || "violet"] || themes.violet;
-  const template = page.template || "aurora";
-  const isMinimal = template === "minimal";
-  const isBold = template === "bold";
-  const isStore = template === "store" || template === "restaurant";
-  const isBeauty = template === "beauty";
-  const isPortfolio = template === "portfolio";
-  const isAgency = template === "agency";
+  const theme = themes[page.theme || "gold"] || themes.gold;
+  const isStore = page.template === "store" || page.template === "restaurant";
 
   return (
-    <main dir="rtl" className="relative min-h-screen overflow-hidden px-4 py-10 sm:py-16" style={{ background: isBold || isAgency ? theme.dark : isBeauty ? "#fff1f7" : theme.soft }}>
+    <main dir="rtl" className="relative min-h-screen overflow-hidden bg-[#090909] px-4 py-8 text-[#f7f0df] sm:px-6 sm:py-14">
       <LandingPageAnalytics slug={params.slug} />
-      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: isBeauty ? "#f472b6" : theme.main }} />}
-      {!isMinimal && <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full opacity-20 blur-3xl" style={{ background: isBeauty ? "#db2777" : theme.main }} />}
-      <div className={`relative mx-auto overflow-hidden ${isStore || isAgency || isPortfolio ? "max-w-3xl rounded-2xl" : "max-w-2xl rounded-[2rem]"} ${isBold || isAgency ? "border-2 shadow-2xl" : "border shadow-xl"}`} style={{ borderColor: theme.main + "35", background: "#fff", animation: "landingEnter .65s ease-out both" }}>
-        <div className="h-2" style={{ background: isMinimal || isPortfolio ? theme.main : isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }} />
-        <section className={`px-6 pb-9 pt-10 text-center sm:px-12 sm:pb-12 ${isStore ? "sm:pt-8" : "sm:pt-12"}`}>
-          {sections.cover_image_url && <img src={sections.cover_image_url} alt={page.business_name + " صورة الغلاف"} className="mb-6 max-h-72 w-full rounded-2xl object-cover" />}
-          {sections.round_image_url ? <img src={sections.round_image_url} alt={page.business_name} className="mx-auto mb-5 h-28 w-28 rounded-full border-4 object-cover shadow-lg" style={{borderColor:theme.main}} /> : page.logo_url ? <img src={page.logo_url} alt={page.business_name} className={`mx-auto mb-5 object-cover shadow-md ${isStore ? "h-20 w-20 rounded-xl" : "h-24 w-24 rounded-full"}`} /> :
-            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-3xl text-4xl font-black text-white shadow-lg" style={{ background: isBeauty ? "linear-gradient(120deg,#f472b6,#be185d)" : theme.gradient }}>{page.business_name.slice(0, 1)}</div>}
-          <p className="text-xs font-black tracking-[0.18em]" style={{ color: theme.main }}>{isStore ? "متجر رسمي" : isBeauty ? "الجمال يبدأ من هنا" : isAgency ? "حلول احترافية لأعمالك" : isPortfolio ? "معرض الأعمال" : "أهلًا بكم في"}</p>
-          <h1 className={`mt-3 font-black tracking-tight ${isBold ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`} style={{ color: isBold ? theme.dark : theme.dark }}>{page.business_name}</h1>
-          {page.headline && <p className="mx-auto mt-4 max-w-xl text-lg font-extrabold leading-8 sm:text-xl" style={{ color: theme.main }}>{page.headline}</p>}
-          {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-slate-600 sm:text-base">{page.description}</p>}
-          {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-2xl px-5 py-4 font-black text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:min-w-64" style={{ background: theme.gradient }}>اتصل بنا · {page.phone}</a>}
-          {links.length > 0 && <div className={`mx-auto mt-4 grid max-w-lg gap-3 ${isStore ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+      <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-[#b88932]/15 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-[#b88932]/10 blur-3xl" />
+      <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[2rem] border border-[#c6a45a]/35 bg-[#10100f] shadow-[0_30px_100px_rgba(0,0,0,.55)]">
+        <div className="h-1.5 bg-gradient-to-l from-[#f4df9b] via-[#c6a45a] to-[#72501b]" />
+        {sections.cover_image_url && <div className="relative h-48 sm:h-72"><img src={sections.cover_image_url} alt={page.business_name + " صورة الغلاف"} className="h-full w-full object-cover opacity-90" /><div className="absolute inset-0 bg-gradient-to-t from-[#10100f] via-transparent to-black/10" /></div>}
+        <section className="px-5 pb-8 pt-8 text-center sm:px-12 sm:pb-12 sm:pt-10">
+          <div className="mx-auto mb-6 flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-[#c6a45a]/70" />
+            <span className="text-[10px] font-black tracking-[.35em] text-[#d9bd76]">بطاقاتي · B I T A Q A T I</span>
+            <span className="h-px w-10 bg-[#c6a45a]/70" />
+          </div>
+          {sections.round_image_url ? <img src={sections.round_image_url} alt={page.business_name} className="mx-auto mb-5 h-28 w-28 rounded-full border-2 border-[#d9bd76] object-cover p-1 shadow-[0_0_35px_rgba(198,164,90,.15)]" /> : page.logo_url ? <img src={page.logo_url} alt={page.business_name} className="mx-auto mb-5 h-24 w-24 rounded-2xl border border-[#c6a45a]/50 bg-black object-cover p-1 shadow-lg" /> :
+            <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-2xl border border-[#d9bd76]/70 bg-gradient-to-br from-[#f2d58a] to-[#8d6523] text-4xl font-black text-[#17120a] shadow-[0_0_40px_rgba(198,164,90,.15)]">{page.business_name.slice(0, 1)}</div>}
+          <p className="text-xs font-bold tracking-[.15em] text-[#c6a45a]">{isStore ? "المتجر الرسمي" : "مرحبًا بكم"}</p>
+          <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#fff8e8] sm:text-5xl">{page.business_name}</h1>
+          {page.headline && <p className="mx-auto mt-4 max-w-xl text-base font-bold leading-8 text-[#d9bd76] sm:text-xl">{page.headline}</p>}
+          {page.description && <p className="mx-auto mt-5 max-w-xl whitespace-pre-wrap text-sm leading-8 text-[#c7c0b1] sm:text-base">{page.description}</p>}
+          {page.phone && <a data-track-event="contact" href={`tel:${page.phone}`} className="mt-7 inline-flex w-full items-center justify-center rounded-xl border border-[#f4df9b] bg-gradient-to-l from-[#f2d58a] to-[#b88932] px-6 py-4 font-black text-[#17120a] shadow-[0_8px_30px_rgba(184,137,50,.18)] transition hover:-translate-y-0.5 hover:brightness-110 sm:w-auto sm:min-w-64">اتصل بنا <span className="mx-2 text-lg">☎</span>{page.phone}</a>}
+          {links.length > 0 && <div className="mx-auto mt-5 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
             {links.map((link: { label: string; url: string }, index: number) => {
               const label = link.label.toLowerCase();
               const icon = label.includes("whatsapp") ? "◉" : label.includes("instagram") ? "◎" : label.includes("facebook") ? "f" : label.includes("tiktok") ? "♪" : label.includes("youtube") ? "▶" : label.includes("اتصل") ? "☎" : "↗";
-              return <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="group flex items-center gap-3 rounded-2xl border px-5 py-4 text-right text-sm font-extrabold transition duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: theme.main + "30", color: theme.dark, background: index === 0 ? theme.soft : "#fff" }}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black text-white" style={{background:theme.gradient}}>{icon}</span><span className="flex-1">{link.label}</span><span className="transition-transform group-hover:-translate-x-1" style={{ color: theme.main }}>↗</span></a>;
+              return <a data-track-event="contact" key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="group flex items-center gap-3 rounded-xl border border-[#c6a45a]/25 bg-[#171613] px-4 py-3.5 text-right text-sm font-bold text-[#f6edda] transition duration-300 hover:-translate-y-0.5 hover:border-[#d9bd76] hover:bg-[#211d14]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#c6a45a]/50 bg-[#c6a45a]/10 text-lg font-black text-[#e2c575]">{icon}</span>
+                <span className="flex-1">{link.label}</span><span className="text-[#c6a45a] transition-transform group-hover:-translate-x-1">↗</span>
+              </a>;
             })}
           </div>}
-          {sections.address && <section className="mx-auto mt-8 max-w-xl rounded-2xl border p-5 text-right" style={{borderColor:theme.main+"30",background:theme.soft}}>
-            <h2 className="font-black" style={{color:theme.dark}}>📍 عنوان المحل</h2><p className="mt-2 text-sm leading-7 text-slate-600">{sections.address}</p>
-            {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-xl px-4 py-2 text-sm font-extrabold text-white" style={{background:theme.gradient}}>🗺️ افتح الموقع على الخريطة</a>}
+          {sections.address && <section className="mx-auto mt-7 max-w-xl rounded-xl border border-[#c6a45a]/25 bg-[#171613] p-5 text-right">
+            <h2 className="font-black text-[#e2c575]">📍 عنوان المحل</h2><p className="mt-2 text-sm leading-7 text-[#c7c0b1]">{sections.address}</p>
+            {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-lg bg-[#c6a45a] px-4 py-2 text-sm font-black text-[#17120a]">🗺️ افتح الموقع على الخريطة</a>}
           </section>}
-          {sections.hours && <section className="mx-auto mt-4 max-w-xl rounded-2xl border p-5 text-right" style={{borderColor:theme.main+"30"}}>
-            <h2 className="font-black" style={{color:theme.dark}}>🕒 أوقات العمل</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-600">{sections.hours}</p>
+          {sections.hours && <section className="mx-auto mt-4 max-w-xl rounded-xl border border-[#c6a45a]/25 p-5 text-right">
+            <h2 className="font-black text-[#e2c575]">🕒 أوقات العمل</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#c7c0b1]">{sections.hours}</p>
           </section>}
-          {products.length > 0 && <section className="mx-auto mt-8 max-w-3xl text-right">
-            <h2 className="mb-4 text-2xl font-black" style={{color:theme.dark}}>🛍️ كتالوج المنتجات</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{products.map((product,i)=><article key={i} className="overflow-hidden rounded-2xl border bg-white text-right shadow-sm transition hover:-translate-y-1 hover:shadow-lg" style={{borderColor:theme.main+"30"}}>
-              {product.image_url ? <img src={product.image_url} alt={product.name || "صورة المنتج"} className="h-44 w-full object-cover" /> : <div className="flex h-36 items-center justify-center text-4xl" style={{background:theme.soft}}>🛍️</div>}
-              <div className="p-4">{product.name && <h3 className="font-black" style={{color:theme.dark}}>{product.name}</h3>}{product.description && <p className="mt-2 text-sm leading-6 text-slate-500">{product.description}</p>}{product.price && <p className="mt-3 text-lg font-black" style={{color:theme.main}}>{product.price} دج</p>}
-              {page.phone && <a href={`tel:${page.phone}`} className="mt-3 inline-flex w-full justify-center rounded-xl px-4 py-3 text-sm font-black text-white" style={{background:theme.gradient}}>اطلب / استفسر</a>}</div>
+          {products.length > 0 && <section className="mx-auto mt-9 max-w-3xl text-right">
+            <div className="mb-5 flex items-center gap-3"><span className="h-px flex-1 bg-[#c6a45a]/25" /><h2 className="whitespace-nowrap text-xl font-black text-[#f4df9b] sm:text-2xl">كتالوج المنتجات</h2><span className="h-px flex-1 bg-[#c6a45a]/25" /></div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{products.map((product,i)=><article key={i} className="overflow-hidden rounded-xl border border-[#c6a45a]/25 bg-[#171613] text-right transition hover:-translate-y-1 hover:border-[#d9bd76]/70 hover:shadow-[0_15px_40px_rgba(0,0,0,.25)]">
+              {product.image_url ? <img src={product.image_url} alt={product.name || "صورة المنتج"} className="h-44 w-full object-cover" /> : <div className="flex h-36 items-center justify-center bg-[#211d14] text-4xl">🛍️</div>}
+              <div className="p-4">{product.name && <h3 className="font-black text-[#fff8e8]">{product.name}</h3>}{product.description && <p className="mt-2 text-sm leading-6 text-[#c7c0b1]">{product.description}</p>}{product.price && <p className="mt-3 text-lg font-black text-[#e2c575]">{product.price} دج</p>}
+              {page.phone && <a href={`tel:${page.phone}`} className="mt-3 inline-flex w-full justify-center rounded-lg bg-gradient-to-l from-[#f2d58a] to-[#b88932] px-4 py-3 text-sm font-black text-[#17120a]">اطلب / استفسر</a>}</div>
             </article>)}</div>
           </section>}
-          <div className="mx-auto mt-8 h-px max-w-xs" style={{ background: theme.main + "25" }} />
-          <p className="mt-5 text-xs font-medium text-slate-400">صُنعت هذه الصفحة باستخدام بطاقاتي ✦</p>
+          <div className="mx-auto mt-9 h-px max-w-xs bg-gradient-to-l from-transparent via-[#c6a45a]/50 to-transparent" />
+          <p className="mt-5 text-xs font-medium text-[#8f8778]">صُنعت هذه الصفحة باستخدام <span className="font-bold text-[#c6a45a]">بطاقاتي</span> ✦</p>
         </section>
       </div>
-      <style>{`@keyframes landingEnter { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } } @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }`}</style>
+      <p className="relative mt-5 text-center text-[10px] tracking-widest text-[#746b5a]">ELEGANCE IN EVERY DETAIL</p>
+      <style>{`@media (prefers-reduced-motion: no-preference) { main > div:nth-of-type(3) { animation: cardEnter .7s ease-out both; } } @keyframes cardEnter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }`}</style>
     </main>
   );
 }
