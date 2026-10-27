@@ -67,7 +67,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const basePalette = palettes[page.theme || "violet"] || palettes.violet;
   const customAccent = /^#[0-9a-fA-F]{6}$/.test(sections.accent_color || "") ? sections.accent_color! : basePalette.accent;
   const customPanel = /^#[0-9a-fA-F]{6}$/.test(sections.panel_color || "") ? sections.panel_color! : "#f8fafc";
-  const palette = { ...basePalette, accent: customAccent, tint: customPanel, gradient: `linear-gradient(135deg,${customAccent},${customAccent})` };
+  const palette = { ...basePalette, accent: customAccent, tint: customPanel, gradient: `linear-gradient(135deg,${customAccent},${basePalette.accent})` };
   const cardBackground = /^#[0-9a-fA-F]{6}$/.test(sections.card_color || "") ? sections.card_color! : "#ffffff";
   const template = page.template || "aurora";
   const isRestaurant = template === "restaurant";
@@ -103,7 +103,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const todayStatus = weeklyHours ? (isOpenNow ? "مفتوح الآن" : "مغلق الآن") : "";
 
   return (
-    <main dir="rtl" className="min-h-screen px-3 py-5 text-slate-800 sm:px-6 sm:py-8" style={{backgroundColor: customPanel}}>
+    <main dir="rtl" className="min-h-screen bg-[#f3f5fa] px-3 py-5 text-slate-800 sm:px-6 sm:py-8">
       <LandingPageAnalytics slug={params.slug} />
       <div className="mx-auto max-w-6xl">
         <nav className="mb-5 flex items-center justify-between px-1">
