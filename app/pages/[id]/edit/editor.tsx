@@ -1,4 +1,5 @@
 "use client";
+// Vercel redeploy trigger: editor syntax fix
 
 import { useMemo, useState } from "react";
 import { updateLandingPage } from "./actions";
