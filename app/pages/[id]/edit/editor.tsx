@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { updateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
-import { THEMES, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
+import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
 type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
@@ -40,8 +40,8 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(page.template || "minimal");
-  const [theme, setTheme] = useState(page.theme || "violet");
+  const [template, setTemplate] = useState(page.template || "profile");
+  const [theme, setTheme] = useState(() => normalizeThemeId(page.theme || "blue"));
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -106,26 +106,24 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           </button>)}
         </div>
       </section>
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-black text-slate-950">2. الثيم والألوان</h2>
-        <p className="text-sm leading-6 text-slate-500">اختر ثيمًا جاهزًا: كل ألوان البطاقة (الخلفية والنصوص والأزرار والأيقونات) تتغير معًا بتناسق وتباين مقروء، وتنطبق على كل القوالب. زر الاتصال أخضر دائمًا.</p>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {THEMES.map((item) => { const p = resolveTheme(item.id).palette; const active = theme === item.id; return (
-            <button key={item.id} type="button" aria-pressed={active} onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }} className={`rounded-xl border p-2 text-center transition ${active ? "border-violet-600 ring-2 ring-violet-100" : "border-slate-200 hover:border-slate-300"}`}>
-              <span className="mx-auto mb-2 grid h-11 w-11 place-items-center rounded-full border text-sm font-black" style={{ background: p.tint, borderColor: p.accent, color: p.accent }}><span className="h-6 w-6 rounded-full" style={{ background: p.gradient }} /></span>
-              <span className="block text-xs font-extrabold text-slate-800">{item.name}{active ? " ✓" : ""}</span>
-            </button>); })}
+      <section className="space-y-4 rounded-3xl border border-zinc-800 bg-[#09090b] p-4 text-white">
+        <h2 className="text-lg font-black text-white">2. الثيم والألوان</h2>
+        <p className="text-sm leading-6 text-zinc-400">اختار المظهر الخاص ببطاقتك. تتبدل معاينة البطاقة مباشرة، مع الحفاظ على وضوح النصوص وزر الاتصال الأخضر.</p>
+        <div className="grid grid-cols-3 gap-2.5">
+          {THEMES.map((item) => {
+            const p = resolveTheme(item.id).palette;
+            const active = normalizeThemeId(theme) === item.id;
+            return (
+              <button key={item.id} type="button" aria-pressed={active} onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }}
+                className={`flex min-h-[90px] flex-col items-center justify-center rounded-2xl border bg-[#111114] px-2 py-3 text-center transition ${active ? "border-blue-500 ring-2 ring-blue-500/35" : "border-zinc-800 hover:border-zinc-600"}`}>
+                <span className="mb-2 grid h-11 w-11 place-items-center rounded-full border-2 text-base font-black shadow-sm" style={{ background: item.primary, borderColor: item.id === "white" ? "#d4d4d8" : item.primary, color: p.ink }}>
+                  {active ? <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-current text-sm">✓</span> : null}
+                </span>
+                <span className="block text-xs font-bold text-zinc-100">{item.name}</span>
+              </button>
+            );
+          })}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-            <input type="color" aria-label="اللون الرئيسي" value={primary || activeDef.primary} onChange={(e) => setPrimary(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
-            <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">لون رئيسي مخصص (اختياري)</span><span className="text-xs text-slate-500">{(primary || activeDef.primary).toUpperCase()}</span></span>
-          </label>
-          <div role="group" aria-label="وضع الخلفية" className="flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-bold">
-            {([["", "حسب الثيم"], ["light", "فاتح"], ["dark", "داكن"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={mode === v} onClick={() => setMode(v)} className={`flex-1 rounded-lg px-3 py-2 ${mode === v ? "bg-violet-600 text-white" : "text-slate-700"}`}>{l}</button>)}
-          </div>
-        </div>
-        {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان الثيم الأصلية</button>}
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
@@ -217,6 +215,19 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
           <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>المعاينة تعرض ألوان الثيم نفسها المستعملة في الصفحة المنشورة؛ شكل القالب الكامل يظهر بعد النشر.</p>
         </div>
       </section>
+      <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <summary className="cursor-pointer text-sm font-extrabold text-slate-800">خيارات الألوان المتقدمة</summary>
+        <div className="mt-4 space-y-4">
+          <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
+            <input type="color" aria-label="اللون الرئيسي" value={primary || activeDef.primary} onChange={(e) => setPrimary(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
+            <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">لون رئيسي مخصص (اختياري)</span><span className="text-xs text-slate-500">{(primary || activeDef.primary).toUpperCase()}</span></span>
+          </label>
+          <div role="group" aria-label="وضع الخلفية" className="flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-bold">
+            {([["", "حسب الثيم"], ["light", "فاتح"], ["dark", "داكن"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={mode === v} onClick={() => setMode(v)} className={`flex-1 rounded-lg px-3 py-2 ${mode === v ? "bg-violet-600 text-white" : "text-slate-700"}`}>{l}</button>)}
+          </div>
+          {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان الثيم الأصلية</button>}
+        </div>
+      </details>
       </aside></div>
       <button disabled={uploading} type="submit" className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50">حفظ التعديلات ونشر الصفحة ✨</button>
     </form>
