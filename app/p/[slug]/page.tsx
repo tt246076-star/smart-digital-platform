@@ -75,7 +75,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const products = Array.isArray(sections.products) ? sections.products : [];
   const basePalette = palettes[page.theme || "violet"] || palettes.violet;
   const customAccent = /^#[0-9a-fA-F]{6}$/.test(sections.accent_color || "") ? sections.accent_color! : "#334155";
-  const template = "simple";
+  const template: string = "simple";
   const selectedPanel = /^#[0-9a-fA-F]{6}$/.test(sections.panel_color || "") ? sections.panel_color! : "#f8fafc";
   const pageBackground = /^#[0-9a-fA-F]{6}$/.test((sections as any).page_background_color || "") ? (sections as any).page_background_color : "#ffffff";
   const customText = /^#[0-9a-fA-F]{6}$/.test((sections as any).text_color || "") ? (sections as any).text_color : "#111827";
