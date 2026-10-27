@@ -1,31 +1,21 @@
 "use client";
 // Vercel redeploy trigger: editor syntax fix
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { updateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
+import { THEMES, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
 type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
+  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
 };
 
-const themes = [
-  {id:"violet",name:"بنفسجي",main:"#6d4aff",soft:"#f0ecff",dark:"#25164f"},
-  {id:"ocean",name:"أزرق بحري",main:"#087eaa",soft:"#e7f7fc",dark:"#103746"},
-  {id:"sunset",name:"غروب",main:"#e76b36",soft:"#fff1e9",dark:"#512714"},
-  {id:"emerald",name:"زمردي",main:"#16805d",soft:"#e7f7ef",dark:"#143b2c"},
-  {id:"rose",name:"وردي",main:"#d94678",soft:"#fff0f5",dark:"#55172e"},
-  {id:"midnight",name:"ليلي",main:"#475569",soft:"#eef2f7",dark:"#172033"},
-  {id:"gold",name:"ذهبي",main:"#a97716",soft:"#fff8e5",dark:"#44300c"},
-  {id:"mint",name:"نعناعي",main:"#0f9488",soft:"#e6faf6",dark:"#123f3b"},
-  {id:"berry",name:"توتي",main:"#9333a8",soft:"#faedff",dark:"#42134c"},
-  {id:"slate",name:"رمادي",main:"#475569",soft:"#f1f5f9",dark:"#1e293b"},
-];
 const templates = [
+  {id:"profile",name:"Profile",hint:"بطاقة تواصل كاملة"},
   {id:"bold",name:"Bold",hint:"جريء ولافت"},
   {id:"minimal",name:"Minimal",hint:"بسيط وراقي"},
   {id:"agency",name:"Agency",hint:"خدمات وشركات"},
@@ -42,7 +32,7 @@ function readHours(value: string | undefined): Record<DayKey,DayHours> {
     const parsed = JSON.parse(value || "{}");
     return Object.fromEntries(weekDays.map(([key]) => {
       const day = parsed?.[key];
-      return [key, { open: typeof day?.open === "boolean" ? day.open : defaultHours[key].open, from: /^\\d{2}:\\d{2}$/.test(day?.from || "") ? day.from : "09:00", to: /^\\d{2}:\\d{2}$/.test(day?.to || "") ? day.to : "18:00" }];
+      return [key, { open: typeof day?.open === "boolean" ? day.open : defaultHours[key].open, from: /^\d{2}:\d{2}$/.test(day?.from || "") ? day.from : "09:00", to: /^\d{2}:\d{2}$/.test(day?.to || "") ? day.to : "18:00" }];
     })) as Record<DayKey,DayHours>;
   } catch { return defaultHours; }
 }
@@ -66,18 +56,15 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [address, setAddress] = useState(initialSections.address || "");
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
-  const [cardColor, setCardColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.card_color || "") ? initialSections.card_color! : "#ffffff");
-  const [accentColor, setAccentColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.accent_color || "") ? initialSections.accent_color! : "#334155");
-  const [panelColor, setPanelColor] = useState(/^#[0-9a-fA-F]{6}$/.test(initialSections.panel_color || "") ? initialSections.panel_color! : "#f8fafc");
-  const [pageBackgroundColor, setPageBackgroundColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).page_background_color || "") ? (initialSections as any).page_background_color : "#ffffff");
-  const [textColor, setTextColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).text_color || "") ? (initialSections as any).text_color : "#111827");
-  const [buttonColor, setButtonColor] = useState(/^#[0-9a-fA-F]{6}$/.test((initialSections as any).button_color || "") ? (initialSections as any).button_color : "#334155");
+  const [primary, setPrimary] = useState<string>(pagePrimary(initialSections as any) || "");
+  const [mode, setMode] = useState<"" | "light" | "dark">(initialSections.theme_mode === "light" || initialSections.theme_mode === "dark" ? initialSections.theme_mode : "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),card_color:cardColor,accent_color:accentColor,panel_color:panelColor,page_background_color:pageBackgroundColor,text_color:textColor,button_color:buttonColor,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
-  const activeTheme = themes.find((item) => item.id === theme) || themes[0];
-  const previewClass = useMemo(() => "rounded-2xl border shadow-sm", []);
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
+  const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
+  const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
+  const vars = themeVars(resolved);
 
   async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
     if (!file) return;
@@ -120,29 +107,25 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-black text-slate-950">2. محرر الألوان الكامل</h2>
-        <p className="text-sm leading-6 text-slate-500">كل الألوان تبدأ بالأبيض. بدّل لون كل جزء وشوف النتيجة مباشرة في المعاينة الجانبية.</p>
-        <h3 className="font-extrabold text-slate-800">اختار من 10 مجموعات ألوان متناسقة</h3>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {themes.map(item=><button key={item.id} type="button" onClick={()=>{setTheme(item.id);setAccentColor(item.main);setPanelColor(item.soft);setButtonColor(item.main);setCardColor("#ffffff");setPageBackgroundColor("#ffffff");setTextColor(item.dark);}} className={`flex items-center gap-2 rounded-xl border p-2 text-right ${theme===item.id?"border-violet-600 ring-2 ring-violet-100":"border-slate-200"}`}>
-            <span className="h-8 w-8 shrink-0 rounded-lg" style={{background:item.main}}/><span className="text-xs font-bold text-slate-700">{item.name}</span>
-          </button>)}
+        <h2 className="text-lg font-black text-slate-950">2. الثيم والألوان</h2>
+        <p className="text-sm leading-6 text-slate-500">اختر ثيمًا جاهزًا: كل ألوان البطاقة (الخلفية والنصوص والأزرار والأيقونات) تتغير معًا بتناسق وتباين مقروء، وتنطبق على كل القوالب. زر الاتصال أخضر دائمًا.</p>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {THEMES.map((item) => { const p = resolveTheme(item.id).palette; const active = theme === item.id; return (
+            <button key={item.id} type="button" aria-pressed={active} onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }} className={`rounded-xl border p-2 text-center transition ${active ? "border-violet-600 ring-2 ring-violet-100" : "border-slate-200 hover:border-slate-300"}`}>
+              <span className="mx-auto mb-2 grid h-11 w-11 place-items-center rounded-full border text-sm font-black" style={{ background: p.tint, borderColor: p.accent, color: p.accent }}><span className="h-6 w-6 rounded-full" style={{ background: p.gradient }} /></span>
+              <span className="block text-xs font-extrabold text-slate-800">{item.name}{active ? " ✓" : ""}</span>
+            </button>); })}
         </div>
-        <p className="text-xs leading-5 text-slate-500">المجموعات متناسقة مع القوالب المنشورة. تقدر تبدّل لون الخلفية أو البطاقة أو النصوص أو الأزرار وحدها إذا حبيت.</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          {[
-            {label:"خلفية الصفحة",value:pageBackgroundColor,set:setPageBackgroundColor},
-            {label:"خلفية البطاقة",value:cardColor,set:setCardColor},
-            {label:"لون العناصر والأيقونات",value:accentColor,set:setAccentColor},
-            {label:"خلفية الأقسام",value:panelColor,set:setPanelColor},
-            {label:"لون الكتابة",value:textColor,set:setTextColor},
-            {label:"لون أزرار التواصل",value:buttonColor,set:setButtonColor},
-          ].map((item)=><label key={item.label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-            <input type="color" aria-label={item.label} value={item.value} onChange={e=>item.set(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0"/>
-            <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.label}</span><span className="text-xs text-slate-500">{item.value.toUpperCase()}</span></span>
-          </label>)}
+          <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
+            <input type="color" aria-label="اللون الرئيسي" value={primary || activeDef.primary} onChange={(e) => setPrimary(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
+            <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">لون رئيسي مخصص (اختياري)</span><span className="text-xs text-slate-500">{(primary || activeDef.primary).toUpperCase()}</span></span>
+          </label>
+          <div role="group" aria-label="وضع الخلفية" className="flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-bold">
+            {([["", "حسب الثيم"], ["light", "فاتح"], ["dark", "داكن"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={mode === v} onClick={() => setMode(v)} className={`flex-1 rounded-lg px-3 py-2 ${mode === v ? "bg-violet-600 text-white" : "text-slate-700"}`}>{l}</button>)}
+          </div>
         </div>
-        <button type="button" onClick={()=>{setPageBackgroundColor("#ffffff");setCardColor("#ffffff");setAccentColor("#334155");setPanelColor("#f8fafc");setTextColor("#111827");setButtonColor("#334155");}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع الألوان الافتراضية</button>
+        {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان الثيم الأصلية</button>}
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
@@ -214,19 +197,24 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       </div><aside className="min-w-0 xl:sticky xl:top-4 xl:self-start">
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-black text-slate-950">معاينة مباشرة</h2><div className="flex gap-2"><button type="button" onClick={() => setPreviewMode("mobile")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "mobile" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>📱 الهاتف</button><button type="button" onClick={() => setPreviewMode("desktop")} className={`rounded-lg px-3 py-2 text-sm font-bold ${previewMode === "desktop" ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-700"}`}>💻 الكمبيوتر</button></div></div>
-        <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ background: pageBackgroundColor }}>
-          <div className={`mx-auto transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"} ${previewClass}`} style={{ borderColor: accentColor + "55", background: cardColor, color: textColor }}>
-            <div className="h-2" style={{ background: accentColor }} />
-            <div className="px-5 py-7 text-center">
-              {logo ? <img src={logo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover" /> : <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-black text-white" style={{ background: accentColor }}>{business.slice(0,1) || "م"}</div>}
-              <p className="text-xs font-black" style={{ color: accentColor }}>مرحبًا بكم</p>
-              <h3 className="mt-2 text-2xl font-black" style={{ color: textColor }}>{business || "اسم متجرك"}</h3>
-              <p className="mt-2 font-bold" style={{color:textColor}}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
-              <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{color:textColor}}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
-              <div className="mt-5 rounded-xl px-4 py-3 text-sm font-extrabold text-white" style={{ background: "#16a34a", color: "#ffffff" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
-              <p className="mt-4 text-xs text-slate-400">تصميم {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
+        <div className="mt-3 rounded-3xl p-4 sm:p-6" style={{ ...vars, background: "var(--bg)" }}>
+          <div className={`mx-auto overflow-hidden rounded-3xl border shadow-sm transition-all duration-300 ${previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"}`} style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
+            <div className="h-16" style={{ background: "var(--gradient)" }} />
+            <div className="px-5 pb-6 text-center">
+              {logo ? <img src={logo} alt="" className="relative mx-auto -mt-10 mb-3 h-20 w-20 rounded-full border-4 object-cover" style={{ borderColor: "var(--surface)" }} /> : <div className="relative mx-auto -mt-10 mb-3 grid h-20 w-20 place-items-center rounded-full border-4 text-3xl font-black" style={{ borderColor: "var(--surface)", background: "var(--gradient)", color: "var(--on-primary)" }}>{business.slice(0,1) || "م"}</div>}
+              <h3 className="text-2xl font-black">{business || "اسم متجرك"}</h3>
+              <p className="mt-2 text-sm font-bold" style={{ color: "var(--primary-text)" }}>{headline || "عنوان جذاب لنشاطك التجاري"}</p>
+              <p className="mx-auto mt-3 max-w-sm whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
+              <div className="mt-4 flex justify-center gap-5 text-xs font-extrabold">
+                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>☎</span>اتصال</span>
+                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--whatsapp)", color: "#fff" }}>◉</span>واتساب</span>
+                <span className="flex flex-col items-center gap-1"><span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: "var(--primary)", color: "var(--on-primary)" }}>＋</span>حفظ</span>
+              </div>
+              <div className="mt-4 rounded-xl px-4 py-3 text-sm font-extrabold" style={{ background: "var(--call-button)", color: "var(--on-call)" }}>{phone ? `اتصل بنا · ${phone}` : "زر التواصل مع متجرك"}</div>
+              <p className="mt-4 text-xs" style={{ color: "var(--muted)" }}>الثيم: {activeDef.name} · القالب: {templates.find((item) => item.id === template)?.name} · بطاقاتي</p>
             </div>
           </div>
+          <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>المعاينة تعرض ألوان الثيم نفسها المستعملة في الصفحة المنشورة؛ شكل القالب الكامل يظهر بعد النشر.</p>
         </div>
       </section>
       </aside></div>
