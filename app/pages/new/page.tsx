@@ -98,17 +98,21 @@ function NewLandingPageForm() {
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-3"><h3 className="font-extrabold text-slate-900">جدول أوقات العمل الأسبوعي</h3><p className="mt-1 text-sm leading-6 text-slate-500">حدد الأيام التي يعمل فيها المحل ووقت الفتح والإغلاق. الزبون سيشاهد الحالة حسب توقيت الجزائر.</p></div>
               <input type="hidden" id="hours" name="hours" value={JSON.stringify(hours)} />
-              <div className="space-y-3">
-                {weekDays.map(([key,label]) => {
+              <div className="overflow-hidden rounded-xl border border-slate-200">
+                <div className="grid grid-cols-[minmax(65px,.8fr)_minmax(90px,1fr)_minmax(90px,1fr)_auto] items-center gap-2 bg-slate-100 px-3 py-3 text-xs font-black text-slate-600 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                  <span>اليوم</span><span>من الساعة</span><span>إلى الساعة</span><span>الحالة</span>
+                </div>
+                {weekDays.map(([key,label],i) => {
                   const day = hours[key];
-                  return <div key={key} className="grid gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-[minmax(90px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)] sm:items-center">
-                    <label className="flex items-center gap-2 font-extrabold text-slate-800"><input type="checkbox" checked={day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],open:e.target.checked}}))} className="h-5 w-5 accent-emerald-600" />{label}</label>
-                    <label className="text-xs font-bold text-slate-500">يفتح في<input aria-label={label+" وقت الفتح"} type="time" value={day.from} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],from:e.target.value}}))} className={inputClass+" disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"} /></label>
-                    <label className="text-xs font-bold text-slate-500">يغلق في<input aria-label={label+" وقت الإغلاق"} type="time" value={day.to} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],to:e.target.value}}))} className={inputClass+" disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"} /></label>
-                    <p className={`text-xs font-extrabold sm:col-span-3 ${day.open?"text-emerald-700":"text-slate-400"}`}>{day.open ? "يعمل هذا اليوم" : "مغلق هذا اليوم"}</p>
+                  return <div key={key} className={`grid grid-cols-[minmax(65px,.8fr)_minmax(90px,1fr)_minmax(90px,1fr)_auto] items-center gap-2 border-t border-slate-100 px-3 py-2 sm:grid-cols-[1fr_1fr_1fr_auto] ${i%2===0?"bg-white":"bg-slate-50"}`}>
+                    <span className="text-sm font-extrabold text-slate-800">{label}</span>
+                    <input aria-label={label+" وقت الفتح"} type="time" value={day.from} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],from:e.target.value}}))} className="min-w-0 rounded-lg border border-slate-200 bg-white px-1 py-2 text-center text-sm font-bold disabled:bg-slate-100 disabled:text-slate-300" />
+                    <input aria-label={label+" وقت الإغلاق"} type="time" value={day.to} disabled={!day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],to:e.target.value}}))} className="min-w-0 rounded-lg border border-slate-200 bg-white px-1 py-2 text-center text-sm font-bold disabled:bg-slate-100 disabled:text-slate-300" />
+                    <label className="flex items-center justify-center" title={day.open?"يعمل":"مغلق"}><input type="checkbox" aria-label={label+" يعمل"} checked={day.open} onChange={e=>setHours(old=>({...old,[key]:{...old[key],open:e.target.checked}}))} className="h-5 w-5 accent-emerald-600" /></label>
                   </div>;
                 })}
               </div>
+              <p className="mt-2 text-xs text-slate-500">أسماء الأيام جاهزة؛ اختار أوقات الفتح والإغلاق من الخانات، وانزع العلامة من اليوم المغلق.</p>
             </div>
           </section>
           <section className="space-y-4">
