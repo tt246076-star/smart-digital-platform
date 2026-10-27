@@ -14,14 +14,7 @@ type PageData = {
 };
 
 const themes = [{ id: "violet", name: "افتراضي", main: "#7c3aed", soft: "#f5f3ff", dark: "#1e1b4b" }];
-const templates = [
-  { id: "bold", name: "Bold", hint: "جريء ولافت" },
-  { id: "minimal", name: "Minimal", hint: "بسيط وراقي" },
-  { id: "agency", name: "Agency", hint: "خدمات وشركات" },
-  { id: "beauty", name: "Beauty", hint: "جمال وعناية" },
-  { id: "portfolio", name: "Portfolio", hint: "أعمال شخصية" },
-  { id: "restaurant", name: "Restaurant", hint: "مطاعم ومقاهي" },
-];
+const templates = [{ id: "simple", name: "قالب بسيط", hint: "محايد وقابل لتخصيص الألوان" }];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
 type DayHours = { open: boolean; from: string; to: string };
