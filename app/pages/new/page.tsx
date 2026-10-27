@@ -28,6 +28,7 @@ function NewLandingPageForm() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
+  const [cardColor, setCardColor] = useState("#ffffff");
 
   async function uploadImage(file: File | undefined, done: (url: string) => void) {
     if (!file) return;
@@ -72,6 +73,16 @@ function NewLandingPageForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div><label className={labelClass} htmlFor="template">القالب</label><select className={inputClass} id="template" name="template" defaultValue="aurora"><option value="aurora">Aurora — عصري</option><option value="store">Store — متجر</option><option value="minimal">Minimal — بسيط</option><option value="bold">Bold — جريء</option><option value="beauty">Beauty — جمال</option><option value="agency">Agency — خدمات</option><option value="restaurant">Restaurant — مطعم</option><option value="portfolio">Portfolio — أعمال</option></select></div>
               <div><label className={labelClass} htmlFor="theme">الألوان</label><select className={inputClass} id="theme" name="theme" defaultValue="violet"><option value="violet">بنفسجي</option><option value="ocean">أزرق</option><option value="sunset">غروب</option><option value="emerald">أخضر</option><option value="rose">وردي</option><option value="midnight">ليلي</option><option value="gold">ذهبي</option><option value="mint">نعناعي</option><option value="berry">توتي</option><option value="slate">رمادي</option></select></div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+                <label className={labelClass} htmlFor="card_color">لون البطاقة نفسها — اختار أي لون تحبه</label>
+                <input type="hidden" name="card_color" value={cardColor} />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <input id="card_color" aria-label="اختيار لون البطاقة" type="color" value={cardColor} onChange={e=>setCardColor(e.target.value)} className="h-14 w-20 cursor-pointer rounded-xl border border-slate-300 bg-white p-1" />
+                  <input aria-label="كود لون البطاقة" type="text" value={cardColor} onChange={e=>{const v=e.target.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))setCardColor(v);else if(v===""||v==="#")setCardColor(v)}} onBlur={()=>{if(!/^#[0-9a-fA-F]{6}$/.test(cardColor))setCardColor("#ffffff")}} placeholder="#ffffff" maxLength={7} dir="ltr" className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold uppercase" />
+                  <span className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold" style={{backgroundColor:cardColor,color:"#111827"}}>معاينة لون البطاقة</span>
+                </div>
+                <p className="mt-2 text-xs leading-6 text-slate-500">تقدر تختار اللون من لوحة الألوان أو تدخل كود HEX. هذا اللون يطبق على خلفية البطاقة في الصفحة المنشورة.</p>
+              </div>
             </div>
             <input type="hidden" name="logo_url" value={logoUrl} />
             {imageField("شعار أو صورة المحل",logoUrl,setLogoUrl)}
