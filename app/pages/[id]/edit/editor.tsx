@@ -41,7 +41,7 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(page.template === "store" ? "store" : "aurora");
+  const [template, setTemplate] = useState(templates.some((item) => item.id === page.template) ? (page.template as string) : "store");
   const [theme, setTheme] = useState("white");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
