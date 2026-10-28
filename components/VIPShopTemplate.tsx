@@ -99,7 +99,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
     }
   }
 
-  const sideSocials = [socials.find((item) => item.label === "Instagram"), socials.find((item) => item.label === "WhatsApp"), socials.find((item) => item.label === "TikTok"), socials.find((item) => item.label === "Facebook")].filter((item): item is (typeof socials)[number] => Boolean(item));
+  const sideSocials = socials.filter((item) => ["Instagram", "WhatsApp", "TikTok", "Facebook"].includes(item.label));
 
   return <main className="vip-root" style={{ "--vip-bg": theme.bg, "--vip-card": theme.cardBg, "--vip-accent": theme.accent, "--vip-text": theme.text } as React.CSSProperties}>
     <div className={`vip-backdrop ${animationEnabled ? "vip-pan" : ""}`} style={{ backgroundImage: `linear-gradient(#0009,#000b),url("${cover}")` }} aria-hidden="true">
