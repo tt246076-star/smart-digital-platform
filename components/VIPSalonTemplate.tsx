@@ -24,13 +24,13 @@ type VIPShop = {
 };
 
 const palettes: Record<string, { bg: string; bg2: string; accent: string; ink: string; glass: string }> = {
-  gold: { bg: "#f7e4db", bg2: "#f4cad1", accent: "#8b6637", ink: "#40272b", glass: "rgba(255,255,255,.57)" },
-  silver: { bg: "#e9edf2", bg2: "#cfd7e1", accent: "#687382", ink: "#202834", glass: "rgba(255,255,255,.6)" },
-  emerald: { bg: "#e4f3e9", bg2: "#bdddc9", accent: "#286445", ink: "#153c2b", glass: "rgba(255,255,255,.57)" },
-  ruby: { bg: "#fff0f3", bg2: "#f6d0dc", accent: "#a73655", ink: "#5a2033", glass: "rgba(255,255,255,.57)" },
-  lavender: { bg: "#f5edfb", bg2: "#e0d0f0", accent: "#75568f", ink: "#362545", glass: "rgba(255,255,255,.57)" },
-  pink: { bg: "#fff0f5", bg2: "#f3c1d3", accent: "#ad4b72", ink: "#55253b", glass: "rgba(255,255,255,.58)" },
-  dark: { bg: "#171821", bg2: "#302638", accent: "#dfb6c9", ink: "#fff4f8", glass: "rgba(255,255,255,.08)" },
+  gold: { bg: "#f7e4db", bg2: "#e9b98f", accent: "#8b6637", ink: "#40272b", glass: "rgba(255,246,224,.88)" },
+  silver: { bg: "#e9edf2", bg2: "#aebccc", accent: "#526273", ink: "#202834", glass: "rgba(244,248,253,.9)" },
+  emerald: { bg: "#d5f1df", bg2: "#7dbb97", accent: "#17623d", ink: "#153c2b", glass: "rgba(224,255,235,.88)" },
+  ruby: { bg: "#ffe1e9", bg2: "#e99aaf", accent: "#a12d50", ink: "#5a2033", glass: "rgba(255,232,239,.9)" },
+  lavender: { bg: "#f0e0fb", bg2: "#c1a2df", accent: "#70448f", ink: "#362545", glass: "rgba(248,235,255,.9)" },
+  pink: { bg: "#ffe0ec", bg2: "#e99abc", accent: "#a52d62", ink: "#55253b", glass: "rgba(255,232,243,.9)" },
+  dark: { bg: "#11131b", bg2: "#35243f", accent: "#edc1e3", ink: "#fff4fb", glass: "rgba(27,24,37,.9)" },
 };
 
 const dayNames: Record<string, string> = {
