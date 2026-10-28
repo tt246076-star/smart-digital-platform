@@ -46,6 +46,7 @@ function SalonIcon({ brand }: { brand: string }) {
   if (brand === "Instagram") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2.1"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2.1"/><circle cx="17.6" cy="6.6" r="1.3" fill="currentColor"/></svg>;
   if (brand === "TikTok") return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.6 8.1a7.2 7.2 0 0 1-4.3-1.4v8.1a6 6 0 1 1-5.2-5.9v3.3a2.8 2.8 0 1 0 1.9 2.6V2.5h3.3a7.2 7.2 0 0 0 4.3 4.4v3.2Z"/></svg>;
   if (brand === "Facebook") return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.7 21v-8.2h2.8l.4-3.2h-3.2V7.5c0-.9.3-1.6 1.6-1.6H17V3.1c-.3 0-1.4-.1-2.6-.1-2.6 0-4.3 1.6-4.3 4.5v2.1H7.2v3.2h2.9V21Z"/></svg>;
+  if (brand === "map") return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" strokeWidth="2"/></svg>;
   if (brand === "Google") return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.8 3-4.4 3-7.4ZM12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.8-5.7-4.1H3v2.6A10 10 0 0 0 12 22ZM6.3 13.9a6 6 0 0 1 0-3.8V7.5H3a10 10 0 0 0 0 9l3.3-2.6ZM12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-9 5.5l3.3 2.6C7.2 7.8 9.4 6 12 6Z"/></svg>;
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 2.8 9.4 2l2 5-2.1 1.5a15.2 15.2 0 0 0 6.2 6.2l1.5-2.1 5 2-.8 2.8a3 3 0 0 1-3.1 2.2A16.8 16.8 0 0 1 4.4 5.9a3 3 0 0 1 2.2-3.1Z"/></svg>;
 }
@@ -74,6 +75,8 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
       const from = minutes(today.from), to = minutes(today.to);
       const open = from >= 0 && to >= 0 && (from < to ? minute >= from && minute < to : from > to ? minute >= from || minute < to : false);
       if (open) return { open: true, label: `مفتوح الآن · حتى ${today.to}` };
+      if (from >= 0 && to >= 0 && minute < from && from < to) return { open: false, label: `مغلق الآن · يفتح اليوم ${today.from}` };
+      if (from > to && minute >= to && minute < from) return { open: false, label: `مغلق الآن · يفتح اليوم ${today.from}` };
     }
     const currentIndex = dayOrder.indexOf(day);
     for (let i = 1; i <= 7; i++) {
@@ -86,8 +89,8 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
   }, [shop.hours]);
 
   const socials = [
-    { label: "WhatsApp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", color: "#25D366" },
     { label: "Instagram", url: shop.instagram || "", color: "#E1306C" },
+    { label: "WhatsApp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", color: "#25D366" },
     { label: "TikTok", url: shop.tiktok || "", color: "#111111" },
     { label: "Facebook", url: shop.facebook || "", color: "#1877F2" },
   ].filter((item) => item.url);
