@@ -23,7 +23,9 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
   if(!item) return null;
 
   async function submit(e:React.FormEvent<HTMLFormElement>){
-    e.preventDefault(); setBusy(true);setError("");setSuccess("");
+    e.preventDefault();
+    if (!item) { setError("المنتج غير متاح."); return; }
+    setBusy(true);setError("");setSuccess("");
     try{
       const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,customerName:name,customerPhone:phone,customerAddress:[wilaya,address].filter(Boolean).join("، "),notes})});
       const data=await response.json();
