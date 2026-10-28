@@ -18,6 +18,7 @@ type VIPCustomizerProps = {
   currentBackground?: string;
   animationOn?: boolean;
   currentLayout?: string;
+  showSubmit?: boolean;
 };
 
 export default function VIPCustomizer({
@@ -25,6 +26,7 @@ export default function VIPCustomizer({
   currentBackground = "",
   animationOn = true,
   currentLayout = "classic",
+  showSubmit = true,
 }: VIPCustomizerProps) {
   const [theme, setTheme] = useState(themes.some((item) => item.id === currentTheme) ? currentTheme : "gold");
   const [layout, setLayout] = useState(currentLayout === "salon" ? "salon" : "classic");
@@ -86,7 +88,7 @@ export default function VIPCustomizer({
         <input type="checkbox" name="animation" checked={animation} onChange={(event) => setAnimation(event.target.checked)} className="h-5 w-5 shrink-0 accent-amber-600" />
       </label>
 
-      <button type="submit" className="mt-4 w-full rounded-xl bg-slate-900 px-5 py-3 font-extrabold text-white transition hover:bg-slate-700">حفظ المظهر</button>
+      {showSubmit && <button type="submit" className="mt-4 w-full rounded-xl bg-slate-900 px-5 py-3 font-extrabold text-white transition hover:bg-slate-700">حفظ المظهر</button>}
     </section>
   );
 }
