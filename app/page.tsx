@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PackageOrderForm from "@/components/PackageOrderForm";
 import { SITE } from "@/lib/site";
 
 const features = [
@@ -193,7 +194,20 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="pricing" className="px-5 py-20 sm:px-8">
+        <section id="pricing" className="lp-products-section px-5 py-20 sm:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">منتجاتنا وعروضنا</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-5xl">اختار البطاقة المناسبة لنشاطك</h2><p className="mt-4 leading-8 text-slate-600">اطّلع على الخيارات، اختر المنتج المناسب وابعث طلبك مباشرة. نعاودوا نتواصلوا معك لتأكيد التفاصيل والتوصيل.</p></div>
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <PackageOrderForm packageId="desk-card" />
+              <PackageOrderForm packageId="door-card" />
+              <PackageOrderForm packageId="smart-display" />
+              <PackageOrderForm packageId="three-card-bundle" />
+            </div>
+            <p className="mt-5 text-center text-xs leading-6 text-slate-500">الأسعار المعروضة قابلة للتأكيد قبل النشر النهائي. السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا.</p>
+          </div>
+        </section>
+
+        <section id="cta" className="px-5 py-20 sm:px-8">
           <div className="lp-cta mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-12 text-center text-white sm:px-12 sm:py-16"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm">ابدأ اليوم</span><h2 className="mx-auto mt-5 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">خلّي معلومات نشاطك قريبة من زبائنك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-slate-200">أنشئ صفحتك على {SITE.name}، رتّب معلوماتك وشارك رابطك أينما يتواجد عملاؤك.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><Link href="/signup" className="lp-primary-btn">أنشئ حسابك <span>←</span></Link><Link href="/login" className="lp-secondary-btn">عندي حساب بالفعل</Link></div></div>
         </section>
       </main>
