@@ -4,13 +4,20 @@ import { useState } from "react";
 import VIPImageUpload from "@/components/VIPImageUpload";
 
 const themes = [
-  { id: "gold", name: "ذهبي فخم", color: "#C9A86A", card: "#2D1E14" },
-  { id: "silver", name: "فضي", color: "#9CA3AF", card: "#282b31" },
-  { id: "emerald", name: "زمردي", color: "#10B981", card: "#0F2A1F" },
-  { id: "ruby", name: "ياقوتي", color: "#EF4444", card: "#2A0F14" },
-  { id: "lavender", name: "لافندر", color: "#A78BFA", card: "#291a37" },
-  { id: "pink", name: "وردي", color: "#EC4899", card: "#3b1c2c" },
-  { id: "dark", name: "داكن", color: "#9CA3AF", card: "#1F2937" },
+  { id: "gold", name: "ذهبي ملكي", color: "#f5d7a5", card: "#342014" },
+  { id: "silver", name: "فضي لؤلؤي", color: "#e7edf5", card: "#172338" },
+  { id: "emerald", name: "زمرد فاخر", color: "#b9edce", card: "#103927" },
+  { id: "ruby", name: "ياقوت أحمر", color: "#ffc6d2", card: "#451021" },
+  { id: "lavender", name: "لافندر", color: "#e8d0ff", card: "#2f194a" },
+  { id: "pink", name: "وردي حريري", color: "#ffc6e1", card: "#4b1534" },
+  { id: "dark", name: "ليل بنفسجي", color: "#39264d", card: "#171525" },
+  { id: "ocean", name: "أزرق محيطي", color: "#b8e8f5", card: "#0c2c3c" },
+  { id: "sunset", name: "غروب دافئ", color: "#ffd0ad", card: "#4a201c" },
+  { id: "mint", name: "نعناع منعش", color: "#c7f3e7", card: "#123c37" },
+  { id: "royal", name: "أزرق ملكي", color: "#cbd4ff", card: "#151d50" },
+  { id: "noir", name: "أسود وذهبي", color: "#f0c76a", card: "#080808" },
+  { id: "copper", name: "نحاسي", color: "#f1c9ad", card: "#3b2118" },
+  { id: "ice", name: "جليدي", color: "#e0f5ff", card: "#18384a" },
 ] as const;
 
 type VIPCustomizerProps = {
