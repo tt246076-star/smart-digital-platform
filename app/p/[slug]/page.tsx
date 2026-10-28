@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 import GoogleReviewCard from "@/components/GoogleReviewCard";
+import StoreOrderWidget from "@/components/StoreOrderWidget";
 import { resolveTheme, pagePrimary } from "@/lib/theme";
 
 
@@ -248,6 +249,8 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </section>
           )}
 
+          {products.length > 0 && (template === "store" || template === "restaurant" || template === "aurora") && <div className="px-5 pb-6 sm:px-7"><StoreOrderWidget slug={params.slug} products={products} /></div>}
+
           <footer className="border-t px-5 py-7 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
             <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
             <a href="/" className="group mx-auto mt-4 flex w-fit flex-col items-center gap-2 rounded-2xl border px-7 py-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: resolvedTheme.primary + "55", background: `linear-gradient(145deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})` }}>
@@ -321,6 +324,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </div>
 
             <aside className="space-y-4">
+              {isStore && products.length > 0 && <StoreOrderWidget slug={params.slug} products={products} />}
               {sections.address && <section className="rounded-3xl border p-5" style={{backgroundColor:customPanel,borderColor:customAccent+"35"}}><span className="grid h-11 w-11 place-items-center rounded-xl text-xl" style={{background:palette.tint,color:palette.accent}}>⌖</span><h2 className="mt-4 font-black" style={{color:cardText}}>زورونا</h2><p className="mt-2 text-sm leading-7" style={{color:cardMuted}}>{sections.address}</p>{sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-black" style={{borderColor:palette.accent,color:palette.accent}}>افتح الموقع على الخريطة ↗</a>}</section>}
               {sections.hours && <section className="rounded-2xl border p-4 shadow-sm" style={{backgroundColor:customPanel,borderColor:customAccent+"35"}}><div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl text-lg" style={{backgroundColor:customPanel,color:customAccent}}>◷</span><h2 className="font-black" style={{color:cardText}}>أوقات العمل</h2></div>{todayStatus && <span aria-live="polite" className={`rounded-full px-2.5 py-1 text-[11px] font-black ${isOpenNow?"bg-emerald-100 text-emerald-700":"bg-rose-100 text-rose-700"}`}>{todayStatus}</span>}</div><details className="mt-3"><summary className="cursor-pointer rounded-xl border px-4 py-3.5 text-base font-extrabold shadow-sm" style={{backgroundColor:"#ffffff",borderColor:customAccent+"66",color:"#111827"}}>عرض جدول أوقات العمل <span className="float-left text-lg">⌄</span></summary><div className="mt-2 space-y-1.5">{weeklyHours ? Object.entries({sunday:"الأحد",monday:"الإثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس",friday:"الجمعة",saturday:"السبت"}).map(([key,label])=>{const h=weeklyHours?.[key];return <div key={key} className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm sm:text-base" style={{backgroundColor:"#ffffff",borderColor:customAccent+"30"}}><span className="font-extrabold" style={{color:"#111827"}}>{label}</span><span dir="ltr" className={h?.open?"text-sm font-bold tabular-nums text-emerald-700 sm:text-base":"text-sm font-bold text-rose-600 sm:text-base"}>{h?.open?`${h.from} – ${h.to}`:"مغلق"}</span></div>}) : <p className="whitespace-pre-wrap text-sm leading-7" style={{color:cardMuted}}>{sections.hours}</p>}</div></details></section>}
               <section className="rounded-3xl p-5 text-white" style={{background:palette.gradient,color:"#ffffff"}}><p className="text-xs font-bold text-white/75">يسعدنا تواصلكم</p><h2 className="mt-2 text-xl font-black">هل تحتاج إلى مساعدة؟</h2><p className="mt-2 text-sm leading-6 text-white/85">تواصل معنا مباشرة وسنكون سعداء بخدمتك.</p>{page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black" style={{color:palette.accent}}>☎ اتصل بنا</a>}{page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\D/g,"")}`} data-track-event="contact" className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-black text-white">◉ واتساب</a>}</section>
