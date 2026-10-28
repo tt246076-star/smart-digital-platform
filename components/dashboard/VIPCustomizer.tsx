@@ -50,10 +50,10 @@ export default function VIPCustomizer({
             <span className="mt-2 block text-xs font-bold text-amber-700">{layout === "classic" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
           </button>
           <button type="button" onClick={() => setLayout("salon")} aria-pressed={layout === "salon"} className={`rounded-2xl border-2 p-4 text-right transition ${layout === "salon" ? "border-pink-700 bg-white ring-2 ring-pink-200" : "border-slate-200 bg-white hover:border-pink-300"}`}>
-            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-rose-100 via-pink-200 to-rose-300"><span className="relative h-12 w-12 rounded-full border-2 border-white bg-white/70 shadow-lg"><span className="absolute -right-1 bottom-0 h-4 w-4 rounded-full bg-rose-500" /></span></span>
-            <strong className="block text-sm text-slate-900">صالون / تجميل</strong>
-            <small className="mt-1 block text-xs text-slate-500">تصميم زجاجي، أزرار دائرية وخلفية متحركة</small>
-            <span className="mt-2 block text-xs font-bold text-pink-700">{layout === "salon" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
+            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 via-stone-100 to-amber-300"><span className="relative h-12 w-12 rounded-full border-2 border-white bg-white/70 shadow-lg"><span className="absolute -right-1 bottom-0 h-4 w-4 rounded-full bg-amber-500" /></span></span>
+            <strong className="block text-sm text-slate-900">VIP شامل لكل الأنشطة</strong>
+            <small className="mt-1 block text-xs text-slate-500">نفس التصميم الفاخر مناسب للمحلات والخدمات والمطاعم والرياضة وغيرها</small>
+            <span className="mt-2 block text-xs font-bold text-amber-700">{layout === "salon" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
           </button>
         </div>
       </div>

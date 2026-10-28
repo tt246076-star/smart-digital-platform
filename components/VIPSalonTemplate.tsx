@@ -122,7 +122,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
         <article className="salon-card">
           <div className="salon-logo"><img src={shop.logo || fallbackLogo} alt={`شعار ${shop.name}`} /><span>✦</span></div>
           <header className="salon-head">
-            <span className="salon-kicker">BEAUTY · CARE · STYLE</span>
+            <span className="salon-kicker">BUSINESS · BRAND · SERVICES</span>
             <h1>{shop.name}</h1>
             <span className="salon-latin">{shop.name}</span>
             {shop.bio && <p>{shop.bio}</p>}
@@ -137,7 +137,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
           {shop.googleLink && <a className="salon-google" href={shop.googleLink} target="_blank" rel="noreferrer"><span className="salon-google-icon"><SalonIcon brand="Google" /></span><span className="salon-google-copy"><b>قيّم تجربتك على Google</b><span className="salon-stars">★★★★★</span><small>رأيك يساعدنا على التطور دائمًا</small></span><span className="salon-arrow">↗</span></a>}
           {contactItems.length > 0 && <section className="salon-contacts"><div className="salon-section-title"><span>تواصل معنا</span><small>GET IN TOUCH</small></div><div className="salon-contact-list">{contactItems.map((item) => <a key={item.label} className="salon-contact" href={item.url} target={item.url.startsWith("http") ? "_blank" : undefined} rel="noreferrer"><span className="salon-contact-icon" style={{ color: item.color }}><SalonIcon brand={item.brand} /></span><span className="salon-contact-copy"><b>{item.label}</b><small>{item.detail}</small></span><span className="salon-contact-arrow">↗</span></a>)}</div></section>}
           {shop.gallery?.filter(Boolean).length ? <section className="salon-gallery-section"><div className="salon-section-title"><span>من أعمالنا</span><small>OUR GALLERY</small></div><div className="salon-gallery">{shop.gallery.filter(Boolean).slice(0, 4).map((src, i) => <button key={src + i} type="button" onClick={() => setLightbox(src)} aria-label={`عرض الصورة ${i + 1}`}><img src={src} alt={`من أعمال ${shop.name}`} loading="lazy" /></button>)}</div></section> : null}
-          <footer className="salon-footer"><span>✦</span><b>{shop.name}</b><small>الجمال يبدأ من العناية بالتفاصيل</small></footer>
+          <footer className="salon-footer"><span>✦</span><b>{shop.name}</b><small>حضورك الرقمي يبدأ من التفاصيل</small></footer>
         </article>
         {shop.googleLink && <a className="salon-google-orb" href={shop.googleLink} target="_blank" rel="noreferrer" aria-label="تقييم Google"><SalonIcon brand="Google" /><small>Google</small></a>}
       </div>
