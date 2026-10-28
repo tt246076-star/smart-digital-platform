@@ -4,8 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 
 const links = [
   { href: "/#features", label: "المميزات" },
+  { href: "/#gallery", label: "معرض النماذج" },
   { href: "/#how", label: "طريقة العمل" },
-  { href: "/#pricing", label: "الأسعار" },
   { href: "/#faq", label: "الأسئلة الشائعة" },
 ];
 
