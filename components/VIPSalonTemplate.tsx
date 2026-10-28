@@ -107,7 +107,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
     }
   }
 
-  return <main className="salon-root" style={{ "--salon-bg": palette.bg, "--salon-bg2": palette.bg2, "--salon-accent": palette.accent, "--salon-ink": palette.ink, "--salon-glass": palette.glass, backgroundImage: `linear-gradient(160deg,${palette.bg},${palette.bg2})` } as React.CSSProperties}>
+  return <main className={`salon-root ${animate ? "salon-animated" : "salon-static"}`} style={{ "--salon-bg": palette.bg, "--salon-bg2": palette.bg2, "--salon-accent": palette.accent, "--salon-ink": palette.ink, "--salon-glass": palette.glass, backgroundImage: `linear-gradient(160deg,${palette.bg},${palette.bg2})` } as React.CSSProperties}>
     <div className="salon-backdrop" aria-hidden="true" style={{ backgroundImage: `linear-gradient(180deg,#21131b35,#21131bb8),url("${cover}")` }} />
     <div className="salon-aurora" aria-hidden="true"><i /><i /><i /></div>
     <div className="salon-wrap">
@@ -162,6 +162,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
       .salon-share{position:fixed;z-index:10;right:18px;bottom:18px;width:47px;height:47px;display:grid;place-items:center;border:1px solid #ffffff80;border-radius:50%;background:#ffffff52;color:var(--salon-ink);box-shadow:0 8px 25px #0002;backdrop-filter:blur(15px);cursor:pointer}.salon-share svg{width:21px;height:21px}.salon-toast{position:fixed;z-index:30;bottom:78px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 30px);border:1px solid var(--salon-accent);border-radius:999px;background:var(--salon-bg);color:var(--salon-ink);padding:11px 16px;font:inherit;font-size:12px;box-shadow:0 10px 30px #0003;cursor:pointer}.salon-lightbox{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px;background:#000d}.salon-lightbox img{max-width:100%;max-height:85vh;object-fit:contain;border-radius:14px}.salon-lightbox button{position:absolute;top:15px;right:20px;border:0;background:transparent;color:white;font-size:36px;cursor:pointer}
       @media(max-width:440px){.salon-root{padding-left:26px;padding-right:26px}.salon-orb{width:49px;height:49px}.salon-orb svg{width:22px;height:22px}.salon-left{left:-19px}.salon-right{right:-19px}.salon-orb-two{top:172px}.salon-card{padding-left:17px;padding-right:17px}}
       @media(max-width:340px){.salon-root{padding-left:28px;padding-right:28px}.salon-orb{width:42px;height:42px}.salon-orb-two{top:164px}.salon-google{gap:6px;padding-left:8px;padding-right:8px}.salon-google-copy small{font-size:9px}}
+      .salon-static .salon-aurora i,.salon-static .salon-orb,.salon-static .salon-is-open i,.salon-static .salon-google:after{animation:none}
       @media(prefers-reduced-motion:reduce){.salon-aurora i,.salon-orb,.salon-is-open i,.salon-google:after{animation:none}.salon-contact,.salon-gallery img{transition:none}}
     `}</style>
   </main>;
