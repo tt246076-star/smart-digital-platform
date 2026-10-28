@@ -126,7 +126,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
             <h1>{shop.name}</h1>
             <span className="salon-latin">{shop.name}</span>
             {shop.bio && <p>{shop.bio}</p>}
-            <div className={`salon-status ${status.open ? "salon-is-open" : "salon-is-closed"}"><i />{status.label}</div>
+            <div className={`salon-status ${status.open ? "salon-is-open" : "salon-is-closed"}`}><i />{status.label}</div>
           </header>
           <div className="salon-divider"><span>✧</span></div>
           <section className="salon-hours">
