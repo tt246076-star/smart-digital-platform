@@ -13,7 +13,8 @@ const HOME_PACKAGES: Record<string,{name:string;price:number}> = {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const source = body.source === "homepage" ? "homepage" : "store";
+    const source = body.source === "homepage" ? "homepage" : body.source === "catalog" ? "catalog" : "store";
+    const productId = typeof body.productId === "string" ? body.productId.trim() : "";
     const slug = typeof body.slug === "string" ? body.slug.trim().slice(0, 120) : "";
     const productIndex = Number(body.productIndex);
     const quantity = Number(body.quantity);
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
 
     if (customerName.length < 2 || !/[0-9]{7,}/.test(customerPhone.replace(/\D/g, "")) ||
         (source === "store" && (!slug || !Number.isInteger(productIndex) || productIndex < 0 || !Number.isInteger(quantity) || quantity < 1 || quantity > 20)) ||
-        (source === "homepage" && !HOME_PACKAGES[packageId])) {
+        (source === "homepage" && !HOME_PACKAGES[packageId]) || (source === "catalog" && !productId)) {
       return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والمنتج والكمية." }, { status: 400 });
     }
 
@@ -41,7 +42,14 @@ export async function POST(request: Request) {
     let totalAmount: number | null = null;
     let imageUrl = "";
 
-    if (source === "homepage") {
+    if (source === "catalog") {
+      const { data: product, error: productError } = await admin.from("storefront_products").select("id,name,description,price,image_url,is_active").eq("id", productId).eq("is_active", true).maybeSingle();
+      if (productError || !product) return NextResponse.json({ error: "هذا المنتج غير متوفر حاليًا." }, { status: 404 });
+      itemName = String(product.name).slice(0, 100);
+      priceText = String(product.price);
+      totalAmount = Number(product.price);
+      imageUrl = typeof product.image_url === "string" ? product.image_url.slice(0, 1000) : "";
+    } else if (source === "homepage") {
       const item = HOME_PACKAGES[packageId];
       itemName = item.name;
       priceText = String(item.price);
@@ -75,7 +83,7 @@ export async function POST(request: Request) {
       items: [{ name: itemName, price: priceText, quantity: finalQuantity, image_url: imageUrl }],
       total_amount: totalAmount,
       status: "new",
-      notes: source === "homepage" ? `طلب من الصفحة الرئيسية. ${notes}`.trim() : notes
+      notes: source === "homepage" ? `طلب من الصفحة الرئيسية. ${notes}`.trim() : source === "catalog" ? `طلب منتج من المتجر الرئيسي. ${notes}`.trim() : notes
     }).select("id").single();
 
     if (insertError || !order) {
