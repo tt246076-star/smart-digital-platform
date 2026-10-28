@@ -30,6 +30,18 @@ function NewLandingPageForm() {
   const [uploadError, setUploadError] = useState("");
   const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
   const [cardColor, setCardColor] = useState("#ffffff");
+  const [template, setTemplate] = useState("aurora");
+  const templateOptions = [
+    { id: "profile", name: "بطاقة تواصل", hint: "معلومات وروابط التواصل", color: "linear-gradient(135deg,#0f172a,#64748b)" },
+    { id: "aurora", name: "عصري", hint: "تدرجات ناعمة ومظهر متوازن", color: "linear-gradient(135deg,#4f46e5,#06b6d4)" },
+    { id: "store", name: "متجر", hint: "تركيز على المنتجات والأسعار", color: "linear-gradient(135deg,#0f766e,#2dd4bf)" },
+    { id: "minimal", name: "بسيط", hint: "تصميم هادئ ومساحات واضحة", color: "linear-gradient(135deg,#e5e7eb,#9ca3af)" },
+    { id: "bold", name: "جريء", hint: "ألوان قوية وعناوين بارزة", color: "linear-gradient(135deg,#7f1d1d,#ef4444)" },
+    { id: "beauty", name: "جمال وعناية", hint: "لمسة ناعمة للصالونات", color: "linear-gradient(135deg,#f9a8d4,#831843)" },
+    { id: "agency", name: "خدمات ومهن", hint: "عرض واضح للخدمات", color: "linear-gradient(135deg,#334155,#94a3b8)" },
+    { id: "restaurant", name: "مطعم ومقهى", hint: "ستايل دافئ للطعام", color: "linear-gradient(135deg,#f59e0b,#7c2d12)" },
+    { id: "portfolio", name: "معرض أعمال", hint: "مظهر فني يبرز أعمالك", color: "linear-gradient(135deg,#111827,#4b5563)" },
+  ];
 
   async function uploadImage(file: File | undefined, done: (url: string) => void) {
     if (!file) return;
@@ -72,7 +84,7 @@ function NewLandingPageForm() {
             <div><label className={labelClass} htmlFor="headline">عنوان الصفحة</label><input className={inputClass} id="headline" name="headline" maxLength={140} placeholder="كل ما تحتاجه في مكان واحد" /></div>
             <div><label className={labelClass} htmlFor="description">وصف قصير</label><textarea className={inputClass} id="description" name="description" rows={3} maxLength={1000} placeholder="عرّف الزبائن بنشاطك أو منتجاتك..." /></div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><label className={labelClass} htmlFor="template">القالب</label><select className={inputClass} id="template" name="template" defaultValue="aurora"><option value="profile">Profile — بطاقة تواصل كاملة</option><option value="aurora">Aurora — عصري</option><option value="store">Store — متجر</option><option value="minimal">Minimal — بسيط</option><option value="bold">Bold — جريء</option><option value="beauty">Beauty — جمال</option><option value="agency">Agency — خدمات</option><option value="restaurant">Restaurant — مطعم</option><option value="portfolio">Portfolio — أعمال</option></select></div>
+              <div className="sm:col-span-2"><span className={labelClass}>اختار شكل البطاقة حسب نشاطك</span><input type="hidden" name="template" value={template} /><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{templateOptions.map((item)=><button key={item.id} type="button" onClick={()=>setTemplate(item.id)} aria-pressed={template===item.id} className={`rounded-2xl border-2 p-3 text-right transition ${template===item.id?"border-blue-600 bg-blue-50 ring-2 ring-blue-100":"border-slate-200 bg-white hover:border-blue-300"}`}><span className="mb-3 block h-16 rounded-xl shadow-inner" style={{background:item.color}}><span className="flex h-full items-end gap-1 p-3"><i className="h-7 w-7 rounded-full border-2 border-white/80 bg-white/25"/><i className="mb-1 h-2 w-1/3 rounded bg-white/80"/><i className="mb-1 h-2 w-1/5 rounded bg-white/45"/></span></span><strong className="block text-sm text-slate-900">{item.name}</strong><span className="mt-1 block text-xs leading-5 text-slate-500">{item.hint}</span><span className="mt-2 block text-xs font-extrabold text-blue-700">{template===item.id?"✓ القالب المختار":"اختيار هذا القالب"}</span></button>)}</div></div>
               <div><label className={labelClass} htmlFor="theme">الألوان</label><select className={inputClass} id="theme" name="theme" defaultValue="violet">{THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
                 <label className={labelClass} htmlFor="card_color">لون البطاقة نفسها — اختار أي لون تحبه</label>

@@ -15,8 +15,15 @@ type PageData = {
 };
 
 const templates = [
-  {id:"store",name:"Store",hint:"بطاقة متجر بكتالوج المنتجات"},
-  {id:"aurora",name:"Aurora",hint:"بطاقة نشاط كاملة بتصميم متدرّج"},
+  {id:"profile",name:"بطاقة تواصل",hint:"معلومات وروابط التواصل"},
+  {id:"aurora",name:"Aurora",hint:"تدرجات ناعمة ومظهر متوازن"},
+  {id:"store",name:"Store",hint:"تركيز على المنتجات والأسعار"},
+  {id:"minimal",name:"Minimal",hint:"تصميم هادئ ومساحات واضحة"},
+  {id:"bold",name:"Bold",hint:"ألوان قوية وعناوين بارزة"},
+  {id:"beauty",name:"Beauty",hint:"ستايل ناعم للصالونات والجمال"},
+  {id:"agency",name:"Agency",hint:"عرض منظم للخدمات والمهن"},
+  {id:"restaurant",name:"Restaurant",hint:"ستايل دافئ للمطاعم والمقاهي"},
+  {id:"portfolio",name:"Portfolio",hint:"معرض يبرز الأعمال والصور"},
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
@@ -35,7 +42,7 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(page.template === "store" ? "store" : "aurora");
+  const [template, setTemplate] = useState(templates.some((item) => item.id === page.template) ? (page.template as string) : "aurora");
   const [theme, setTheme] = useState(page.theme || "volcano");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
