@@ -29,7 +29,7 @@ export default function VIPCustomizer({
   showSubmit = true,
 }: VIPCustomizerProps) {
   const [theme, setTheme] = useState(themes.some((item) => item.id === currentTheme) ? currentTheme : "gold");
-  const [layout, setLayout] = useState(currentLayout === "salon" ? "salon" : "classic");
+  const layout = "salon";
   const [animation, setAnimation] = useState(animationOn);
 
   return (
@@ -40,22 +40,9 @@ export default function VIPCustomizer({
       <input type="hidden" name="theme" value={theme} />
       <input type="hidden" name="layout" value={layout} />
 
-      <div className="mt-4">
-        <span className="text-sm font-bold text-slate-800">نوع تصميم البطاقة</span>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <button type="button" onClick={() => setLayout("classic")} aria-pressed={layout === "classic"} className={`rounded-2xl border-2 p-4 text-right transition ${layout === "classic" ? "border-slate-900 bg-white ring-2 ring-amber-300" : "border-slate-200 bg-white hover:border-amber-400"}`}>
-            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-stone-900 to-stone-700"><span className="h-12 w-12 rounded-full border-2 border-amber-300 bg-stone-800 shadow-lg" /></span>
-            <strong className="block text-sm text-slate-900">VIP كلاسيكي</strong>
-            <small className="mt-1 block text-xs text-slate-500">بطاقة أنيقة بترتيب بسيط ومباشر</small>
-            <span className="mt-2 block text-xs font-bold text-amber-700">{layout === "classic" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
-          </button>
-          <button type="button" onClick={() => setLayout("salon")} aria-pressed={layout === "salon"} className={`rounded-2xl border-2 p-4 text-right transition ${layout === "salon" ? "border-pink-700 bg-white ring-2 ring-pink-200" : "border-slate-200 bg-white hover:border-pink-300"}`}>
-            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 via-stone-100 to-amber-300"><span className="relative h-12 w-12 rounded-full border-2 border-white bg-white/70 shadow-lg"><span className="absolute -right-1 bottom-0 h-4 w-4 rounded-full bg-amber-500" /></span></span>
-            <strong className="block text-sm text-slate-900">VIP شامل لكل الأنشطة</strong>
-            <small className="mt-1 block text-xs text-slate-500">نفس التصميم الفاخر مناسب للمحلات والخدمات والمطاعم والرياضة وغيرها</small>
-            <span className="mt-2 block text-xs font-bold text-amber-700">{layout === "salon" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
-          </button>
-        </div>
+      <div className="mt-4 rounded-xl border border-amber-200 bg-white p-3">
+        <strong className="block text-sm text-slate-900">تصميم VIP شامل لكل الأنشطة</strong>
+        <p className="mt-1 text-xs leading-5 text-slate-600">غيّر الثيم بالأسفل لتتغير ألوان البطاقة نفسها، وليس معاينة الاختيار فقط.</p>
       </div>
 
       <div className="mt-4">

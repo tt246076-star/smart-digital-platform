@@ -28,8 +28,7 @@ async function updateVIPCard(formData: FormData) {
   const gallery = [1,2,3,4].map(i => val("gallery_"+i,old.gallery?.[i-1] || "")).filter(Boolean).map(cleanUrl).filter(Boolean);
   const requestedTheme = val("theme", old.theme || "gold");
   const theme = ["gold","silver","emerald","ruby","lavender","pink","dark"].includes(requestedTheme) ? requestedTheme : "gold";
-  const requestedLayout = val("layout", old.layout || "classic");
-  const layout = ["classic","salon"].includes(requestedLayout) ? requestedLayout : "classic";
+  const layout = "salon";
   const hours: Record<string,{open:boolean;from:string;to:string}> = {};
   for (const [day] of days) hours[day] = { open: formData.get(day+"_open") === "on", from: val(day+"_from",old.hours?.[day]?.from || "09:00"), to: val(day+"_to",old.hours?.[day]?.to || "18:00") };
   const vip_card = { ...old, name, theme, layout, backgroundImage:val("backgroundImage",old.backgroundImage), animation:formData.get("animation") === "on", bio:val("bio",old.bio).slice(0,400), logo:val("logo",old.logo), coverImage:val("cover",old.coverImage), phone:val("phone",old.phone).slice(0,30), whatsapp:val("whatsapp",old.whatsapp).slice(0,30), instagram:cleanUrl(val("instagram",old.instagram)), tiktok:cleanUrl(val("tiktok",old.tiktok)), facebook:cleanUrl(val("facebook",old.facebook)), address:val("address",old.address).slice(0,200), mapUrl:cleanUrl(val("map",old.mapUrl)), googleLink:cleanUrl(val("google",old.googleLink)), gallery, hours };
