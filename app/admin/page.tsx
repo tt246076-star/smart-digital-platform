@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setUserPlan, deleteLandingPage, setUserProductLimit, deleteCatalogProduct } from "./actions";
 import DeleteProductForm from "./DeleteProductForm";
 import DeletePageForm from "./DeletePageForm";
+import AdminOrders from "./AdminOrders";
 
 export const dynamic = "force-dynamic";
 
@@ -20,22 +21,25 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
   if (!url || !serviceKey) return <main dir="rtl" className="min-h-screen bg-slate-50 p-6"><div className="mx-auto max-w-4xl rounded-2xl bg-white p-6"><h1 className="text-2xl font-black">إعداد لوحة الإدارة</h1><p className="mt-3 leading-7">أضف ADMIN_EMAIL و SUPABASE_SERVICE_ROLE_KEY في إعدادات Vercel ثم أعد النشر. لا تضع مفتاح الخدمة في أي ملف ظاهر للمتصفح.</p><p className="mt-3 text-sm text-amber-700">تأكد أن المفتاح تابع لنفس مشروع Supabase الذي يستخدمه الموقع.</p></div></main>;
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const [usersResult, plansResult, pagesResult, productLimitsResult] = await Promise.all([
+  const [usersResult, plansResult, pagesResult, productLimitsResult, ordersResult] = await Promise.all([
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from("user_access_plans").select("user_id, plan_type, expires_at, max_pages, advanced_features"),
     admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
-    admin.from("user_product_limits").select("user_id, max_products")
+    admin.from("user_product_limits").select("user_id, max_products"),
+    admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)").order("created_at", { ascending: false }).limit(100)
   ]);
   const users = usersResult.data?.users || [];
   const plansData = plansResult.data || [];
   const pagesData = pagesResult.data || [];
   const productLimits = new Map((productLimitsResult.data || []).map((p: any) => [p.user_id, p.max_products]));
+  const ordersData = ordersResult.data || [];
   const plans = new Map(plansData.map((p: any) => [p.user_id, p]));
   const loadErrors = [
     usersResult.error ? `الحسابات: ${usersResult.error.message}` : "",
     plansResult.error ? `خطط الاشتراك: ${plansResult.error.message}` : "",
     pagesResult.error ? `الصفحات: ${pagesResult.error.message}` : "",
-    productLimitsResult.error ? `حدود المنتجات: ${productLimitsResult.error.message}` : ""
+    productLimitsResult.error ? `حدود المنتجات: ${productLimitsResult.error.message}` : "",
+    ordersResult.error ? `طلبات الزبائن: ${ordersResult.error.message}` : ""
   ].filter(Boolean);
   const countPlan = (type: string) => plansData.filter((p: any) => p.plan_type === type).length;
 
@@ -54,6 +58,8 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء عاديون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء خاصون</p><p className="mt-2 text-3xl font-black">{countPlan("special")}</p></div>
       </div>
+
+      <AdminOrders initialOrders={ordersData as any} />
 
       <section className="mt-8 rounded-2xl border bg-white p-5">
         <h2 className="text-xl font-black">خطط الاشتراك</h2>
