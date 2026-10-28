@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { SITE } from "@/lib/site";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { setUserPlan, deleteLandingPage, setUserProductLimit, deleteCatalogProduct } from "./actions";
@@ -40,7 +41,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
 
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">بطاقاتي</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط بعد التأكد من الدفع.</p></div><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط بعد التأكد من الدفع.</p></div><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div>
       {searchParams.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم تحديث الاشتراك بنجاح.</p>}
       {searchParams.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف الصفحة.</p>}
       {searchParams.productdeleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف المنتج من الكتالوج.</p>}
