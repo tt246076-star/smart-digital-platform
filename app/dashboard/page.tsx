@@ -6,7 +6,7 @@ import SharePageButton from "@/components/SharePageButton";
 import { duplicateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function DashboardPage({ searchParams }: { searchParams: { created?: string; editError?: string; duplicated?: string; duplicateError?: string; duplicateLimit?: string; readOnly?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams: { created?: string; editError?: string; duplicated?: string; duplicateError?: string; duplicateLimit?: string; readOnly?: string; vipCreated?: string; vipError?: string } }) {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) redirect("/login");
