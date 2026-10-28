@@ -15,14 +15,8 @@ type PageData = {
 };
 
 const templates = [
-  {id:"store",name:"المتاجر والمحلات",hint:"قالب مستقل للمتاجر مع إبراز المنتجات والأسعار والكتالوج"},
-  {id:"restaurant",name:"المطاعم والمقاهي",hint:"قالب للمطاعم يعرض القائمة وأوقات العمل والعنوان وطرق الطلب"},
-  {id:"beauty",name:"صالونات الجمال",hint:"قالب أنيق للصالونات مع الخدمات والصور والحجز والتواصل"},
-  {id:"agency",name:"الخدمات والمهنيون",hint:"قالب للخدمات المهنية مع عرض الخدمات ووسائل التواصل"},
-  {id:"portfolio",name:"المبدعون ومعرض الأعمال",hint:"قالب بصري لعرض الأعمال والصور والنبذة الشخصية"},
-  {id:"profile",name:"بطاقة تواصل شخصية",hint:"قالب واضح للمعلومات الشخصية والاتصال والروابط"},
-  {id:"minimal",name:"قالب بسيط",hint:"تصميم هادئ يركز على المعلومات المهمة"},
-  {id:"bold",name:"قالب جريء",hint:"تصميم بارز بألوان قوية وعناوين واضحة"},
+  {id:"store",name:"Store",hint:"بطاقة متجر بكتالوج المنتجات"},
+  {id:"aurora",name:"Aurora",hint:"بطاقة نشاط كاملة بتصميم متدرّج"},
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
@@ -41,7 +35,7 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page }: { page: PageData }) {
-  const [template, setTemplate] = useState(templates.some((item) => item.id === page.template) ? (page.template as string) : "store");
+  const [template, setTemplate] = useState(page.template === "store" ? "store" : "aurora");
   const [theme, setTheme] = useState("white");
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
