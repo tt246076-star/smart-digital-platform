@@ -249,7 +249,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </section>
           )}
 
-          {products.length > 0 && (template === "store" || template === "restaurant" || template === "aurora") && <div className="px-5 pb-6 sm:px-7"><StoreOrderWidget slug={params.slug} products={products} /></div>}
+          {products.length > 0 && (template === "store" || template === "aurora") && <div className="px-5 pb-6 sm:px-7"><StoreOrderWidget slug={params.slug} products={products} /></div>}
 
           <footer className="border-t px-5 py-7 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
             <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
