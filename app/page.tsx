@@ -117,6 +117,68 @@ export default function Home() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{useCases.map((item,i)=><article key={item.title} className="lp-template lp-reveal" style={{animationDelay:(i*70)+"ms"}}><div className="lp-template-art bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700"><span className="lp-template-symbol">{item.icon}</span><div className="lp-template-mini"><span/><span/><span/></div><div className="lp-template-lines"><i/><i/><i/></div><span className="lp-template-label">بطاقتي • صفحة نشاط</span></div><div className="p-5"><h3 className="text-lg font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p></div></article>)}</div>
         </section>
 
+        <section id="gallery" className="lp-section mx-auto max-w-7xl px-5 py-20 sm:px-8">
+          <div className="lp-reveal mx-auto max-w-3xl text-center">
+            <span className="lp-eyebrow">أمثلة تلهمك</span>
+            <h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">خلّي صفحتك تشبه نشاطك</h2>
+            <p className="mt-4 leading-8 text-slate-600">هذه نماذج بصرية توضيحية لأفكار تنظيم الصفحة، وليست قوالب إلزامية. اختَر المعلومات التي تناسب طبيعة عملك.</p>
+          </div>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {title:"متجر ومنتجات",tag:"عرض المنتجات",tone:"from-blue-600 to-indigo-700",icon:"▦",items:["صور المنتجات","وصف مختصر","طرق الطلب"]},
+              {title:"خدمات ومواعيد",tag:"التواصل السريع",tone:"from-emerald-500 to-teal-700",icon:"✦",items:["الخدمات المتاحة","معلومات الاتصال","موقع النشاط"]},
+              {title:"ملف مهني",tag:"تعريف وأعمال",tone:"from-violet-600 to-fuchsia-700",icon:"✧",items:["نبذة شخصية","معرض الأعمال","روابط مهنية"]},
+            ].map((item,i)=><article key={item.title} className="lp-template lp-reveal" style={{animationDelay:(i*90)+"ms"}}>
+              <div className={"relative overflow-hidden bg-gradient-to-br "+item.tone+" p-5 text-white"}>
+                <div className="absolute -left-8 -top-12 h-40 w-40 rounded-full border border-white/20" />
+                <div className="relative rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
+                  <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 text-2xl">{item.icon}</span><div><span className="text-xs text-white/75">{item.tag}</span><h3 className="font-black">{item.title}</h3></div></div>
+                  <div className="mt-5 space-y-2">{item.items.map((line)=><div key={line} className="flex items-center gap-2 rounded-lg bg-black/10 px-3 py-2 text-sm"><span>✓</span>{line}</div>)}</div>
+                </div>
+                <p className="relative mt-4 text-xs text-white/75">معاينة توضيحية • بطاقتي</p>
+              </div>
+              <div className="p-5"><h3 className="font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">نظّم التفاصيل الأساسية بطريقة واضحة تساعد الزائر على فهم نشاطك والتواصل معك.</p></div>
+            </article>)}
+          </div>
+          <div className="mt-8 text-center"><Link href="/signup" className="lp-text-link">ابدأ بإنشاء صفحتك <span>←</span></Link></div>
+        </section>
+
+        <section className="lp-feature-section px-5 py-20 sm:px-8">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+            <div className="lp-reveal">
+              <span className="lp-eyebrow">جرّب فكرة البروفايل</span>
+              <h2 className="mt-4 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">خلّي الزبون يعرفك ويتواصل معك بسرعة</h2>
+              <p className="mt-4 leading-8 text-slate-600">الصفحة الجيدة تعرض اسم نشاطك ونبذة قصيرة ومعلومات الاتصال بشكل مرتب. المعاينة هنا مثال بصري فقط؛ أنشئ حسابك لإعداد صفحتك الفعلية حسب الأدوات المتاحة في المنصة.</p>
+              <ul className="mt-6 space-y-3 text-sm font-semibold text-slate-700">
+                <li className="flex items-center gap-3"><span className="lp-step-number">01</span> عرّف الزائر بنشاطك في ثوانٍ</li>
+                <li className="flex items-center gap-3"><span className="lp-step-number">02</span> اجمع طرق التواصل في مكان واضح</li>
+                <li className="flex items-center gap-3"><span className="lp-step-number">03</span> شارك رابط صفحتك أينما تريد</li>
+              </ul>
+              <Link href="/signup" className="lp-primary-btn mt-7">أنشئ صفحتك <span>←</span></Link>
+            </div>
+            <div className="lp-reveal lp-reveal-delay mx-auto w-full max-w-md">
+              <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-3 shadow-2xl shadow-blue-900/10">
+                <div className="rounded-[1.5rem] bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-900 p-6 text-center text-white">
+                  <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl border border-white/20 bg-white/10 text-3xl font-black">ب</div>
+                  <span className="mt-4 inline-block rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200">صفحة نشاط تجريبية</span>
+                  <h3 className="mt-3 text-2xl font-black">اسم نشاطك هنا</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-300">نبذة قصيرة تعرّف بخدماتك وما يميّزك.</p>
+                  <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-xl bg-emerald-500 px-3 py-3 text-sm font-extrabold">واتساب</div><div className="rounded-xl bg-white/10 px-3 py-3 text-sm font-extrabold">اتصال</div></div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 p-3 text-center text-xs font-bold text-slate-600"><div className="rounded-xl bg-slate-50 p-3">الخدمات</div><div className="rounded-xl bg-slate-50 p-3">المعرض</div><div className="rounded-xl bg-slate-50 p-3">الموقع</div></div>
+              </div>
+              <p className="mt-3 text-center text-xs text-slate-500">تصميم توضيحي غير مرتبط بحساب حقيقي</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+          <div className="lp-reveal mb-10 text-center"><span className="lp-eyebrow">إدارة أسهل</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">معلوماتك تتغيّر؟ صفحتك تواكبك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-slate-600">بدل ما تعاود تبعث كل التفاصيل في كل مرة، خلّي رابط صفحتك هو المكان اللي يرجع له الزبون. ومن حسابك، راجع الأدوات والإعدادات المتاحة لإدارة معلوماتك.</p></div>
+          <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
+            {[{icon:"✎",title:"حدّث التفاصيل",desc:"حافظ على معلومات واضحة ومناسبة لنشاطك."},{icon:"↗",title:"شارك الرابط",desc:"أضف رابطك في الرسائل والمنشورات وبطاقة العمل."},{icon:"⌕",title:"سهّل الوصول",desc:"رتّب المعلومات المهمة حتى يجدها الزائر بسهولة."}].map((item)=><div key={item.title} className="lp-feature-card text-center"><span className="lp-feature-icon mx-auto">{item.icon}</span><h3 className="mt-4 font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{item.desc}</p></div>)}
+          </div>
+        </section>
+
         <section id="how" className="lp-feature-section px-5 py-20 sm:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="lp-reveal text-center"><span className="lp-eyebrow">طريقة العمل</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">أربع خطوات وتكون صفحتك جاهزة</h2><p className="mt-3 text-slate-600">ابدأ بالمعلومات الأساسية ثم شارك صفحتك مع عملائك.</p></div>
