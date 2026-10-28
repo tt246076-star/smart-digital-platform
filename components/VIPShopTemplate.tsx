@@ -141,6 +141,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
       </a>}
       <footer className="vip-footer">بطاقة VIP · بطاقتي</footer>
     </article>
+    </div>
 
     <button className="vip-share" onClick={share} aria-label="مشاركة البطاقة">↗</button>
     {shareMessage && <div className="vip-toast" role="status" onClick={() => setShareMessage("")}>{shareMessage} ×</div>}
