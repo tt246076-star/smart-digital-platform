@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SITE } from "@/lib/site";
 
 const templates = [
   { name: "المتاجر والمحلات", icon: "🛍️", tone: "from-blue-600 to-indigo-700", desc: "عرّف بمحلّك واعرض المنتجات والأسعار وطرق الطلب." },
@@ -21,7 +22,7 @@ const features = [
 ];
 
 const steps = [
-  { n: "01", title: "أنشئ حسابك", desc: "سجّل حسابك للوصول إلى أدوات بطاقاتي." },
+  { n: "01", title: "أنشئ حسابك", desc: "سجّل حسابك للوصول إلى أدوات المنصة." },
   { n: "02", title: "أدخل معلومات نشاطك", desc: "أضف الاسم والشعار والصور وطرق التواصل." },
   { n: "03", title: "رتّب صفحتك", desc: "اختر القالب والألوان وأضف المنتجات ومعلومات المحل." },
   { n: "04", title: "انشر وشارك", desc: "احصل على رابط صفحتك وشاركه مع زبائنك." },
@@ -45,14 +46,14 @@ export default function Home() {
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 md:grid-cols-2 md:py-24">
             <div className="lp-reveal relative z-10">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/10 px-4 py-2 text-sm text-cyan-100 backdrop-blur">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" /> بطاقتك الرقمية، في رابط واحد
+                <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" /> {SITE.tagline}
               </div>
               <h1 className="max-w-2xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
                 خلي نشاطك حاضر
                 <span className="lp-gradient-text block">في العالم الرقمي</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-9 text-slate-200">
-                مع بطاقاتي، أنشئ صفحة احترافية لمحلك أو خدمتك، واجمع الصور والمنتجات والعنوان وطرق التواصل في مكان واحد — بسهولة ومن دون برمجة.
+                مع {SITE.name}، أنشئ صفحة احترافية لمحلك أو خدمتك، واجمع الصور والمنتجات والعنوان وطرق التواصل في مكان واحد — بسهولة ومن دون برمجة.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/signup" className="lp-primary-btn">أنشئ بطاقتك <span>←</span></Link>
@@ -67,7 +68,7 @@ export default function Home() {
               <div className="lp-showcase">
                 <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                   <div className="flex gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-rose-400"/><i className="h-2.5 w-2.5 rounded-full bg-amber-300"/><i className="h-2.5 w-2.5 rounded-full bg-emerald-400"/></div>
-                  <span className="text-xs text-slate-300">معاينة بطاقة محل</span><span className="rounded-lg bg-blue-500/20 px-3 py-1 text-xs text-cyan-200">بطاقاتي</span>
+                  <span className="text-xs text-slate-300">معاينة بطاقة محل</span><span className="rounded-lg bg-blue-500/20 px-3 py-1 text-xs text-cyan-200">{SITE.name}</span>
                 </div>
                 <div className="p-4 sm:p-6">
                   <div className="overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
@@ -107,7 +108,7 @@ export default function Home() {
 
         <section id="features" className="lp-feature-section px-5 py-20 sm:px-8">
           <div className="mx-auto max-w-7xl">
-            <div className="lp-reveal mx-auto max-w-2xl text-center"><span className="lp-eyebrow">كل معلوماتك في مكان واحد</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">أدوات عملية لواجهة أكثر احترافية</h2><p className="mt-4 leading-8 text-slate-600">بطاقاتي تسهّل عرض نشاطك وتساعد الزبائن على الوصول إلى ما يحتاجونه من دون البحث في أماكن متعددة.</p></div>
+            <div className="lp-reveal mx-auto max-w-2xl text-center"><span className="lp-eyebrow">كل معلوماتك في مكان واحد</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">أدوات عملية لواجهة أكثر احترافية</h2><p className="mt-4 leading-8 text-slate-600">المنصة تسهّل عرض نشاطك وتساعد الزبائن على الوصول إلى ما يحتاجونه من دون البحث في أماكن متعددة.</p></div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{features.map((f,i)=><div key={f.title} className="lp-feature-card lp-reveal" style={{animationDelay:(i*70)+"ms"}}><span className="lp-feature-icon">{f.icon}</span><h3 className="mt-5 text-lg font-extrabold text-slate-900">{f.title}</h3><p className="mt-2 leading-7 text-slate-600">{f.desc}</p></div>)}</div>
           </div>
         </section>
@@ -115,6 +116,38 @@ export default function Home() {
         <section id="how" className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
           <div className="lp-reveal text-center"><span className="lp-eyebrow">بداية بسيطة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">من التسجيل إلى مشاركة بطاقتك</h2><p className="mt-3 text-slate-600">أربع خطوات واضحة لتجهيز صفحة نشاطك.</p></div>
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{steps.map((s,i)=><div key={s.n} className="lp-step lp-reveal" style={{animationDelay:(i*100)+"ms"}}><span className="lp-step-number">{s.n}</span><div className="mt-5 text-2xl">{["♙","▦","✎","↗"][i]}</div><h3 className="mt-3 text-lg font-extrabold">{s.title}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{s.desc}</p></div>)}</div>
+        </section>
+
+
+        <section className="lp-feature-section px-5 py-20 sm:px-8">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+            <div className="lp-reveal">
+              <span className="lp-eyebrow">واجهة الزبون ولوحة صاحب النشاط</span>
+              <h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">من صفحة أنيقة إلى إدارة سهلة</h2>
+              <p className="mt-4 leading-8 text-slate-600">الزبون يشوف معلومات النشاط ويتواصل معك بسرعة، وأنت تقدر تدير صفحاتك ومعلوماتك من حسابك حسب المزايا المتاحة في خطتك.</p>
+              <div className="mt-6 space-y-4">
+                <div className="flex items-start gap-3"><span className="lp-feature-icon">☎</span><div><h3 className="font-extrabold text-slate-900">تواصل مباشر</h3><p className="mt-1 text-sm leading-6 text-slate-600">أزرار الاتصال وواتساب وروابط التواصل تساعد الزبون يوصل لك بسهولة.</p></div></div>
+                <div className="flex items-start gap-3"><span className="lp-feature-icon">▦</span><div><h3 className="font-extrabold text-slate-900">معلومات مرتبة</h3><p className="mt-1 text-sm leading-6 text-slate-600">الصور والمنتجات والعنوان وأوقات العمل في صفحة واحدة، إذا كانت الحقول متوفرة في قالبك.</p></div></div>
+                <div className="flex items-start gap-3"><span className="lp-feature-icon">⚙</span><div><h3 className="font-extrabold text-slate-900">إدارة من مكان واحد</h3><p className="mt-1 text-sm leading-6 text-slate-600">تابع صفحاتك وافتح لوحة التحكم لتعديل المعلومات المتاحة في حسابك.</p></div></div>
+              </div>
+              <div className="mt-7 flex flex-wrap gap-3"><Link href="/signup" className="lp-primary-btn">ابدأ الآن <span>←</span></Link><Link href="/login" className="lp-text-link">الدخول إلى حسابي</Link></div>
+            </div>
+            <div className="lp-reveal lp-reveal-delay">
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4"><div><p className="text-xs font-bold text-blue-600">{SITE.name}</p><h3 className="mt-1 text-xl font-black text-slate-900">لوحة التحكم</h3></div><span className="rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">مساحة العمل</span></div>
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-blue-50 p-4"><p className="text-xs text-slate-500">صفحاتك</p><p className="mt-2 text-2xl font-black text-slate-900">01</p></div>
+                  <div className="rounded-2xl bg-emerald-50 p-4"><p className="text-xs text-slate-500">الحالة</p><p className="mt-2 font-black text-emerald-700">إدارة سهلة</p></div>
+                  <div className="col-span-2 rounded-2xl bg-violet-50 p-4 sm:col-span-1"><p className="text-xs text-slate-500">التخصيص</p><p className="mt-2 font-black text-slate-900">قوالب وألوان</p></div>
+                </div>
+                <div className="mt-4 rounded-2xl border border-slate-100 p-4">
+                  <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-xl text-white">م</span><div><p className="font-extrabold text-slate-900">متجر نموذجي</p><p className="mt-1 text-xs text-slate-500">بطاقة نشاط رقمية</p></div></div><span className="rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">معاينة</span></div>
+                  <div className="mt-4 grid grid-cols-3 gap-2"><div className="h-2 rounded-full bg-blue-100"/><div className="h-2 rounded-full bg-violet-100"/><div className="h-2 rounded-full bg-emerald-100"/></div>
+                  <p className="mt-3 text-xs leading-6 text-slate-500">هذه معاينة توضيحية للواجهة وليست بيانات حساب حقيقية.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section id="faq" className="lp-feature-section px-5 py-20 sm:px-8">
