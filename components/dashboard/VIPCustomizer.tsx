@@ -25,7 +25,6 @@ export default function VIPCustomizer({
   currentTheme = "gold",
   currentBackground = "",
   animationOn = true,
-  currentLayout = "classic",
   showSubmit = true,
 }: VIPCustomizerProps) {
   const [theme, setTheme] = useState(themes.some((item) => item.id === currentTheme) ? currentTheme : "gold");
