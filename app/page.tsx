@@ -1,38 +1,31 @@
+"use client";
+
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PackageOrderForm from "@/components/PackageOrderForm";
 import { SITE } from "@/lib/site";
 
-const features = [
-  { icon: "🪪", title: "كل معلوماتك في رابط واحد", desc: "اجمع اسم نشاطك وصورك ومعلوماتك وروابط التواصل في صفحة واضحة وسهلة المشاركة." },
-  { icon: "⚡", title: "تحديث في أي وقت", desc: "عدّل معلومات صفحتك من حسابك عندما تحتاج، من دون إعادة إرسال رابط جديد." },
-  { icon: "📱", title: "تعمل مباشرة من المتصفح", desc: "الزبون يفتح صفحتك من الرابط مباشرة، من دون تثبيت تطبيق إضافي." },
-  { icon: "🎨", title: "واجهة تناسب نشاطك", desc: "رتّب حضورك الرقمي واختر الإعدادات المتاحة لتعبّر عن هوية نشاطك." },
-  { icon: "💬", title: "تواصل أسرع مع الزبائن", desc: "اجعل الاتصال وواتساب وحسابات التواصل ظاهرة في مكان يسهل الوصول إليه." },
-  { icon: "🛍️", title: "اعرض منتجاتك وخدماتك", desc: "أضف الصور والأوصاف والأسعار والعنوان وأوقات العمل حيثما كانت الحقول متاحة." },
+const benefits = [
+  { icon: "▣", title: "بطاقة واحدة لكل شيء", desc: "اجمع روابطك ومعلوماتك وطرق التواصل في بطاقة ذكية واحدة." },
+  { icon: "↻", title: "تحديث فوري", desc: "حدّث بيانات بروفايلك الرقمي وقت ما تحتاج، بلا إعادة طباعة البطاقة." },
+  { icon: "⌁", title: "QR و NFC", desc: "شارك بروفايلك بالمسح أو بلمسة هاتف متوافق مع NFC." },
+  { icon: "✳", title: "تصميم حسب نشاطك", desc: "واجهة رقمية منظمة تعكس هوية نشاطك وتعرض المعلومات المهمة." },
+  { icon: "⚡", title: "سهل وسريع", desc: "الزبون يوصل للمعلومات من المتصفح، بلا ما يثبت تطبيق." },
+  { icon: "▤", title: "مناسب لمختلف الأنشطة", desc: "للمحلات والمكاتب والمطاعم والمهنيين وأصحاب الخدمات." },
 ];
-
 const steps = [
-  { n: "01", title: "أنشئ حسابك", desc: "سجّل في بطاقتي للوصول إلى أدوات إنشاء صفحتك." },
-  { n: "02", title: "أضف معلوماتك", desc: "اكتب اسم نشاطك وبيانات التواصل وأضف الصور التي تحتاجها." },
-  { n: "03", title: "رتّب صفحتك", desc: "نظّم معلوماتك واختر الإعدادات المناسبة لنشاطك." },
-  { n: "04", title: "انشر رابطك", desc: "افتح صفحتك وشارك الرابط مع الزبائن عبر الرسائل أو شبكات التواصل." },
+  { n: "01", title: "اطلب البطاقة", desc: "اختار البطاقة أو العرض اللي يناسب احتياجك وابعث الطلب." },
+  { n: "02", title: "استلم شحنتك", desc: "نعاودوا نتواصلوا معك لتأكيد معلومات الطلب والتوصيل." },
+  { n: "03", title: "فعّل بروفايلك", desc: "أنشئ حسابك وأضف معلوماتك وروابطك وصورتك." },
+  { n: "04", title: "جرّب QR أو NFC", desc: "افتح البروفايل من رمز QR أو بلمسة NFC على هاتف متوافق." },
+  { n: "05", title: "شارك وابدأ", desc: "خلي عملاءك يوصلوا لمعلوماتك ويتواصلوا معك بسهولة." },
 ];
-
-const useCases = [
-  { icon: "🛍️", title: "المتاجر والمحلات", desc: "معلومات المحل، المنتجات، الأسعار وطرق الطلب." },
-  { icon: "☕", title: "المطاعم والمقاهي", desc: "العنوان، أوقات العمل، قائمة المنتجات ووسائل التواصل." },
-  { icon: "🧰", title: "أصحاب الخدمات", desc: "الخدمات المقدمة، الصور، معلومات الاتصال ومكان النشاط." },
-  { icon: "✦", title: "المهنيون والمستقلون", desc: "نبذة عنك، أعمالك وروابطك المهنية في صفحة واحدة." },
-];
-
 const faqs = [
-  { q: "ما هي بطاقتي؟", a: "بطاقتي منصة تساعدك على إنشاء صفحة رقمية لنشاطك تجمع معلوماتك وصورك وروابط التواصل في مكان واحد." },
-  { q: "هل يحتاج الزبون إلى تطبيق؟", a: "لا، يمكن فتح الصفحة من رابطها مباشرة باستخدام متصفح الهاتف أو الكمبيوتر." },
-  { q: "هل أحتاج إلى خبرة في البرمجة؟", a: "لا تحتاج إلى كتابة كود لإنشاء صفحتك؛ أضف المعلومات من الأدوات المتاحة في حسابك." },
-  { q: "هل يمكنني تعديل معلوماتي لاحقًا؟", a: "يمكنك إدارة معلومات صفحتك وتعديل الحقول المتاحة من حسابك." },
-  { q: "هل تعمل الصفحة على الهاتف؟", a: "الواجهة مصممة لتتكيّف مع شاشات الهواتف والكمبيوتر." },
+  { q: "هل يحتاج الزبون إلى تطبيق؟", a: "لا، البروفايل يفتح مباشرة في متصفح الهاتف أو الكمبيوتر." },
+  { q: "كيف تتم مشاركة البطاقة؟", a: "باستعمال رمز QR أو NFC على هاتف يدعم NFC، كما يمكنك مشاركة رابط البروفايل." },
+  { q: "هل أقدر نحدّث معلوماتي؟", a: "تقدر تدير التعديلات المتاحة في بروفايلك من حسابك، والبطاقة تبقى مرتبطة بنفس الرابط." },
+  { q: "هل تعمل مع جميع الهواتف؟", a: "رابط البروفايل يفتح من المتصفح. استعمال NFC يتطلب هاتفًا يدعم التقنية؛ ويمكن استخدام QR كبديل." },
 ];
 
 export default function Home() {
@@ -42,174 +35,81 @@ export default function Home() {
       <main className="lp-home overflow-hidden" dir="rtl">
         <section className="lp-hero relative isolate overflow-hidden text-white">
           <div className="lp-orb lp-orb-one" /><div className="lp-orb lp-orb-two" />
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 md:grid-cols-2 md:py-24">
-            <div className="lp-reveal relative z-10">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/10 px-4 py-2 text-sm text-cyan-100 backdrop-blur">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" /> حضورك الرقمي يبدأ من هنا
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-14 sm:px-8 md:grid-cols-2 md:py-24">
+            <div className="relative z-10">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200/30 bg-white/10 px-4 py-2 text-sm text-emerald-100 backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-emerald-300" /> بطاقة ذكية بتقنية NFC و QR
               </div>
               <h1 className="max-w-2xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-                نشاطك كامل،
-                <span className="lp-gradient-text block">في رابط واحد</span>
+                بطاقة واحدة...
+                <span className="lp-gradient-text block">سكان واحد...</span>
+                <span className="block">عالم كامل من روابطك</span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-9 text-slate-200">
-                مع {SITE.name}، أنشئ صفحة رقمية تجمع معلومات نشاطك وصورك ومنتجاتك وطرق التواصل، وشاركها مع زبائنك بسهولة — من دون برمجة أو تطبيق إضافي.
+              <p className="mt-6 max-w-xl text-lg leading-9 text-emerald-50/90">
+                مع {SITE.name}، شارك معلوماتك وروابطك وخدماتك بلمسة أو بمسح QR. بروفايلك الرقمي يفتح مباشرة في المتصفح، وتقدر تحدّث معلوماتك من حسابك.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/signup" className="lp-primary-btn">أنشئ صفحتك <span>←</span></Link>
-                <a href="#features" className="lp-secondary-btn">اكتشف المميزات <span>⌄</span></a>
+                <a href="#pricing" className="lp-primary-btn">اختار بطاقتك <span>←</span></a>
+                <a href="#how" className="lp-secondary-btn">كيفاش تخدم؟ <span>⌄</span></a>
               </div>
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-300">
-                <span>✓ رابط سهل المشاركة</span><span>✓ يعمل من المتصفح</span><span>✓ مناسب للهاتف</span>
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-emerald-50/90">
+                <span>✓ بلا تطبيق إضافي</span><span>✓ QR و NFC</span><span>✓ تحديث معلوماتك</span>
               </div>
             </div>
-
-            <div className="lp-reveal lp-reveal-delay relative mx-auto w-full max-w-xl">
-              <div className="lp-showcase">
-                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-                  <div className="flex gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-rose-400"/><i className="h-2.5 w-2.5 rounded-full bg-amber-300"/><i className="h-2.5 w-2.5 rounded-full bg-emerald-400"/></div>
-                  <span className="text-xs text-slate-300">مثال توضيحي لصفحة نشاط</span><span className="rounded-lg bg-blue-500/20 px-3 py-1 text-xs text-cyan-200">{SITE.name}</span>
-                </div>
-                <div className="p-4 sm:p-6">
-                  <div className="overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
-                    <div className="bg-gradient-to-br from-sky-50 via-white to-violet-100 p-5 sm:p-7">
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-2xl text-white shadow-lg">م</div>
-                        <div><p className="text-xs font-bold text-blue-700">صفحة نشاط رقمية</p><h3 className="mt-1 text-xl font-black">مساحة مشروعك</h3><p className="mt-1 text-xs text-slate-500">معلوماتك • خدماتك • طرق التواصل</p></div>
-                      </div>
-                      <div className="mt-5 rounded-xl border border-slate-100 bg-white p-4">
-                        <div className="flex items-center gap-2 text-sm font-extrabold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50">✦</span> نبذة عن النشاط</div>
-                        <div className="mt-3 space-y-2"><div className="h-2 w-full rounded-full bg-slate-100"/><div className="h-2 w-5/6 rounded-full bg-slate-100"/><div className="h-2 w-2/3 rounded-full bg-slate-100"/></div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-2">
-                        {["المنتجات","الموقع","التواصل"].map((label,i)=><div key={label} className="rounded-xl border border-slate-100 bg-white p-3 text-center"><div className="mx-auto grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-lg">{["▦","⌖","↗"][i]}</div><p className="mt-2 text-[11px] font-bold">{label}</p></div>)}
-                      </div>
-                      <div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-lg bg-emerald-600 py-3 text-center text-xs font-bold text-white">واتساب</div><div className="rounded-lg bg-blue-600 py-3 text-center text-xs font-bold text-white">اتصل الآن</div></div>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-[10px] text-slate-500"><span>صفحتك متاحة عبر الرابط</span><span>↗ مشاركة</span></div>
+            <div className="relative mx-auto w-full max-w-lg">
+              <div className="rounded-[2rem] border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
+                <div className="rounded-[1.5rem] bg-white p-5 text-slate-900 shadow-xl sm:p-7">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">بروفايلك الرقمي</span>
+                    <span className="text-xs font-bold text-slate-400">{SITE.name}</span>
+                  </div>
+                  <div className="mt-6 flex items-center gap-4">
+                    <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-green-800 text-3xl font-black text-white">م</div>
+                    <div><h2 className="text-xl font-black">اسم نشاطك</h2><p className="mt-1 text-sm text-slate-500">كل معلوماتك في صفحة واحدة</p></div>
+                  </div>
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><span className="text-2xl text-emerald-700">⌁</span><p className="mt-2 font-extrabold">NFC</p><p className="mt-1 text-xs text-slate-500">لمسة واحدة</p></div>
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><span className="text-2xl text-emerald-700">▦</span><p className="mt-2 font-extrabold">QR Code</p><p className="mt-1 text-xs text-slate-500">امسح وافتح</p></div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center gap-3 rounded-xl border border-slate-100 p-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-green-100 text-green-700">↗</span><span className="text-sm font-bold">روابط التواصل والخدمات</span><span className="mr-auto text-slate-400">←</span></div>
+                    <div className="flex items-center gap-3 rounded-xl border border-slate-100 p-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-100 text-emerald-700">⌖</span><span className="text-sm font-bold">معلومات النشاط والموقع</span><span className="mr-auto text-slate-400">←</span></div>
                   </div>
                 </div>
+                <p className="px-2 pt-4 text-center text-xs text-emerald-50/80">معاينة توضيحية للبروفايل الرقمي</p>
               </div>
-              <div className="lp-float-card absolute -bottom-5 -left-2 rounded-2xl border border-white/15 bg-slate-900/90 p-3 shadow-xl sm:-left-5"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-400/15 text-xl">✓</span><div><p className="text-sm font-bold">كل شيء في مكان واحد</p><p className="text-xs text-slate-400">رابط واحد سهل المشاركة</p></div></div></div>
             </div>
           </div>
-          <div className="lp-marquee-wrap border-t border-white/10 py-4"><div className="lp-marquee"><span>صفحة رقمية ✦ معلومات النشاط ✦ صورك الخاصة ✦ المنتجات والخدمات ✦ روابط التواصل ✦ صفحة رقمية ✦ معلومات النشاط ✦ صورك الخاصة ✦</span></div></div>
+          <div className="border-t border-white/10 py-4 text-center text-sm font-bold text-emerald-100/90">NFC ✦ QR Code ✦ بروفايل رقمي ✦ روابطك وخدماتك ✦ تواصل أسهل</div>
         </section>
 
         <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-          <div className="lp-reveal mx-auto max-w-3xl text-center">
-            <span className="lp-eyebrow">بلا تعقيد</span>
-            <h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-4xl">صفحتك تفتح مباشرة، بلا تطبيق</h2>
-            <p className="mt-4 leading-8 text-slate-600">شارك رابط {SITE.name} مع الزبون، يفتحه من متصفح هاتفه ويصل إلى معلوماتك وطرق التواصل من دون خطوات إضافية.</p>
-          </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {[{icon:"↗",title:"رابط مباشر",desc:"أرسل الرابط في الرسائل أو ضعه في حساباتك الاجتماعية."},{icon:"📱",title:"على مختلف الشاشات",desc:"واجهة متجاوبة لسهولة التصفح على الهاتف والكمبيوتر."},{icon:"✎",title:"معلومات قابلة للتحديث",desc:"حدّث تفاصيل صفحتك من حسابك عند الحاجة."}].map((item,i)=><div key={item.title} className="lp-feature-card lp-reveal text-center" style={{animationDelay:(i*80)+"ms"}}><span className="lp-feature-icon mx-auto">{item.icon}</span><h3 className="mt-4 text-lg font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 leading-7 text-slate-600">{item.desc}</p></div>)}
-          </div>
+          <div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">بلا تطبيق</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-4xl">هل يحتاج الزبون تطبيق؟ لا.</h2><p className="mt-4 leading-8 text-slate-600">يمسح رمز QR أو يستعمل NFC على هاتف متوافق، وتفتح صفحة معلوماتك مباشرة في المتصفح. تقدر كذلك تبعث رابط البروفايل في الرسائل وشبكات التواصل.</p></div>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2"><article className="lp-feature-card text-center"><span className="lp-feature-icon mx-auto">▦</span><h3 className="mt-4 text-xl font-black">يمسح رمز QR</h3><p className="mt-2 leading-7 text-slate-600">حل بسيط للهواتف اللي فيها كاميرا، بدون تثبيت تطبيق خاص.</p></article><article className="lp-feature-card text-center"><span className="lp-feature-icon mx-auto">⌁</span><h3 className="mt-4 text-xl font-black">لمسة NFC</h3><p className="mt-2 leading-7 text-slate-600">قرّب البطاقة من هاتف يدعم NFC لفتح الرابط بسرعة.</p></article></div>
         </section>
 
         <section id="features" className="lp-feature-section px-5 py-20 sm:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="lp-reveal mx-auto max-w-2xl text-center"><span className="lp-eyebrow">مميزات بطاقتي</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">كل ما يحتاجه نشاطك في مكان واحد</h2><p className="mt-4 leading-8 text-slate-600">واجهة واضحة تساعد الزبائن على اكتشاف نشاطك والوصول إليك بسهولة.</p></div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{features.map((f,i)=><div key={f.title} className="lp-feature-card lp-reveal" style={{animationDelay:(i*70)+"ms"}}><span className="lp-feature-icon">{f.icon}</span><h3 className="mt-5 text-lg font-extrabold text-slate-900">{f.title}</h3><p className="mt-2 leading-7 text-slate-600">{f.desc}</p></div>)}</div>
+          <div className="mx-auto max-w-7xl"><div className="mx-auto max-w-2xl text-center"><span className="lp-eyebrow">لماذا {SITE.name}؟</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">بطاقتك تخدم أكثر من مجرد مشاركة رقم</h2><p className="mt-4 leading-8 text-slate-600">خلي معلوماتك المهنية وروابطك قريبة من الزبون في تجربة سهلة وواضحة.</p></div>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{benefits.map((f,i)=><article key={f.title} className="lp-feature-card"><span className="lp-feature-icon">{f.icon}</span><h3 className="mt-5 text-lg font-extrabold text-slate-900">{f.title}</h3><p className="mt-2 leading-7 text-slate-600">{f.desc}</p></article>)}</div>
           </div>
         </section>
 
-        <section id="templates" className="lp-section mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <div className="lp-reveal mb-10 text-center"><span className="lp-eyebrow">مناسبة لمختلف الأنشطة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">منصتك تخدم طبيعة نشاطك</h2><p className="mx-auto mt-3 max-w-2xl leading-7 text-slate-600">رتّب المعلومات التي يحتاجها زبائنك، سواء كنت تبيع منتجات أو تقدم خدمات.</p></div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{useCases.map((item,i)=><article key={item.title} className="lp-template lp-reveal" style={{animationDelay:(i*70)+"ms"}}><div className="lp-template-art bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700"><span className="lp-template-symbol">{item.icon}</span><div className="lp-template-mini"><span/><span/><span/></div><div className="lp-template-lines"><i/><i/><i/></div><span className="lp-template-label">بطاقتي • صفحة نشاط</span></div><div className="p-5"><h3 className="text-lg font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p></div></article>)}</div>
+        <section id="how" className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+          <div className="text-center"><span className="lp-eyebrow">طريقة العمل</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">خمسة خطوات بسيطة للحصول على بطاقتك</h2><p className="mt-4 leading-7 text-slate-600">من اختيار المنتج حتى مشاركة بروفايلك مع عملائك.</p></div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">{steps.map((s,i)=><article key={s.n} className="lp-step"><span className="lp-step-number">{s.n}</span><div className="mt-5 text-2xl text-emerald-700">{["▣","⌂","✎","▦","↗"][i]}</div><h3 className="mt-3 text-lg font-extrabold text-slate-900">{s.title}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{s.desc}</p></article>)}</div>
         </section>
 
-        <section id="gallery" className="lp-section mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <div className="lp-reveal mx-auto max-w-3xl text-center">
-            <span className="lp-eyebrow">أمثلة تلهمك</span>
-            <h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">خلّي صفحتك تشبه نشاطك</h2>
-            <p className="mt-4 leading-8 text-slate-600">هذه نماذج بصرية توضيحية لأفكار تنظيم الصفحة، وليست قوالب إلزامية. اختَر المعلومات التي تناسب طبيعة عملك.</p>
-          </div>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {title:"متجر ومنتجات",tag:"عرض المنتجات",tone:"from-blue-600 to-indigo-700",icon:"▦",items:["صور المنتجات","وصف مختصر","طرق الطلب"]},
-              {title:"خدمات ومواعيد",tag:"التواصل السريع",tone:"from-emerald-500 to-teal-700",icon:"✦",items:["الخدمات المتاحة","معلومات الاتصال","موقع النشاط"]},
-              {title:"ملف مهني",tag:"تعريف وأعمال",tone:"from-violet-600 to-fuchsia-700",icon:"✧",items:["نبذة شخصية","معرض الأعمال","روابط مهنية"]},
-            ].map((item,i)=><article key={item.title} className="lp-template lp-reveal" style={{animationDelay:(i*90)+"ms"}}>
-              <div className={"relative overflow-hidden bg-gradient-to-br "+item.tone+" p-5 text-white"}>
-                <div className="absolute -left-8 -top-12 h-40 w-40 rounded-full border border-white/20" />
-                <div className="relative rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
-                  <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 text-2xl">{item.icon}</span><div><span className="text-xs text-white/75">{item.tag}</span><h3 className="font-black">{item.title}</h3></div></div>
-                  <div className="mt-5 space-y-2">{item.items.map((line)=><div key={line} className="flex items-center gap-2 rounded-lg bg-black/10 px-3 py-2 text-sm"><span>✓</span>{line}</div>)}</div>
-                </div>
-                <p className="relative mt-4 text-xs text-white/75">معاينة توضيحية • بطاقتي</p>
-              </div>
-              <div className="p-5"><h3 className="font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">نظّم التفاصيل الأساسية بطريقة واضحة تساعد الزائر على فهم نشاطك والتواصل معك.</p></div>
-            </article>)}
-          </div>
-          <div className="mt-8 text-center"><Link href="/signup" className="lp-text-link">ابدأ بإنشاء صفحتك <span>←</span></Link></div>
-        </section>
+        <section id="gallery" className="lp-feature-section px-5 py-20 sm:px-8"><div className="mx-auto max-w-7xl"><div className="mx-auto max-w-2xl text-center"><span className="lp-eyebrow">بروفايلك العام</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">كل بطاقة تعرض هوية نشاطك</h2><p className="mt-4 leading-8 text-slate-600">رتّب تعريفك وروابطك وخدماتك في صفحة واحدة، وشاركها برابط مباشر أو عن طريق البطاقة الذكية.</p></div>
+          <div className="mx-auto mt-10 max-w-3xl rounded-[2rem] border border-emerald-100 bg-white p-5 shadow-xl shadow-emerald-900/5 sm:p-8"><div className="rounded-[1.5rem] bg-gradient-to-br from-emerald-950 via-green-900 to-emerald-700 p-7 text-white sm:p-10"><div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl border border-white/20 bg-white/10 text-3xl font-black">م</div><p className="mt-4 text-center text-xs font-bold text-emerald-200">بروفايل تجريبي</p><h3 className="mt-2 text-center text-2xl font-black">اسم نشاطك</h3><p className="mx-auto mt-3 max-w-md text-center text-sm leading-7 text-emerald-50/80">نبذة قصيرة عنك وعن الخدمات التي تقدمها.</p><div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3"><div className="rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-black">واتساب</div><div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-black">اتصال</div></div></div><p className="mt-4 text-center text-xs text-slate-500">معاينة توضيحية — المحتوى النهائي يعتمد على إعدادات حسابك.</p></div>
+        </div></section>
 
-        <section className="lp-feature-section px-5 py-20 sm:px-8">
-          <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
-            <div className="lp-reveal">
-              <span className="lp-eyebrow">جرّب فكرة البروفايل</span>
-              <h2 className="mt-4 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">خلّي الزبون يعرفك ويتواصل معك بسرعة</h2>
-              <p className="mt-4 leading-8 text-slate-600">الصفحة الجيدة تعرض اسم نشاطك ونبذة قصيرة ومعلومات الاتصال بشكل مرتب. المعاينة هنا مثال بصري فقط؛ أنشئ حسابك لإعداد صفحتك الفعلية حسب الأدوات المتاحة في المنصة.</p>
-              <ul className="mt-6 space-y-3 text-sm font-semibold text-slate-700">
-                <li className="flex items-center gap-3"><span className="lp-step-number">01</span> عرّف الزائر بنشاطك في ثوانٍ</li>
-                <li className="flex items-center gap-3"><span className="lp-step-number">02</span> اجمع طرق التواصل في مكان واضح</li>
-                <li className="flex items-center gap-3"><span className="lp-step-number">03</span> شارك رابط صفحتك أينما تريد</li>
-              </ul>
-              <Link href="/signup" className="lp-primary-btn mt-7">أنشئ صفحتك <span>←</span></Link>
-            </div>
-            <div className="lp-reveal lp-reveal-delay mx-auto w-full max-w-md">
-              <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-3 shadow-2xl shadow-blue-900/10">
-                <div className="rounded-[1.5rem] bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-900 p-6 text-center text-white">
-                  <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl border border-white/20 bg-white/10 text-3xl font-black">ب</div>
-                  <span className="mt-4 inline-block rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-200">صفحة نشاط تجريبية</span>
-                  <h3 className="mt-3 text-2xl font-black">اسم نشاطك هنا</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-300">نبذة قصيرة تعرّف بخدماتك وما يميّزك.</p>
-                  <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-xl bg-emerald-500 px-3 py-3 text-sm font-extrabold">واتساب</div><div className="rounded-xl bg-white/10 px-3 py-3 text-sm font-extrabold">اتصال</div></div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 p-3 text-center text-xs font-bold text-slate-600"><div className="rounded-xl bg-slate-50 p-3">الخدمات</div><div className="rounded-xl bg-slate-50 p-3">المعرض</div><div className="rounded-xl bg-slate-50 p-3">الموقع</div></div>
-              </div>
-              <p className="mt-3 text-center text-xs text-slate-500">تصميم توضيحي غير مرتبط بحساب حقيقي</p>
-            </div>
-          </div>
-        </section>
+        <section id="pricing" className="lp-products-section px-5 py-20 sm:px-8"><div className="mx-auto max-w-7xl"><div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">اختار البطاقة المناسبة لك</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-5xl">منتجات وعروض {SITE.name}</h2><p className="mt-4 leading-8 text-slate-600">اختار المنتج، عمّر معلومات الطلب ونعاودوا نتواصلوا معك لتأكيد التفاصيل والتوصيل.</p></div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4"><PackageOrderForm packageId="desk-card" /><PackageOrderForm packageId="door-card" /><PackageOrderForm packageId="smart-display" /><PackageOrderForm packageId="three-card-bundle" /></div><p className="mt-5 text-center text-xs leading-6 text-slate-500">السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا قبل إتمام الطلب.</p>
+        </div></section>
 
-        <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <div className="lp-reveal mb-10 text-center"><span className="lp-eyebrow">إدارة أسهل</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">معلوماتك تتغيّر؟ صفحتك تواكبك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-slate-600">بدل ما تعاود تبعث كل التفاصيل في كل مرة، خلّي رابط صفحتك هو المكان اللي يرجع له الزبون. ومن حسابك، راجع الأدوات والإعدادات المتاحة لإدارة معلوماتك.</p></div>
-          <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
-            {[{icon:"✎",title:"حدّث التفاصيل",desc:"حافظ على معلومات واضحة ومناسبة لنشاطك."},{icon:"↗",title:"شارك الرابط",desc:"أضف رابطك في الرسائل والمنشورات وبطاقة العمل."},{icon:"⌕",title:"سهّل الوصول",desc:"رتّب المعلومات المهمة حتى يجدها الزائر بسهولة."}].map((item)=><div key={item.title} className="lp-feature-card text-center"><span className="lp-feature-icon mx-auto">{item.icon}</span><h3 className="mt-4 font-extrabold text-slate-900">{item.title}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{item.desc}</p></div>)}
-          </div>
-        </section>
+        <section id="faq" className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-4xl"><div className="text-center"><span className="lp-eyebrow">أسئلة شائعة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">حاب تعرف أكثر؟</h2></div><div className="mt-9 space-y-3">{faqs.map(f=><details key={f.q} className="group rounded-2xl border border-slate-200 bg-white p-5 open:border-emerald-200 open:shadow-sm"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-slate-900"><span>{f.q}</span><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700 transition group-open:rotate-45">＋</span></summary><p className="mt-3 pr-1 text-sm leading-7 text-slate-600">{f.a}</p></details>)}</div></div></section>
 
-        <section id="how" className="lp-feature-section px-5 py-20 sm:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="lp-reveal text-center"><span className="lp-eyebrow">طريقة العمل</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">أربع خطوات وتكون صفحتك جاهزة</h2><p className="mt-3 text-slate-600">ابدأ بالمعلومات الأساسية ثم شارك صفحتك مع عملائك.</p></div>
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{steps.map((s,i)=><div key={s.n} className="lp-step lp-reveal" style={{animationDelay:(i*100)+"ms"}}><span className="lp-step-number">{s.n}</span><div className="mt-5 text-2xl">{["♙","▦","✎","↗"][i]}</div><h3 className="mt-3 text-lg font-extrabold">{s.title}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{s.desc}</p></div>)}</div>
-          </div>
-        </section>
-
-        <section id="faq" className="px-5 py-20 sm:px-8">
-          <div className="mx-auto max-w-4xl">
-            <div className="lp-reveal text-center"><span className="lp-eyebrow">أسئلة شائعة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">قبل ما تبدأ</h2><p className="mt-3 leading-7 text-slate-600">إجابات مختصرة عن إنشاء صفحتك ومشاركتها.</p></div>
-            <div className="mt-9 space-y-3">{faqs.map((f)=><details key={f.q} className="group rounded-2xl border border-slate-200 bg-white p-5 open:border-blue-200 open:shadow-sm"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-slate-900"><span>{f.q}</span><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-700 transition group-open:rotate-45">＋</span></summary><p className="mt-3 pr-1 text-sm leading-7 text-slate-600">{f.a}</p></details>)}</div>
-          </div>
-        </section>
-
-        <section id="pricing" className="lp-products-section px-5 py-20 sm:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">منتجاتنا وعروضنا</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-5xl">اختار البطاقة المناسبة لنشاطك</h2><p className="mt-4 leading-8 text-slate-600">اطّلع على الخيارات، اختر المنتج المناسب وابعث طلبك مباشرة. نعاودوا نتواصلوا معك لتأكيد التفاصيل والتوصيل.</p></div>
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              <PackageOrderForm packageId="desk-card" />
-              <PackageOrderForm packageId="door-card" />
-              <PackageOrderForm packageId="smart-display" />
-              <PackageOrderForm packageId="three-card-bundle" />
-            </div>
-            <p className="mt-5 text-center text-xs leading-6 text-slate-500">الأسعار المعروضة قابلة للتأكيد قبل النشر النهائي. السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا.</p>
-          </div>
-        </section>
-
-        <section id="cta" className="px-5 py-20 sm:px-8">
-          <div className="lp-cta mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-12 text-center text-white sm:px-12 sm:py-16"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm">ابدأ اليوم</span><h2 className="mx-auto mt-5 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">خلّي معلومات نشاطك قريبة من زبائنك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-slate-200">أنشئ صفحتك على {SITE.name}، رتّب معلوماتك وشارك رابطك أينما يتواجد عملاؤك.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><Link href="/signup" className="lp-primary-btn">أنشئ حسابك <span>←</span></Link><Link href="/login" className="lp-secondary-btn">عندي حساب بالفعل</Link></div></div>
-        </section>
+        <section id="cta" className="px-5 pb-20 sm:px-8"><div className="lp-cta mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-12 text-center text-white sm:px-12 sm:py-16"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm">جاهز تبدأ؟</span><h2 className="mx-auto mt-5 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">خلي بطاقتك تخدم عليك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-emerald-50/90">اختار بطاقتك الذكية وابدأ بمشاركة معلوماتك بطريقة أسهل وأكثر احترافية.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><a href="#pricing" className="lp-primary-btn">شوف المنتجات <span>←</span></a><Link href="/signup" className="lp-secondary-btn">إنشاء حساب</Link></div></div></section>
       </main>
       <Footer />
     </>
