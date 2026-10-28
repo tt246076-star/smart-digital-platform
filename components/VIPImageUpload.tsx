@@ -17,7 +17,7 @@ export default function VIPImageUpload({ name, label, initialValue = "" }: { nam
     try {
       const supabase = createClient();
       const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-      const path = `vip/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const path = `new/vip-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: false, contentType: file.type });
       if (uploadError) throw uploadError;
       setUrl(supabase.storage.from("landing-logos").getPublicUrl(path).data.publicUrl);
