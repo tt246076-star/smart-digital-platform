@@ -48,6 +48,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     id: page.id,
     name: page.business_name || page.slug,
     slug: page.slug,
+    template: page.template,
     clicks: (events || []).filter((event) => event.page_id === page.id && event.event_type === "contact_click").length,
   })).filter((page) => page.clicks > 0).sort((a, b) => b.clicks - a.clicks).slice(0, 5);
 
