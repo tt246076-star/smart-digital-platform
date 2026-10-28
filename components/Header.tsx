@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 const links = [
   { href: "/#features", label: "المميزات" },
   { href: "/#gallery", label: "معرض النماذج" },
+  { href: "/#pricing", label: "المنتجات والأسعار" },
   { href: "/#how", label: "طريقة العمل" },
   { href: "/#faq", label: "الأسئلة الشائعة" },
 ];
@@ -20,7 +21,7 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <Link href={user ? "/dashboard" : "/"} className="flex shrink-0 items-center gap-2.5 text-xl font-extrabold text-ink dark:text-white" aria-label="بطاقتي - الصفحة الرئيسية">
           <img src="/brand/bitakaty-icon.svg" alt="" className="h-10 w-10 rounded-xl shadow-sm" />
-          <span className="leading-none">{SITE.name}<span className="mr-1 bg-gradient-to-l from-fuchsia-500 via-blue-600 to-cyan-400 bg-clip-text text-transparent">.</span></span>
+          <span className="leading-none">{SITE.name}<span className="mr-1 bg-gradient-to-l from-emerald-500 via-green-600 to-lime-500 bg-clip-text text-transparent">.</span></span>
         </Link>
         {!user && (
           <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-300 md:flex">
