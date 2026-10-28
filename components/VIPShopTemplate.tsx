@@ -24,7 +24,7 @@ type VIPShop = {
 };
 
 const themes = {
-  gold: { bg: "#17110d", cardBg: "#2D1E14", accent: "#C9A86A", text: "#f6ead7" },
+  gold: { bg: "#17110d", cardBg: "#FDF6E3", accent: "#C9A86A", text: "#352719" },
   silver: { bg: "#17191d", cardBg: "#282b31", accent: "#9CA3AF", text: "#f1f4f8" },
   emerald: { bg: "#081b16", cardBg: "#0F2A1F", accent: "#10B981", text: "#e2f5ec" },
   ruby: { bg: "#210d12", cardBg: "#2A0F14", accent: "#EF4444", text: "#ffe8ec" },
@@ -99,11 +99,18 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
     }
   }
 
+  const sideSocials = [socials.find((item) => item.label === "Instagram"), socials.find((item) => item.label === "WhatsApp"), socials.find((item) => item.label === "TikTok"), socials.find((item) => item.label === "Facebook")].filter((item): item is (typeof socials)[number] => Boolean(item));
+
   return <main className="vip-root" style={{ "--vip-bg": theme.bg, "--vip-card": theme.cardBg, "--vip-accent": theme.accent, "--vip-text": theme.text } as React.CSSProperties}>
     <div className={`vip-backdrop ${animationEnabled ? "vip-pan" : ""}`} style={{ backgroundImage: `linear-gradient(#0009,#000b),url("${cover}")` }} aria-hidden="true">
       <div className="vip-grain"><span /><span /><span /></div>
     </div>
-    <article className="vip-card">
+    <div className="vip-card-shell">
+      {sideSocials[0] && <a className="vip-side-icon vip-side-left vip-side-one vip-brand-instagram" href={sideSocials[0].url} target="_blank" rel="noreferrer" aria-label={sideSocials[0].label}><BrandIcon brand={sideSocials[0].label} /></a>}
+      {sideSocials[1] && <a className="vip-side-icon vip-side-left vip-side-two vip-brand-whatsapp" href={sideSocials[1].url} target="_blank" rel="noreferrer" aria-label={sideSocials[1].label}><BrandIcon brand={sideSocials[1].label} /></a>}
+      {sideSocials[2] && <a className="vip-side-icon vip-side-right vip-side-one vip-brand-tiktok" href={sideSocials[2].url} target="_blank" rel="noreferrer" aria-label={sideSocials[2].label}><BrandIcon brand={sideSocials[2].label} /></a>}
+      {sideSocials[3] && <a className="vip-side-icon vip-side-right vip-side-two vip-brand-facebook" href={sideSocials[3].url} target="_blank" rel="noreferrer" aria-label={sideSocials[3].label}><BrandIcon brand={sideSocials[3].label} /></a>}
+      <article className="vip-card">
       <div className="vip-logo-wrap"><img className="vip-logo" src={shop.logo || defaultLogo} alt={`شعار ${shop.name}`} /><span className="vip-verified" title="بطاقة VIP">✓</span></div>
       <h1 className="vip-name">{shop.name}</h1>
       {shop.bio && <p className="vip-bio">{shop.bio}</p>}
@@ -140,14 +147,15 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
     {lightbox && <div className="vip-lightbox" role="dialog" aria-modal="true" onClick={() => setLightbox(null)}><button aria-label="إغلاق" onClick={() => setLightbox(null)}>×</button><img src={lightbox} alt={shop.name} /></div>}
 
     <style jsx>{`
-      .vip-root{min-height:100vh;background:var(--vip-bg);color:var(--vip-text);position:relative;isolation:isolate;padding:44px 20px 92px;overflow:hidden;font-family:Arial,sans-serif}
+      .vip-root{min-height:100vh;background:var(--vip-bg);color:var(--vip-text);position:relative;isolation:isolate;padding:44px 20px 92px;overflow-x:clip;overflow-y:visible;font-family:Arial,sans-serif}
       .vip-backdrop{position:fixed;inset:-4%;z-index:-2;background-size:cover;background-position:center;filter:blur(25px);transform:scale(1.1);opacity:1;background-repeat:no-repeat}
       .vip-backdrop:before{content:"";position:absolute;inset:0;background:#0009}
       .vip-pan{animation:vipPan 36s ease-in-out infinite alternate}
       @keyframes vipPan{from{background-position:42% 45%;transform:scale(1.08)}to{background-position:60% 55%;transform:scale(1.18)}}
       .vip-grain span{position:absolute;width:7px;height:7px;border-radius:50%;background:#C9A86A;opacity:.45;animation:vipGlow 3.2s ease-in-out infinite}
       .vip-grain span:nth-child(1){top:12%;left:12%}.vip-grain span:nth-child(2){top:38%;right:9%;width:4px;height:4px;animation-delay:.8s}.vip-grain span:nth-child(3){bottom:14%;left:32%;animation-delay:1.5s}
-      .vip-card{position:relative;width:100%;max-width:340px;box-sizing:border-box;margin:20px auto 0;padding:76px 18px 22px;border:1px solid color-mix(in srgb,var(--vip-accent) 65%,transparent);border-radius:32px;background:color-mix(in srgb,var(--vip-card) 95%,transparent);box-shadow:0 28px 90px #0008;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+      .vip-card-shell{position:relative;width:100%;max-width:360px;margin:20px auto 0;isolation:isolate}.vip-card{position:relative;width:100%;max-width:360px;box-sizing:border-box;margin:20px auto 0;padding:76px 18px 22px;border:1px solid color-mix(in srgb,var(--vip-accent) 65%,transparent);border-radius:32px;background:color-mix(in srgb,var(--vip-card) 96%,transparent);color:var(--vip-text);box-shadow:0 28px 90px #0008;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+      .vip-side-icon{position:absolute;z-index:4;top:80px;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--vip-accent);background:#fff;color:#fff;box-shadow:0 10px 28px #0003;text-decoration:none;animation:vipFloatSide 2.5s ease-in-out infinite;transition:transform .2s,box-shadow .2s}.vip-side-icon svg{width:23px;height:23px;display:block}.vip-side-icon:hover{box-shadow:0 12px 30px #0005,0 0 16px color-mix(in srgb,var(--vip-accent) 60%,transparent)}.vip-side-left{left:-16px}.vip-side-right{right:-16px}.vip-side-two{top:144px;animation-delay:.5s}.vip-side-icon.vip-brand-instagram{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)}.vip-side-icon.vip-brand-whatsapp{background:#25D366}.vip-side-icon.vip-brand-tiktok{background:#111}.vip-side-icon.vip-brand-facebook{background:#1877f2}@keyframes vipFloatSide{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
       .vip-logo-wrap{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:120px;height:120px}
       .vip-logo{width:120px;height:120px;object-fit:cover;border-radius:50%;border:3px solid var(--vip-accent);box-shadow:0 8px 32px #0009;background:var(--vip-card)}
       .vip-verified{position:absolute;right:0;bottom:4px;background:#1688ff;color:#fff;border:2px solid var(--vip-card);width:27px;height:27px;border-radius:50%;display:grid;place-items:center;font-weight:900}
@@ -177,8 +185,8 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
       .vip-share{position:fixed;bottom:18px;right:18px;z-index:5;width:48px;height:48px;border-radius:15px;border:1px solid #ffffff50;background:#ffffff24;color:white;backdrop-filter:blur(12px);box-shadow:0 8px 24px #0005;font-size:22px;font-weight:700}
       .vip-toast{position:fixed;z-index:30;bottom:80px;left:50%;transform:translateX(-50%);padding:12px 16px;background:var(--vip-card);border:1px solid var(--vip-accent);border-radius:14px;font-size:12px;box-shadow:0 8px 30px #0008;max-width:calc(100vw - 32px)}
       .vip-lightbox{position:fixed;inset:0;z-index:20;background:#000e;display:flex;align-items:center;justify-content:center;padding:20px}.vip-lightbox img{max-width:100%;max-height:85vh;object-fit:contain;border-radius:12px}.vip-lightbox button{position:absolute;top:18px;right:20px;font-size:36px;color:white}
-      @media(max-width:380px){.vip-root{padding-left:10px;padding-right:10px}.vip-card{max-width:340px;padding-left:14px;padding-right:14px}.vip-socials{gap:12px 2px}.vip-social-icon{width:58px;height:58px}.vip-socials small{font-size:9px}}
-      @media(prefers-reduced-motion:reduce){.vip-pan,.vip-grain span,.vip-social-icon,.vip-dot,.vip-google:after{animation:none}}
+      @media(max-width:400px){.vip-root{padding-left:26px;padding-right:26px}.vip-card-shell,.vip-card{max-width:360px}.vip-card{padding-left:14px;padding-right:14px}.vip-side-left{left:-19px}.vip-side-right{right:-19px}.vip-side-icon{width:42px;height:42px}.vip-side-two{top:137px}.vip-socials{gap:12px 2px}.vip-social-icon{width:58px;height:58px}.vip-socials small{font-size:9px}}
+      @media(prefers-reduced-motion:reduce){.vip-pan,.vip-grain span,.vip-social-icon,.vip-side-icon,.vip-dot,.vip-google:after{animation:none}}
     `}</style>
   </main>;
 }
