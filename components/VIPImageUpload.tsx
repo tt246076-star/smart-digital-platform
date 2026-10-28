@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function VIPImageUpload({ name, label }: { name: string; label: string }) {
-  const [url, setUrl] = useState("");
+export default function VIPImageUpload({ name, label, initialValue = "" }: { name: string; label: string; initialValue?: string }) {
+  const [url, setUrl] = useState(initialValue);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
