@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-export default function SharePageButton({ slug }: { slug: string }) {
+export default function SharePageButton({ slug, basePath = "/p/" }: { slug: string; basePath?: string }) {
   const [copied, setCopied] = useState(false);
   async function sharePage() {
-    const url = `${window.location.origin}/p/${slug}`;
+    const url = `${window.location.origin}${basePath}${slug}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: "صفحة على بطاقاتي", url });
