@@ -15,6 +15,8 @@ create table if not exists public.store_orders (
   updated_at timestamptz not null default now()
 );
 
+alter table public.store_orders alter column page_id drop not null;
+
 create index if not exists store_orders_page_created_idx
   on public.store_orders(page_id, created_at desc);
 create index if not exists store_orders_status_created_idx
