@@ -17,14 +17,17 @@ type VIPCustomizerProps = {
   currentTheme?: string;
   currentBackground?: string;
   animationOn?: boolean;
+  currentLayout?: string;
 };
 
 export default function VIPCustomizer({
   currentTheme = "gold",
   currentBackground = "",
   animationOn = true,
+  currentLayout = "classic",
 }: VIPCustomizerProps) {
   const [theme, setTheme] = useState(themes.some((item) => item.id === currentTheme) ? currentTheme : "gold");
+  const [layout, setLayout] = useState(currentLayout === "salon" ? "salon" : "classic");
   const [animation, setAnimation] = useState(animationOn);
 
   return (
@@ -33,6 +36,25 @@ export default function VIPCustomizer({
       <p className="mt-1 text-sm leading-6 text-slate-600">هذه الإعدادات تظهر للزوار في البطاقة. اختر المظهر والخلفية من هنا فقط.</p>
 
       <input type="hidden" name="theme" value={theme} />
+      <input type="hidden" name="layout" value={layout} />
+
+      <div className="mt-4">
+        <span className="text-sm font-bold text-slate-800">نوع تصميم البطاقة</span>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <button type="button" onClick={() => setLayout("classic")} aria-pressed={layout === "classic"} className={`rounded-2xl border-2 p-4 text-right transition ${layout === "classic" ? "border-slate-900 bg-white ring-2 ring-amber-300" : "border-slate-200 bg-white hover:border-amber-400"}`}>
+            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-stone-900 to-stone-700"><span className="h-12 w-12 rounded-full border-2 border-amber-300 bg-stone-800 shadow-lg" /></span>
+            <strong className="block text-sm text-slate-900">VIP كلاسيكي</strong>
+            <small className="mt-1 block text-xs text-slate-500">بطاقة أنيقة بترتيب بسيط ومباشر</small>
+            <span className="mt-2 block text-xs font-bold text-amber-700">{layout === "classic" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
+          </button>
+          <button type="button" onClick={() => setLayout("salon")} aria-pressed={layout === "salon"} className={`rounded-2xl border-2 p-4 text-right transition ${layout === "salon" ? "border-pink-700 bg-white ring-2 ring-pink-200" : "border-slate-200 bg-white hover:border-pink-300"}`}>
+            <span className="mb-3 flex h-20 items-center justify-center rounded-xl bg-gradient-to-br from-rose-100 via-pink-200 to-rose-300"><span className="relative h-12 w-12 rounded-full border-2 border-white bg-white/70 shadow-lg"><span className="absolute -right-1 bottom-0 h-4 w-4 rounded-full bg-rose-500" /></span></span>
+            <strong className="block text-sm text-slate-900">صالون / تجميل</strong>
+            <small className="mt-1 block text-xs text-slate-500">تصميم زجاجي، أزرار دائرية وخلفية متحركة</small>
+            <span className="mt-2 block text-xs font-bold text-pink-700">{layout === "salon" ? "✓ التصميم المختار" : "اختيار التصميم"}</span>
+          </button>
+        </div>
+      </div>
 
       <div className="mt-4">
         <span className="text-sm font-bold text-slate-800">اختر الثيم</span>
