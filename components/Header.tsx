@@ -1,14 +1,9 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
+import StorefrontNav from "@/components/StorefrontNav";
 
-const links = [
-  { href: "/#features", label: "المميزات" },
-  { href: "/#gallery", label: "معرض النماذج" },
-  { href: "/#pricing", label: "المنتجات والأسعار" },
-  { href: "/#how", label: "طريقة العمل" },
-  { href: "/#faq", label: "الأسئلة الشائعة" },
-];
+
 
 export default async function Header() {
   const supabase = await createClient();
@@ -23,15 +18,7 @@ export default async function Header() {
           <img src="/brand/bitakaty-icon.svg" alt="" className="h-10 w-10 rounded-xl shadow-sm" />
           <span className="leading-none">{SITE.name}<span className="mr-1 bg-gradient-to-l from-emerald-500 via-green-600 to-lime-500 bg-clip-text text-transparent">.</span></span>
         </Link>
-        {!user && (
-          <nav className="hidden items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-300 md:flex">
-            {links.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-brand">
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {!user && <StorefrontNav isLoggedIn={false} isAdmin={isAdmin} /> }
         <div className="flex items-center gap-2">
           {user ? (
             <>
@@ -58,15 +45,7 @@ export default async function Header() {
           )}
         </div>
       </div>
-      {!user && (
-        <nav className="flex gap-5 overflow-x-auto border-t border-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300 md:hidden">
-          {links.map((l) => (
-            <Link key={l.href} href={l.href} className="whitespace-nowrap">
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+
     </header>
   );
 }
