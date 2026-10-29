@@ -119,6 +119,7 @@ export default async function Home() {
 
         <section id="cta" className="px-5 pb-20 sm:px-8"><div className="lp-cta mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-12 text-center text-white sm:px-12 sm:py-16"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm">جاهز تبدأ؟</span><h2 className="mx-auto mt-5 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">خلي بطاقتك تخدم عليك</h2><p className="mx-auto mt-4 max-w-2xl leading-8 text-emerald-50/90">اختار بطاقتك الذكية وابدأ بمشاركة معلوماتك بطريقة أسهل وأكثر احترافية.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><a href="#pricing" className="lp-primary-btn">شوف المنتجات <span>←</span></a><Link href="/signup" className="lp-secondary-btn">إنشاء حساب</Link></div></div></section>
       </main>
+      <a href="https://wa.me/213557829036" target="_blank" rel="noreferrer" aria-label="تواصل معنا عبر واتساب" className="fixed bottom-5 left-5 z-[60] flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3.5 font-black text-white shadow-xl transition hover:scale-105"><span aria-hidden="true">◉</span><span>واتساب</span></a>
       <Footer />
     </>
   );
