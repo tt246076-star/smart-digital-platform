@@ -3,24 +3,14 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useSiteLanguage, type SiteLanguage } from "@/components/GlobalLanguageProvider";
 
 function MenuIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>; }
 function MoonIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.7 8.7 0 1 0 20.5 14.2Z"/></svg>; }
-function GlobeIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.4 4 5.4 4 9s-1.3 6.6-4 9c-2.7-2.4-4-5.4-4-9s1.3-6.6 4-9Z"/></svg>; }
 function GearIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1 1.9-2 3.4-2.2-.5a8 8 0 0 1-1.8 1l-.7 2.1h-4l-.7-2.1a8 8 0 0 1-1.8-1l-2.2.5-2-3.4 1.1-1.9A8 8 0 0 1 4 12c0-.7.1-1.4.3-2L3.2 8.1l2-3.4 2.2.5a8 8 0 0 1 1.8-1L10 2h4l.7 2.1a8 8 0 0 1 1.8 1l2.2-.5 2 3.4L19.6 10c.2.6.4 1.3.4 2s-.2 1.4-.6 3Z"/></svg>; }
-
-const languageNames: Record<SiteLanguage, { native: string; english: string; flag: string }> = {
-  ar: { native: "العربية", english: "Arabic", flag: "🇩🇿" },
-  fr: { native: "Français", english: "French", flag: "🇫🇷" },
-  en: { native: "English", english: "English", flag: "🇬🇧" },
-};
 
 export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn: boolean; isAdmin: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [languageOpen, setLanguageOpen] = useState(false);
   const [dark, setDark] = useState(true);
-  const { language, setLanguage } = useSiteLanguage();
 
   useEffect(() => {
     try {
@@ -50,16 +40,12 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
     ["/#faq", "تواصل معنا", "☎"],
   ];
 
-  function changeLanguage(value: SiteLanguage) {
-    setLanguage(value);
-    setLanguageOpen(false);
-  }
+
 
   return <>
     <div className="site-header-controls" dir="ltr">
       <button type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" title="القائمة" className="site-header-icon site-menu-button"><MenuIcon /></button>
       <button type="button" onClick={toggleTheme} aria-label="الوضع الداكن" title="الوضع الداكن" aria-pressed={dark} className={`site-header-icon site-tool-button site-theme-toggle ${dark ? "is-active" : ""}`}><MoonIcon /></button>
-      <button type="button" onClick={() => setLanguageOpen(true)} aria-label="اختيار اللغة" title="اختيار اللغة" className="site-header-icon site-tool-button site-language-button"><GlobeIcon /></button>
       <Link href={isLoggedIn ? "/settings" : "/login"} aria-label="الإعدادات" title="الإعدادات" className="site-header-icon site-tool-button site-settings-toggle"><GearIcon /></Link>
     </div>
 
@@ -67,7 +53,6 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
       <button type="button" className="site-overlay-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)} style={{ position: "absolute", inset: 0, zIndex: 0, width: "100%", height: "100%", background: "rgba(2, 6, 23, .62)", border: 0, display: "block" }} />
       <aside className={`site-drawer ${language === "ar" ? "drawer-right" : "drawer-left"}`} role="dialog" aria-modal="true" aria-label="القائمة الرئيسية" style={{ position: "absolute", zIndex: 2, top: 0, bottom: 0, right: language === "ar" ? 0 : "auto", left: language === "ar" ? "auto" : 0, width: "min(88vw, 390px)", minWidth: "280px", height: "100%", maxHeight: "100dvh", overflowY: "auto", overscrollBehavior: "contain", display: "flex", flexDirection: "column", visibility: "visible", opacity: 1, transform: "none", background: dark ? "#0c1f42" : "#f8fafc", color: dark ? "#e8edf7" : "#14261d", boxShadow: "0 16px 48px rgba(0,0,0,.28)", padding: "max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom))", pointerEvents: "auto" }}>
         <div className="site-drawer-heading"><div className="site-drawer-brand"><img src="/brand/bitakaty-mark.svg" alt="" /><span>بطاقتي</span></div><button type="button" className="site-close-button" onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
-        <button type="button" className="site-drawer-language" onClick={() => { setMenuOpen(false); setLanguageOpen(true); }}><GlobeIcon /><span>اللغة / Language</span><strong>{languageNames[language].flag}</strong></button>
         <nav className="site-drawer-links">{links.map(([href, label, icon]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">{icon}</span><span>{label}</span><span className="site-drawer-arrow">‹</span></Link>)}
           {isLoggedIn && <Link href="/dashboard" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">♙</span><span>لوحة التحكم</span><span className="site-drawer-arrow">‹</span></Link>}
           {isAdmin && <Link href="/admin/store" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">▤</span><span>إدارة المنتجات والطلبات</span><span className="site-drawer-arrow">‹</span></Link>}
@@ -81,14 +66,6 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
       </aside>
     </div>, document.body) : null}
 
-    {languageOpen && <div className="site-language-overlay" dir={language === "ar" ? "rtl" : "ltr"}>
-      <button type="button" className="site-overlay-backdrop" aria-label="إغلاق اختيار اللغة" onClick={() => setLanguageOpen(false)} />
-      <section role="dialog" aria-modal="true" aria-labelledby="site-language-title" className="site-language-dialog">
-        <div className="site-language-heading"><div><p className="site-language-kicker">LANGUAGE / LANGUE</p><h2 id="site-language-title">اختر اللغة</h2></div><button type="button" onClick={() => setLanguageOpen(false)} aria-label="إغلاق" className="site-close-button">×</button></div>
-        {(["ar", "fr", "en"] as SiteLanguage[]).map(code => <button type="button" key={code} onClick={() => changeLanguage(code)} className={`site-language-option ${language === code ? "selected" : ""}`}>
-          <span className="site-language-flag">{languageNames[code].flag}</span><span className="site-language-label"><strong>{languageNames[code].native}</strong><small>{languageNames[code].english}</small></span><span className="site-language-check">{language === code ? "✓" : ""}</span>
-        </button>)}
-      </section>
-    </div>}
+
   </>;
 }
