@@ -18,7 +18,7 @@ export default async function Header() {
           <img src="/brand/bitakaty-icon.svg" alt="" className="h-10 w-10 rounded-xl shadow-sm" />
           <span className="leading-none">{SITE.name}<span className="mr-1 bg-gradient-to-l from-emerald-500 via-green-600 to-lime-500 bg-clip-text text-transparent">.</span></span>
         </Link>
-        {!user && <StorefrontNav isLoggedIn={false} isAdmin={isAdmin} /> }
+        <StorefrontNav isLoggedIn={!!user} isAdmin={isAdmin} />
         <div className="flex items-center gap-2">
           {user ? (
             <>
