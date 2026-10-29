@@ -307,3 +307,14 @@ html.light-mode .lp-home .text-slate-600,html.light-mode .lp-home .text-slate-50
 html.light-mode .lp-home .bg-white { background:#fff !important; }
 html.light-mode .lp-home details { background:#fff;color:#0f172a;border-color:#e2e8f0; }
 html.light-mode .lp-hero-phone-screen { background:linear-gradient(180deg,#0c1f42,#050d1a); }
+
+
+/* Fix drawer contrast in both themes; light drawer text must never inherit dark-mode pale colors. */
+html.light-mode .site-drawer,
+html.light-mode .site-language-dialog { background:#f8fafc !important; color:#14261d !important; }
+html.light-mode .site-drawer-links a { color:#14261d !important; background:#fff !important; border:1px solid #e0ebe4 !important; }
+html.light-mode .site-drawer-links a:hover { color:#075c3d !important; background:#eaf8ef !important; border-color:#9ad6ae !important; }
+html.light-mode .site-drawer-language { color:#14261d !important; background:#eaf8f9 !important; border-color:#a5f3ee !important; }
+html.light-mode .site-drawer-arrow { color:#718b7c !important; }
+html.light-mode .site-drawer-brand { color:#087f59 !important; }
+html.light-mode .site-close-button { color:#14261d !important; background:#edf5ef !important; }
