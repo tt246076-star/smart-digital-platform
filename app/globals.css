@@ -206,3 +206,104 @@ html.dark .lp-home input,html.dark .lp-home textarea,html.dark .lp-home select {
 .dark .bg-blue-950,.dark .bg-indigo-950,.dark .bg-violet-950 { background-color:#1b3024 !important; }
 .dark .text-blue-100,.dark .text-blue-200,.dark .text-indigo-100,.dark .text-indigo-200 { color:#c5f0d3 !important; }
 .dark .border-blue-900,.dark .border-indigo-900 { border-color:#365943 !important; }
+
+
+/* Premium navy + cyan + gold identity inspired by the supplied EgyDZ reference. */
+html:not(.light-mode) body.bg-white { background:#030712 !important; color:#e2e8f0; }
+html:not(.light-mode) .site-main-header { background:rgba(3,7,18,.94);border-color:rgba(0,255,240,.18);color:#e2e8f0; }
+.site-main-header-inner { direction:ltr;min-height:84px; }
+.site-header-controls { position:absolute;left:20px;right:auto;direction:ltr; }
+.site-brand { left:auto;right:20px;transform:translateY(-50%);direction:rtl;color:#e6fbff; }
+.site-brand span { background:linear-gradient(110deg,#e6fbff 0%,#00fff0 65%,#fbbf24 100%);-webkit-background-clip:text;background-clip:text;color:transparent; }
+.site-brand-mark { background:transparent; }
+.site-header-icon { border-color:rgba(0,255,240,.22);background:rgba(0,255,240,.035);color:#00fff0; }
+.site-menu-button { border:1px solid rgba(0,255,240,.32);background:rgba(0,255,240,.065);color:#00fff0; }
+.site-menu-button:hover,.site-header-icon:hover { background:rgba(0,255,240,.12);border-color:#00fff0; }
+.site-tool-button.is-active { background:linear-gradient(135deg,#fbbf24,#f59e0b);border-color:#fbbf24;color:#111827; }
+html:not(.light-mode) .site-drawer,html:not(.light-mode) .site-language-dialog { background:linear-gradient(180deg,#0c1f42,#050d1a);color:#e2e8f0;border-color:rgba(0,255,240,.22); }
+html:not(.light-mode) .site-drawer-brand { color:#00fff0; }
+html:not(.light-mode) .site-close-button { background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#fff; }
+html:not(.light-mode) .site-drawer-language { background:rgba(0,255,240,.06);border-color:rgba(0,255,240,.2);color:#e2e8f0; }
+html:not(.light-mode) .site-drawer-links a { color:#e8edf7;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055); }
+html:not(.light-mode) .site-drawer-links a:hover { background:rgba(0,255,240,.09);border-color:rgba(0,255,240,.3);color:#fff; }
+.site-drawer-link-icon { color:#00fff0; }
+.site-drawer-cta { background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111827;box-shadow:0 8px 24px rgba(251,191,36,.2); }
+html:not(.light-mode) .site-drawer-whatsapp { background:rgba(16,185,129,.14);color:#6ee7b7; }
+.site-language-kicker { color:#fbbf24; }
+html:not(.light-mode) .site-language-option { background:rgba(255,255,255,.035);color:#e2e8f0; }
+html:not(.light-mode) .site-language-option.selected { background:rgba(251,191,36,.15);border-color:#b98116;color:#fff7d6; }
+html:not(.light-mode) .site-language-label small { color:#a7b3c8; }
+.site-language-check { color:#fbbf24; }
+html:not(.light-mode) .lp-home { color:#e2e8f0;background:#030712; }
+html:not(.light-mode) .lp-hero { background:radial-gradient(ellipse at 78% 22%,rgba(0,255,240,.13),transparent 34%),radial-gradient(ellipse at 9% 78%,rgba(251,191,36,.08),transparent 32%),linear-gradient(125deg,#030712 0%,#07152c 51%,#081c35 100%); }
+html:not(.light-mode) .lp-home::before { content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(0,255,240,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,240,.045) 1px,transparent 1px);background-size:48px 48px;z-index:0; }
+html:not(.light-mode) .lp-home > section { background-color:#050d1a; }
+html:not(.light-mode) .lp-home > section:nth-of-type(even) { background-color:#071022; }
+html:not(.light-mode) .lp-feature-section,html:not(.light-mode) .lp-products-section { background:radial-gradient(ellipse at 50% 0%,rgba(0,255,240,.055),transparent 55%),linear-gradient(180deg,#071022,#030712) !important; }
+html:not(.light-mode) .lp-eyebrow { background:rgba(0,255,240,.07);border-color:rgba(0,255,240,.32);color:#00fff0; }
+html:not(.light-mode) .lp-gradient-text { background:linear-gradient(110deg,#f8fafc 0%,#00fff0 42%,#fbbf24 100%);-webkit-background-clip:text;background-clip:text;color:transparent; }
+html:not(.light-mode) .lp-primary-btn { background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111827;box-shadow:0 0 22px rgba(251,191,36,.25); }
+html:not(.light-mode) .lp-primary-btn:hover { box-shadow:0 0 32px rgba(251,191,36,.43); }
+html:not(.light-mode) .lp-secondary-btn { border-color:#00fff0;color:#00fff0;background:rgba(0,255,240,.04); }
+html:not(.light-mode) .lp-secondary-btn:hover { background:rgba(0,255,240,.12); }
+html:not(.light-mode) .lp-feature-card,html:not(.light-mode) .lp-step,html:not(.light-mode) .lp-template { background:linear-gradient(155deg,rgba(12,31,66,.88),rgba(5,13,26,.96));border-color:rgba(0,255,240,.16);box-shadow:0 15px 40px rgba(0,0,0,.2);color:#e2e8f0; }
+html:not(.light-mode) .lp-feature-card:hover,html:not(.light-mode) .lp-step:hover,html:not(.light-mode) .lp-template:hover { border-color:rgba(0,255,240,.42);box-shadow:0 18px 45px rgba(0,255,240,.08); }
+html:not(.light-mode) .lp-feature-icon { background:rgba(0,255,240,.07);border-color:rgba(0,255,240,.22);color:#00fff0; }
+html:not(.light-mode) .lp-step-number { background:rgba(251,191,36,.12);color:#fbbf24; }
+html:not(.light-mode) .lp-cta { background:radial-gradient(ellipse at 15% 15%,rgba(0,255,240,.14),transparent 35%),radial-gradient(ellipse at 85% 80%,rgba(251,191,36,.12),transparent 38%),linear-gradient(120deg,#030712,#0a1c37 55%,#071022);box-shadow:0 25px 70px rgba(0,0,0,.32);border:1px solid rgba(0,255,240,.18); }
+html:not(.light-mode) .lp-product-card { background:linear-gradient(160deg,#0c1f42,#050d1a);border-color:rgba(0,255,240,.19);box-shadow:0 12px 35px rgba(0,0,0,.32); }
+html:not(.light-mode) .lp-product-card:hover { border-color:rgba(0,255,240,.5);box-shadow:0 20px 42px rgba(0,255,240,.1); }
+html:not(.light-mode) .lp-product-art { background:radial-gradient(ellipse at 50% 10%,rgba(0,255,240,.12),transparent 58%),linear-gradient(135deg,#0a1834,#030712); }
+html:not(.light-mode) .lp-product-symbol { background:rgba(0,255,240,.07);border-color:rgba(0,255,240,.28);color:#00fff0;box-shadow:0 10px 28px rgba(0,255,240,.08); }
+html:not(.light-mode) .lp-product-tag { background:#00fff0;color:#030712; }
+html:not(.light-mode) .lp-product-card .text-emerald-700 { color:#00fff0 !important; }
+html:not(.light-mode) .lp-home .text-slate-950,html:not(.light-mode) .lp-home .text-slate-900,html:not(.light-mode) .lp-home .text-slate-800 { color:#f1f5f9 !important; }
+html:not(.light-mode) .lp-home .text-slate-600,html:not(.light-mode) .lp-home .text-slate-500,html:not(.light-mode) .lp-home .text-slate-400 { color:#aebdd2 !important; }
+html:not(.light-mode) .lp-home .border-slate-100,html:not(.light-mode) .lp-home .border-slate-200 { border-color:rgba(0,255,240,.14) !important; }
+html:not(.light-mode) .lp-home .bg-white { background:#081426 !important; }
+html:not(.light-mode) .lp-home .bg-slate-50 { background:#071022 !important; }
+html:not(.light-mode) .lp-home details { background:#081426;border-color:rgba(0,255,240,.16);color:#e2e8f0; }
+html:not(.light-mode) .lp-home details[open] { border-color:rgba(0,255,240,.4); }
+html:not(.light-mode) .lp-home details summary span:last-child { background:rgba(0,255,240,.08);color:#00fff0; }
+.lp-hero-phone-shell { border-color:rgba(0,255,240,.38);box-shadow:0 30px 80px rgba(0,0,0,.58),0 0 38px rgba(0,255,240,.12),inset 0 0 0 2px rgba(255,255,255,.035);animation:lp-phone-float 5s ease-in-out infinite; }
+.lp-phone-notch { position:absolute;z-index:4;top:12px;left:50%;transform:translateX(-50%);width:85px;height:18px;border-radius:20px;background:#02040a;border:1px solid rgba(255,255,255,.05); }
+.lp-phone-status { position:absolute;z-index:3;top:19px;left:27px;right:27px;display:flex;justify-content:space-between;color:#94a3b8;font-size:10px;font-weight:800; }
+.lp-hero-phone-screen { min-height:420px;border:1px solid rgba(0,255,240,.12);background:radial-gradient(ellipse at top,rgba(0,255,240,.08),transparent 48%),linear-gradient(180deg,#0c1f42,#050d1a); }
+@keyframes lp-phone-float { 0%,100% { transform:translateY(0) rotateY(-3deg); } 50% { transform:translateY(-9px) rotateY(1deg); } }
+.lp-product-rail { scroll-snap-type:x mandatory; }
+.lp-product-rail > * { scroll-snap-align:center; }
+html:not(.light-mode) .lp-product-rail > * { min-width:0; }
+@media(max-width:700px) {
+  .site-main-header-inner { direction:rtl;min-height:72px;padding:9px 10px; }
+  .site-header-controls { right:10px;left:auto;direction:rtl;gap:5px; }
+  .site-brand { left:50%;right:auto;transform:translate(-50%,-50%); }
+  .site-header-balance { width:8px; }
+  .lp-hero-phone-screen { min-height:380px; }
+  .lp-product-rail { display:flex !important;overflow-x:auto;padding-bottom:18px;margin-inline:-4px;padding-inline:4px;scroll-snap-type:x mandatory; }
+  .lp-product-rail > * { flex:0 0 min(84vw,320px); }
+}
+@media(max-width:500px) {
+  .site-header-controls .site-preview-toggle,.site-header-controls .site-theme-toggle { display:none; }
+  .site-header-icon.site-settings-toggle,.site-header-controls .site-language-button { width:32px;height:35px; }
+  .site-menu-button { width:38px;height:39px; }
+  .site-brand { font-size:17px; }
+  .site-brand-mark { width:28px;height:28px; }
+}
+/* Optional light mode, selected with the moon/sun control. */
+html.light-mode body.bg-white { background:#f8fbf9 !important;color:#10291d; }
+html.light-mode .site-main-header { background:rgba(255,255,255,.96);border-color:#dce9e0;color:#13251c; }
+html.light-mode .site-brand { color:#123e2c; }
+html.light-mode .site-brand span { background:linear-gradient(110deg,#123e2c,#0f9f69);-webkit-background-clip:text;background-clip:text;color:transparent; }
+html.light-mode .site-header-icon { background:#fff;border-color:#d9e9df;color:#173e2e; }
+html.light-mode .site-menu-button { background:#edf8f0;color:#087548;border-color:#cde5d5; }
+html.light-mode .site-tool-button.is-active { background:#0b8052;color:#fff;border-color:#0b8052; }
+html.light-mode .lp-home { background:#fff;color:#0f172a; }
+html.light-mode .lp-hero { background:radial-gradient(ellipse at 78% 24%,rgba(16,185,129,.18),transparent 34%),linear-gradient(125deg,#062b22 0%,#075b3b 52%,#087a42 100%); }
+html.light-mode .lp-home > section { background-color:#fff; }
+html.light-mode .lp-feature-section,html.light-mode .lp-products-section { background:linear-gradient(180deg,#f1f8f2 0%,#fff 100%) !important; }
+html.light-mode .lp-feature-card,html.light-mode .lp-step,html.light-mode .lp-template,html.light-mode .lp-product-card { background:#fff;color:#0f172a;border-color:#d9eadf; }
+html.light-mode .lp-home .text-slate-950,html.light-mode .lp-home .text-slate-900,html.light-mode .lp-home .text-slate-800 { color:#0f172a !important; }
+html.light-mode .lp-home .text-slate-600,html.light-mode .lp-home .text-slate-500 { color:#64748b !important; }
+html.light-mode .lp-home .bg-white { background:#fff !important; }
+html.light-mode .lp-home details { background:#fff;color:#0f172a;border-color:#e2e8f0; }
+html.light-mode .lp-hero-phone-screen { background:linear-gradient(180deg,#0c1f42,#050d1a); }

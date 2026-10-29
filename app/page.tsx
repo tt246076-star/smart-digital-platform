@@ -64,8 +64,9 @@ export default async function Home() {
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-lg">
-              <div className="rounded-[2rem] border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
-                <div className="rounded-[1.5rem] bg-white p-5 text-slate-900 shadow-xl sm:p-7">
+              <div className="lp-hero-phone-shell relative mx-auto w-full max-w-[340px] rounded-[2.7rem] border border-cyan-300/40 bg-[#050b16] p-3 shadow-2xl sm:p-4">
+                <div className="lp-phone-notch" aria-hidden="true"></div><div className="lp-phone-status" aria-hidden="true"><span>9:41</span><span>● ● ●</span></div>
+                <div className="lp-hero-phone-screen relative overflow-hidden rounded-[2.15rem] bg-[#0a1834] p-5 pt-12 text-slate-100 sm:p-6 sm:pt-12">
                   <div className="flex items-center justify-between">
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">بروفايلك الرقمي</span>
                     <span className="text-xs font-bold text-slate-400">{SITE.name}</span>
@@ -111,7 +112,7 @@ export default async function Home() {
         </div></section>
 
         <section id="pricing" className="lp-products-section px-5 py-20 sm:px-8"><div className="mx-auto max-w-7xl"><div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">اختار البطاقة المناسبة لك</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-5xl">منتجات وعروض {SITE.name}</h2><p className="mt-4 leading-8 text-slate-600">اختار المنتج، عمّر معلومات الطلب ونعاودوا نتواصلوا معك لتأكيد التفاصيل والتوصيل.</p></div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{managedProducts.map(product => <StoreProductOrderForm key={product.id} product={product} />)}</div>{managedProducts.length === 0 && <p className="mt-8 rounded-2xl border border-dashed border-emerald-200 bg-white p-8 text-center text-slate-600">المنتجات الجديدة ستظهر هنا بعد إضافتها من لوحة الإدارة.</p>}<p className="mt-5 text-center text-xs leading-6 text-slate-500">السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا قبل إتمام الطلب.</p>
+          <div className="lp-product-rail mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{managedProducts.map(product => <StoreProductOrderForm key={product.id} product={product} />)}</div>{managedProducts.length === 0 && <p className="mt-8 rounded-2xl border border-dashed border-emerald-200 bg-white p-8 text-center text-slate-600">المنتجات الجديدة ستظهر هنا بعد إضافتها من لوحة الإدارة.</p>}<p className="mt-5 text-center text-xs leading-6 text-slate-500">السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا قبل إتمام الطلب.</p>
         </div></section>
 
         <section id="faq" className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-4xl"><div className="text-center"><span className="lp-eyebrow">أسئلة شائعة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">حاب تعرف أكثر؟</h2></div><div className="mt-9 space-y-3">{faqs.map(f=><details key={f.q} className="group rounded-2xl border border-slate-200 bg-white p-5 open:border-emerald-200 open:shadow-sm"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-slate-900"><span>{f.q}</span><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700 transition group-open:rotate-45">＋</span></summary><p className="mt-3 pr-1 text-sm leading-7 text-slate-600">{f.a}</p></details>)}</div></div></section>

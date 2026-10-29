@@ -19,18 +19,19 @@ const languageNames: Record<SiteLanguage, { native: string; english: string; fla
 export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn: boolean; isAdmin: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   const [preview, setPreview] = useState(false);
   const { language, setLanguage } = useSiteLanguage();
 
   useEffect(() => {
     try {
-      const savedTheme = window.localStorage.getItem("bitaqati-theme");
+      const savedTheme = window.localStorage.getItem("bitaqati-theme") || "dark";
       const savedPreview = window.localStorage.getItem("bitaqati-preview") === "1";
       const isDark = savedTheme === "dark";
       setDark(isDark);
       setPreview(savedPreview);
       document.documentElement.classList.toggle("dark", isDark);
+      document.documentElement.classList.toggle("light-mode", !isDark);
       document.documentElement.classList.toggle("site-preview-mode", savedPreview);
     } catch {}
   }, []);
@@ -39,6 +40,7 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
+    document.documentElement.classList.toggle("light-mode", !next);
     try { window.localStorage.setItem("bitaqati-theme", next ? "dark" : "light"); } catch {}
   }
   function togglePreview() {

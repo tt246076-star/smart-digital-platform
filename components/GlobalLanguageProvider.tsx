@@ -287,7 +287,10 @@ export function GlobalLanguageProvider({ children }: { children: React.ReactNode
         if (element.hasAttribute("dir")) {
           if (!element.hasAttribute("data-original-dir")) element.setAttribute("data-original-dir", element.getAttribute("dir") || "");
           const originalDir = element.getAttribute("data-original-dir");
-          if (originalDir === "rtl" || originalDir === "ltr") element.setAttribute("dir", language === "ar" ? "rtl" : "ltr");
+          if (originalDir === "rtl" || originalDir === "ltr") {
+            const targetDir = language === "ar" ? "rtl" : "ltr";
+            if (element.getAttribute("dir") !== targetDir) element.setAttribute("dir", targetDir);
+          }
         }
       });
       applying = false;
