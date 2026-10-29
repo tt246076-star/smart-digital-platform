@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PackageOrderForm from "@/components/PackageOrderForm";
 import { SITE } from "@/lib/site";
 import StoreProductOrderForm from "@/components/StoreProductOrderForm";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
@@ -112,7 +111,7 @@ export default async function Home() {
         </div></section>
 
         <section id="pricing" className="lp-products-section px-5 py-20 sm:px-8"><div className="mx-auto max-w-7xl"><div className="mx-auto max-w-3xl text-center"><span className="lp-eyebrow">اختار البطاقة المناسبة لك</span><h2 className="mt-4 text-3xl font-black text-slate-950 sm:text-5xl">منتجات وعروض {SITE.name}</h2><p className="mt-4 leading-8 text-slate-600">اختار المنتج، عمّر معلومات الطلب ونعاودوا نتواصلوا معك لتأكيد التفاصيل والتوصيل.</p></div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{managedProducts.length > 0 ? managedProducts.map(product => <StoreProductOrderForm key={product.id} product={product} />) : <><PackageOrderForm packageId="desk-card" /><PackageOrderForm packageId="door-card" /><PackageOrderForm packageId="smart-display" /><PackageOrderForm packageId="three-card-bundle" /></>}</div><p className="mt-5 text-center text-xs leading-6 text-slate-500">السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا قبل إتمام الطلب.</p>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{managedProducts.map(product => <StoreProductOrderForm key={product.id} product={product} />)}</div>{managedProducts.length === 0 && <p className="mt-8 rounded-2xl border border-dashed border-emerald-200 bg-white p-8 text-center text-slate-600">المنتجات الجديدة ستظهر هنا بعد إضافتها من لوحة الإدارة.</p>}<p className="mt-5 text-center text-xs leading-6 text-slate-500">السعر النهائي والتوصيل يتم تأكيدهما هاتفيًا قبل إتمام الطلب.</p>
         </div></section>
 
         <section id="faq" className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-4xl"><div className="text-center"><span className="lp-eyebrow">أسئلة شائعة</span><h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">حاب تعرف أكثر؟</h2></div><div className="mt-9 space-y-3">{faqs.map(f=><details key={f.q} className="group rounded-2xl border border-slate-200 bg-white p-5 open:border-emerald-200 open:shadow-sm"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-slate-900"><span>{f.q}</span><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700 transition group-open:rotate-45">＋</span></summary><p className="mt-3 pr-1 text-sm leading-7 text-slate-600">{f.a}</p></details>)}</div></div></section>
