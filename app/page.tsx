@@ -28,7 +28,15 @@ const faqs = [
   { q: "هل تعمل مع جميع الهواتف؟", a: "رابط البروفايل يفتح من المتصفح. استعمال NFC يتطلب هاتفًا يدعم التقنية؛ ويمكن استخدام QR كبديل." },
 ];
 
-export default function Home() {
+export default async function Home() {
+  let managedProducts: { id: string; name: string; description: string; price: number; image_url: string }[] = [];
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supabaseUrl && serviceKey) {
+    const admin = createSupabaseClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data } = await admin.from("storefront_products").select("id,name,description,price,image_url").eq("is_active", true).order("sort_order").order("created_at", { ascending: false });
+    managedProducts = (data || []) as typeof managedProducts;
+  }
   return (
     <>
       <Header />
