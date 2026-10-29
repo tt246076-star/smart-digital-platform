@@ -23,11 +23,11 @@ export default function StorefrontNav({ isLoggedIn, isAdmin }: { isLoggedIn: boo
     { href: "/#faq", label: t.contact },
   ];
   return <>
-    <button type="button" onClick={() => setOpen(true)} aria-label="فتح القائمة" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-100 bg-white text-2xl text-emerald-800 shadow-sm md:hidden">☰</button>
-    <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-600 md:flex">{links.map(l => <Link key={l.href} href={l.href} className="transition hover:text-emerald-700">{l.label}</Link>)}</nav>
-    {open && <div className="fixed inset-0 z-[100] md:hidden" dir={rtl ? "rtl" : "ltr"}>
+    <button type="button" onClick={() => setOpen(true)} aria-label="فتح القائمة" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-3xl text-emerald-800 shadow-sm hover:bg-emerald-100">☰</button>
+    
+    {open && <div className="fixed inset-0 z-[100]" dir={rtl ? "rtl" : "ltr"}>
       <button type="button" aria-label="إغلاق القائمة" onClick={() => setOpen(false)} className="absolute inset-0 h-full w-full bg-slate-950/50"/>
-      <aside className={`absolute inset-y-0 ${rtl ? "right-0" : "left-0"} flex w-[min(86vw,380px)] flex-col bg-[#f8fbf9] p-6 text-slate-900 shadow-2xl`}>
+      <aside className={`absolute inset-y-0 ${rtl ? "right-0" : "left-0"} flex w-[min(86vw,420px)] flex-col bg-[#f8fbf9] p-6 text-slate-900 shadow-2xl`}>
         <div className="flex items-center justify-between"><span className="text-xl font-black text-emerald-800">بطاقتي</span><button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3 py-1 text-2xl hover:bg-emerald-50" aria-label="إغلاق">×</button></div>
         <div className="mt-8 grid grid-cols-3 gap-2 rounded-2xl bg-emerald-50 p-2">
           {(["ar","fr","en"] as const).map(code => <button key={code} type="button" onClick={() => setLang(code)} className={`rounded-xl px-2 py-3 text-sm font-black ${lang===code ? "bg-emerald-600 text-white shadow" : "text-slate-700"}`}>{code==="ar"?"🇩🇿 العربية":code==="fr"?"🇫🇷 Français":"🇬🇧 English"}</button>)}
