@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     const customerAddress = typeof body.customerAddress === "string" ? body.customerAddress.trim().slice(0, 250) : "";
     const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 500) : "";
 
-    if (customerName.length < 2 || !/[0-9]{7,}/.test(customerPhone.replace(/\D/g, "")) ||
+    const normalizedPhone = customerPhone.replace(/[\s-]/g, "");
+    if (customerName.length < 2 || !/^0[567][0-9]{8}$/.test(normalizedPhone) ||
         (source === "store" && (!slug || !Number.isInteger(productIndex) || productIndex < 0 || !Number.isInteger(quantity) || quantity < 1 || quantity > 20)) ||
         (source === "homepage" && !HOME_PACKAGES[packageId]) || (source === "catalog" && !productId)) {
       return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والمنتج والكمية." }, { status: 400 });
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     const { data: order, error: insertError } = await admin.from("store_orders").insert({
       page_id: pageId,
       customer_name: customerName,
-      customer_phone: customerPhone,
+      customer_phone: normalizedPhone,
       customer_address: customerAddress,
       items: [{ name: itemName, price: priceText, quantity: finalQuantity, image_url: imageUrl }],
       total_amount: totalAmount,
