@@ -35,10 +35,10 @@ export default async function Header() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <Link href="/dashboard" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
+              <Link href="/dashboard" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">
                 لوحة التحكم
               </Link>
-              {isAdmin && <Link href="/admin" className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-800 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200">لوحة الإدارة</Link>}
+              {isAdmin && <Link href="/admin" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">لوحة الإدارة</Link>}
               <Link href="/settings" className="rounded-lg border px-3 py-2 text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-800">⚙️ الإعدادات</Link>
               <form action="/auth/signout" method="post">
                 <button type="submit" className="rounded-lg px-3 py-2 text-sm font-bold text-ink hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800">
@@ -51,7 +51,7 @@ export default async function Header() {
               <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-bold text-ink hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand dark:text-slate-100 dark:hover:bg-slate-800">
                 تسجيل الدخول
               </Link>
-              <Link href="/signup" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+              <Link href="/signup" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
                 إنشاء حساب
               </Link>
             </>
