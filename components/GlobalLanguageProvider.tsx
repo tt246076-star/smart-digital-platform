@@ -155,7 +155,7 @@ export function GlobalLanguageProvider({ children }: { children: React.ReactNode
     const observer = new MutationObserver(() => {
       if (!applying) translate();
     });
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "title", "aria-label", "alt", "dir"] });
     return () => observer.disconnect();
   }, [language]);
 
