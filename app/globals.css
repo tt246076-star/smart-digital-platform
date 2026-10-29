@@ -328,3 +328,63 @@ html:not(.light-mode) .border-red-200 { border-color:rgba(248,113,113,.3) !impor
 html:not(.light-mode) .bg-amber-100 { background:rgba(251,191,36,.15) !important;color:#fde68a !important; }
 html:not(.light-mode) .bg-blue-100,html:not(.light-mode) .bg-violet-100 { background:rgba(0,255,240,.1) !important;color:#a5f3fc !important; }
 html:not(.light-mode) .bg-emerald-100 { background:rgba(16,185,129,.13) !important;color:#6ee7b7 !important; }
+
+
+/* Compact anchored popovers: language list below the header, drawer slides from the side. */
+.site-language-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 220 !important;
+  pointer-events: none;
+}
+.site-language-overlay > .site-overlay-backdrop {
+  pointer-events: auto;
+}
+.site-language-dialog {
+  position: fixed !important;
+  top: 78px !important;
+  right: 12px !important;
+  left: auto !important;
+  width: min(300px, calc(100vw - 24px)) !important;
+  max-height: calc(100dvh - 94px) !important;
+  overflow-y: auto !important;
+  transform: none !important;
+  padding: 14px !important;
+  border-radius: 18px !important;
+  z-index: 2 !important;
+  pointer-events: auto;
+  box-shadow: 0 16px 44px rgba(0,0,0,.24) !important;
+  animation: site-language-drop .16s ease-out;
+}
+.site-language-heading h2 { font-size: 18px !important; }
+.site-language-kicker { font-size: 9px !important; }
+.site-language-option { gap: 10px !important; margin-top: 7px !important; padding: 10px !important; border-radius: 13px !important; }
+.site-language-flag { width: 40px !important; height: 34px !important; font-size: 23px !important; }
+.site-language-label strong { font-size: 16px !important; }
+.site-language-label small { font-size: 11px !important; }
+.site-language-option .site-language-check { font-size: 19px !important; }
+@keyframes site-language-drop {
+  from { opacity: 0; transform: translateY(-7px) !important; }
+  to { opacity: 1; transform: translateY(0) !important; }
+}
+.site-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 210 !important;
+}
+.site-drawer {
+  position: fixed !important;
+  top: 78px !important;
+  bottom: 0 !important;
+  height: auto !important;
+  max-height: calc(100dvh - 78px) !important;
+  width: min(86vw, 390px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+.site-drawer.drawer-right { right: 0 !important; left: auto !important; }
+.site-drawer.drawer-left { left: 0 !important; right: auto !important; }
+@media (max-width: 700px) {
+  .site-language-dialog { top: 76px !important; right: 8px !important; width: min(270px, calc(100vw - 16px)) !important; }
+  .site-drawer { top: 70px !important; max-height: calc(100dvh - 70px) !important; width: min(88vw, 360px) !important; padding: 18px 16px max(18px, env(safe-area-inset-bottom)) !important; }
+}
