@@ -65,10 +65,10 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
   return <>
     <div className="site-header-controls" dir="ltr">
       <button type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة" title="القائمة" className="site-header-icon site-menu-button"><MenuIcon /></button>
-      <button type="button" onClick={togglePreview} aria-label="معاينة الواجهة" title="معاينة الواجهة" aria-pressed={preview} className={`site-header-icon site-tool-button ${preview ? "is-active" : ""}`}><EyeIcon /></button>
-      <button type="button" onClick={toggleTheme} aria-label="الوضع الداكن" title="الوضع الداكن" aria-pressed={dark} className={`site-header-icon site-tool-button ${dark ? "is-active" : ""}`}><MoonIcon /></button>
+      <button type="button" onClick={togglePreview} aria-label="معاينة الواجهة" title="معاينة الواجهة" aria-pressed={preview} className={`site-header-icon site-tool-button site-preview-toggle ${preview ? "is-active" : ""}`}><EyeIcon /></button>
+      <button type="button" onClick={toggleTheme} aria-label="الوضع الداكن" title="الوضع الداكن" aria-pressed={dark} className={`site-header-icon site-tool-button site-theme-toggle ${dark ? "is-active" : ""}`}><MoonIcon /></button>
       <button type="button" onClick={() => setLanguageOpen(true)} aria-label="اختيار اللغة" title="اختيار اللغة" className="site-header-icon site-tool-button site-language-button"><GlobeIcon /></button>
-      {isLoggedIn && <Link href="/settings" aria-label="الإعدادات" title="الإعدادات" className="site-header-icon site-tool-button"><GearIcon /></Link>}
+      <Link href={isLoggedIn ? "/settings" : "/login"} aria-label="الإعدادات" title="الإعدادات" className="site-header-icon site-tool-button site-settings-toggle"><GearIcon /></Link>
     </div>
 
     {menuOpen && <div className="site-overlay" dir={language === "ar" ? "rtl" : "ltr"}>
