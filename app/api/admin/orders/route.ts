@@ -52,3 +52,22 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "طلب غير صالح." }, { status: 400 });
   }
 }
+
+
+export async function DELETE(request: Request) {
+  try {
+    const result = await getAdminClient();
+    if ("response" in result) return result.response;
+    const body = await request.json();
+    const orderId = typeof body.orderId === "string" ? body.orderId : "";
+    if (!orderId) return NextResponse.json({ error: "رقم الطلب غير صالح." }, { status: 400 });
+    const { error } = await result.client.from("store_orders").delete().eq("id", orderId);
+    if (error) {
+      console.error("Admin order delete failed:", error.message);
+      return NextResponse.json({ error: "تعذر حذف الطلب." }, { status: 503 });
+    }
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "طلب غير صالح." }, { status: 400 });
+  }
+}
