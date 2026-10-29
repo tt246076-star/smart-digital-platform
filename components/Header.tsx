@@ -35,10 +35,10 @@ export default async function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-bold text-ink hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand dark:text-slate-100 dark:hover:bg-slate-800">
+              <Link href="/login" className="hidden sm:inline-flex rounded-lg px-3 py-2 text-sm font-bold text-ink hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand dark:text-slate-100 dark:hover:bg-slate-800">
                 تسجيل الدخول
               </Link>
-              <Link href="/signup" className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+              <Link href="/signup" className="hidden sm:inline-flex rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
                 إنشاء حساب
               </Link>
             </>
