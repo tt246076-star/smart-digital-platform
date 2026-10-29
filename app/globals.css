@@ -388,3 +388,40 @@ html:not(.light-mode) .bg-emerald-100 { background:rgba(16,185,129,.13) !importa
   .site-language-dialog { top: 76px !important; right: 8px !important; width: min(270px, calc(100vw - 16px)) !important; }
   .site-drawer { top: 70px !important; max-height: calc(100dvh - 70px) !important; width: min(88vw, 360px) !important; padding: 18px 16px max(18px, env(safe-area-inset-bottom)) !important; }
 }
+
+
+/* Drawer visibility fix: keep the panel above its backdrop on mobile browsers. */
+.site-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  isolation: isolate !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+.site-overlay > .site-overlay-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.site-overlay > .site-drawer {
+  position: fixed !important;
+  z-index: 1 !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  top: 70px !important;
+  bottom: 0 !important;
+  height: auto !important;
+  max-height: calc(100dvh - 70px) !important;
+  transform: translateX(0) !important;
+  pointer-events: auto !important;
+}
+.site-overlay > .site-drawer.drawer-right { right: 0 !important; left: auto !important; }
+.site-overlay > .site-drawer.drawer-left { left: 0 !important; right: auto !important; }
