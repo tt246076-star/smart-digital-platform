@@ -194,3 +194,15 @@ html.dark .lp-product-art { background:linear-gradient(135deg,#203d2c,#18251d 52
 html.dark .lp-product-symbol { background:#223a2a;border-color:#41694e;color:#8fe0a9; }
 html.dark .lp-home details { background:#1b2720;border-color:#30483a; }
 html.dark .lp-home input,html.dark .lp-home textarea,html.dark .lp-home select { background:#17231b;color:#e6f2e9;border-color:#3b5545; }
+
+
+/* Global color-token alignment: replace remaining blue/purple buttons with emerald. */
+.bg-brand,.bg-blue-600,.bg-blue-700,.bg-indigo-600 { background-color:#0b8052 !important; }
+.hover\\:bg-blue-700:hover,.hover\\:bg-blue-800:hover,.hover\\:bg-indigo-700:hover { background-color:#086b45 !important; }
+.text-brand,.text-blue-600,.text-blue-700,.text-blue-800,.text-indigo-600,.text-indigo-700,.text-violet-700 { color:#087548 !important; }
+.border-blue-100,.border-blue-200,.border-blue-300,.border-indigo-100,.border-indigo-200,.border-violet-200 { border-color:#cde5d5 !important; }
+.bg-blue-50,.bg-indigo-50,.bg-violet-50 { background-color:#edf8f0 !important; }
+.text-blue-900,.text-indigo-900 { color:#16452f !important; }
+.dark .bg-blue-950,.dark .bg-indigo-950,.dark .bg-violet-950 { background-color:#1b3024 !important; }
+.dark .text-blue-100,.dark .text-blue-200,.dark .text-indigo-100,.dark .text-indigo-200 { color:#c5f0d3 !important; }
+.dark .border-blue-900,.dark .border-indigo-900 { border-color:#365943 !important; }
