@@ -18,6 +18,9 @@ const phrases: Record<string, [string, string]> = {
   "اختر اللغة": ["Choisir la langue", "Choose language"], "العربية": ["العربية", "Arabic"], "الفرنسية": ["Français", "French"], "الإنجليزية": ["Anglais", "English"], "اللغة": ["Langue", "Language"], "الوضع الداكن": ["Mode sombre", "Dark mode"], "معاينة الواجهة": ["Aperçu de l’interface", "Preview mode"], "افتح القائمة": ["Ouvrir le menu", "Open menu"], "إغلاق القائمة": ["Fermer le menu", "Close menu"]
 };
 
+const originalTextNodes = new WeakMap<Text, string>();
+const originalElementAttributes = new WeakMap<Element, Map<string, string>>();
+
 function translateText(source: string, language: SiteLanguage) {
   if (language === "ar") return source;
   let result = source;
@@ -46,8 +49,6 @@ export function GlobalLanguageProvider({ children }: { children: React.ReactNode
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
-    const originals = new WeakMap<Text, string>();
-    const originalAttributes = new WeakMap<Element, Map<string, string>>();
     const attributeNames = ["placeholder", "title", "aria-label", "alt"];
     let applying = false;
 
@@ -60,14 +61,14 @@ export function GlobalLanguageProvider({ children }: { children: React.ReactNode
         const textNode = node as Text;
         const parent = textNode.parentElement;
         if (!parent || parent.closest("script,style,noscript,svg,[data-no-translate]")) continue;
-        const original = originals.get(textNode) ?? textNode.nodeValue ?? "";
-        if (!originals.has(textNode)) originals.set(textNode, original);
+        const original = originalTextNodes.get(textNode) ?? textNode.nodeValue ?? "";
+        if (!originalTextNodes.has(textNode)) originalTextNodes.set(textNode, original);
         const translated = translateText(original, language);
         if (textNode.nodeValue !== translated) textNode.nodeValue = translated;
       }
       const elements = document.body.querySelectorAll("*");
       elements.forEach(element => {
-        const saved = originalAttributes.get(element) ?? new Map<string,string>();
+        const saved = originalElementAttributes.get(element) ?? new Map<string,string>();
         attributeNames.forEach(name => {
           const value = element.getAttribute(name);
           if (value !== null && !saved.has(name)) saved.set(name, value);
@@ -76,7 +77,7 @@ export function GlobalLanguageProvider({ children }: { children: React.ReactNode
             if (element.getAttribute(name) !== translated) element.setAttribute(name, translated);
           }
         });
-        if (saved.size) originalAttributes.set(element, saved);
+        if (saved.size) originalElementAttributes.set(element, saved);
         if (element.hasAttribute("dir")) {
           if (!element.hasAttribute("data-original-dir")) element.setAttribute("data-original-dir", element.getAttribute("dir") || "");
           const originalDir = element.getAttribute("data-original-dir");
