@@ -21,7 +21,16 @@ export async function saveStoreProduct(formData: FormData) {
   const id = String(formData.get("id") || "").trim();
   const name = String(formData.get("name") || "").trim().slice(0, 120);
   const description = String(formData.get("description") || "").trim().slice(0, 1000);
-  let imageUrl = String(formData.get("image_url") || "").trim().slice(0, 1000);\n  const imageFile = formData.get("image_file");\n  if (imageFile instanceof File && imageFile.size > 0) {\n    if (!imageFile.type.startsWith("image/") || imageFile.size > 5 * 1024 * 1024) redirect("/admin/store?error=file");\n    const ext = imageFile.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "jpg";\n    const path = `${crypto.randomUUID()}.${ext}`;\n    const { error: uploadError } = await admin.storage.from("store-products").upload(path, imageFile, { contentType: imageFile.type, upsert: false });\n    if (uploadError) { console.error("Product image upload failed:", uploadError.message); redirect("/admin/store?error=upload"); }\n    imageUrl = admin.storage.from("store-products").getPublicUrl(path).data.publicUrl;\n  }
+  let imageUrl = String(formData.get("image_url") || "").trim().slice(0, 1000);
+  const imageFile = formData.get("image_file");
+  if (imageFile instanceof File && imageFile.size > 0) {
+    if (!imageFile.type.startsWith("image/") || imageFile.size > 5 * 1024 * 1024) redirect("/admin/store?error=file");
+    const ext = imageFile.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "jpg";
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await admin.storage.from("store-products").upload(path, imageFile, { contentType: imageFile.type, upsert: false });
+    if (uploadError) { console.error("Product image upload failed:", uploadError.message); redirect("/admin/store?error=upload"); }
+    imageUrl = admin.storage.from("store-products").getPublicUrl(path).data.publicUrl;
+  }
   const price = Number(formData.get("price"));
   const sortOrder = Number(formData.get("sort_order") || 0);
   const isActive = formData.get("is_active") === "on";
