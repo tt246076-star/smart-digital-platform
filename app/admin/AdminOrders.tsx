@@ -58,6 +58,19 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
     } catch(e) { setError(e instanceof Error ? e.message : "تعذر تحديث الطلب"); }
   }
 
+  async function deleteOrder(orderId: string) {
+    if (!window.confirm("متأكد تحب تحذف هذا الطلب نهائيًا؟")) return;
+    setError(""); setNotice("");
+    try {
+      const response = await fetch("/api/admin/orders", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "تعذر حذف الطلب.");
+      setOrders(old => old.filter(order => order.id !== orderId));
+      knownIds.current.delete(orderId);
+      setNotice("تم حذف الطلب.");
+    } catch (e) { setError(e instanceof Error ? e.message : "تعذر حذف الطلب."); }
+  }
+
   async function enableNotifications() {
     if (!("Notification" in window)) { setNotice("المتصفح لا يدعم إشعارات النظام؛ الطلبات ستظهر هنا تلقائيًا."); return; }
     const permission = await Notification.requestPermission();
@@ -77,7 +90,7 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
         const page = Array.isArray(order.landing_pages) ? order.landing_pages[0] : order.landing_pages;
         const items = Array.isArray(order.items) ? order.items : [];
         return <article key={order.id} className="rounded-2xl border border-slate-200 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-black text-slate-900">{order.customer_name}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-black ${statusStyles[order.status]||statusStyles.new}`}>{statusLabels[order.status]||order.status}</span></div><p className="mt-1 text-xs text-slate-500">{page?.business_name||"متجر"} · {new Date(order.created_at).toLocaleString("ar-DZ")}</p></div><a href={`tel:${order.customer_phone}`} className="rounded-xl bg-emerald-600 px-4 py-2 font-black text-white">اتصال بالزبون</a></div>
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-black text-slate-900">{order.customer_name}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-black ${statusStyles[order.status]||statusStyles.new}`}>{statusLabels[order.status]||order.status}</span></div><p className="mt-1 text-xs text-slate-500">{page?.business_name||"متجر"} · {new Date(order.created_at).toLocaleString("ar-DZ")}</p></div><div className="flex gap-2"><a href={`tel:${order.customer_phone}`} className="rounded-xl bg-emerald-600 px-4 py-2 font-black text-white">اتصال بالزبون</a><button type="button" onClick={()=>void deleteOrder(order.id)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 font-bold text-red-700">حذف الطلب</button></div></div>
           <p className="mt-3 text-sm font-bold text-slate-700" dir="ltr">{order.customer_phone}</p>
           {order.customer_address&&<p className="mt-1 text-sm text-slate-600">العنوان: {order.customer_address}</p>}
           <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm">{items.map((item,i)=><p key={i} className="font-bold text-slate-800">{item.name||"منتج"} × {item.quantity||1}{item.price? ` — ${item.price} دج` : ""}</p>)}{order.total_amount!==null&&order.total_amount!==undefined&&<p className="mt-2 font-black text-emerald-700">المجموع التقديري: {Number(order.total_amount).toLocaleString("ar-DZ")} دج</p>}{order.notes&&<p className="mt-2 leading-6 text-slate-500">ملاحظة: {order.notes}</p>}</div>
