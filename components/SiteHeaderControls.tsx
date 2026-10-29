@@ -73,9 +73,9 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
       <Link href={isLoggedIn ? "/settings" : "/login"} aria-label="الإعدادات" title="الإعدادات" className="site-header-icon site-tool-button site-settings-toggle"><GearIcon /></Link>
     </div>
 
-    {menuOpen && <div className="site-overlay" dir={language === "ar" ? "rtl" : "ltr"}>
-      <button type="button" className="site-overlay-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)} />
-      <aside className={`site-drawer ${language === "ar" ? "drawer-right" : "drawer-left"}`} role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
+    {menuOpen && <div className="site-overlay" dir={language === "ar" ? "rtl" : "ltr"} style={{ position: "fixed", inset: 0, zIndex: 2147483000, isolation: "isolate", display: "block", visibility: "visible", opacity: 1 }}>
+      <button type="button" className="site-overlay-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 0, width: "100%", height: "100%", background: "rgba(2, 6, 23, .62)", border: 0, display: "block" }} />
+      <aside className={`site-drawer ${language === "ar" ? "drawer-right" : "drawer-left"}`} role="dialog" aria-modal="true" aria-label="القائمة الرئيسية" style={{ position: "fixed", zIndex: 1, top: 70, bottom: 0, right: language === "ar" ? 0 : "auto", left: language === "ar" ? "auto" : 0, width: "min(88vw, 360px)", height: "auto", maxHeight: "calc(100dvh - 70px)", overflowY: "auto", display: "flex", flexDirection: "column", visibility: "visible", opacity: 1, transform: "none", background: "#f8fafc", color: "#0f172a", boxShadow: "0 16px 48px rgba(0,0,0,.28)", padding: "20px 16px max(20px, env(safe-area-inset-bottom))", pointerEvents: "auto" }}>
         <div className="site-drawer-heading"><div className="site-drawer-brand"><img src="/brand/bitakaty-mark.svg" alt="" /><span>بطاقتي</span></div><button type="button" className="site-close-button" onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
         <button type="button" className="site-drawer-language" onClick={() => { setMenuOpen(false); setLanguageOpen(true); }}><GlobeIcon /><span>اللغة / Language</span><strong>{languageNames[language].flag}</strong></button>
         <nav className="site-drawer-links">{links.map(([href, label, icon]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">{icon}</span><span>{label}</span><span className="site-drawer-arrow">‹</span></Link>)}
