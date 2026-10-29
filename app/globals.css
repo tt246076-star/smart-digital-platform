@@ -307,3 +307,24 @@ html.light-mode .lp-home .text-slate-600,html.light-mode .lp-home .text-slate-50
 html.light-mode .lp-home .bg-white { background:#fff !important; }
 html.light-mode .lp-home details { background:#fff;color:#0f172a;border-color:#e2e8f0; }
 html.light-mode .lp-hero-phone-screen { background:linear-gradient(180deg,#0c1f42,#050d1a); }
+
+
+/* Apply the same navy/cyan/gold design language across dashboards, settings and forms. */
+html:not(.light-mode) body.bg-white { background-color:#030712 !important; color:#e2e8f0; }
+html:not(.light-mode) .bg-white { background-color:#081426 !important; }
+html:not(.light-mode) .bg-slate-50 { background-color:#050d1a !important; }
+html:not(.light-mode) .bg-slate-100 { background-color:#101b2d !important; }
+html:not(.light-mode) .bg-emerald-50,html:not(.light-mode) .bg-green-50,html:not(.light-mode) .bg-blue-50,html:not(.light-mode) .bg-indigo-50,html:not(.light-mode) .bg-violet-50 { background-color:rgba(0,255,240,.07) !important; }
+html:not(.light-mode) .text-slate-950,html:not(.light-mode) .text-slate-900,html:not(.light-mode) .text-slate-800 { color:#f1f5f9 !important; }
+html:not(.light-mode) .text-slate-700,html:not(.light-mode) .text-slate-600,html:not(.light-mode) .text-slate-500 { color:#b8c5d8 !important; }
+html:not(.light-mode) .text-blue-700,html:not(.light-mode) .text-blue-800,html:not(.light-mode) .text-indigo-700,html:not(.light-mode) .text-emerald-700 { color:#00fff0 !important; }
+html:not(.light-mode) .border-slate-100,html:not(.light-mode) .border-slate-200,html:not(.light-mode) .border-slate-300,html:not(.light-mode) .border-emerald-100,html:not(.light-mode) .border-emerald-200,html:not(.light-mode) .border-blue-100,html:not(.light-mode) .border-blue-200 { border-color:rgba(0,255,240,.16) !important; }
+html:not(.light-mode) input:not([type="checkbox"]):not([type="radio"]),html:not(.light-mode) textarea,html:not(.light-mode) select { background-color:#071022 !important;color:#e2e8f0 !important;border-color:rgba(0,255,240,.22) !important; }
+html:not(.light-mode) input::placeholder,html:not(.light-mode) textarea::placeholder { color:#8293aa !important; }
+html:not(.light-mode) .bg-brand,html:not(.light-mode) .bg-blue-600,html:not(.light-mode) .bg-blue-700,html:not(.light-mode) .bg-indigo-600,html:not(.light-mode) .bg-emerald-600 { background:linear-gradient(135deg,#fbbf24,#f59e0b) !important;color:#111827 !important; }
+html:not(.light-mode) .hover\\:bg-blue-700:hover,html:not(.light-mode) .hover\\:bg-emerald-700:hover { filter:brightness(1.07); }
+html:not(.light-mode) .bg-red-50 { background:rgba(239,68,68,.12) !important; }
+html:not(.light-mode) .border-red-200 { border-color:rgba(248,113,113,.3) !important; }
+html:not(.light-mode) .bg-amber-100 { background:rgba(251,191,36,.15) !important;color:#fde68a !important; }
+html:not(.light-mode) .bg-blue-100,html:not(.light-mode) .bg-violet-100 { background:rgba(0,255,240,.1) !important;color:#a5f3fc !important; }
+html:not(.light-mode) .bg-emerald-100 { background:rgba(16,185,129,.13) !important;color:#6ee7b7 !important; }
