@@ -5,6 +5,18 @@ import { encryptSecret } from "@/lib/ecotrack-secrets";
 
 export const runtime = "nodejs";
 
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (error && typeof error === "object") {
+    const value = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    const parts = [value.message, value.details, value.hint]
+      .filter((part): part is string => typeof part === "string" && Boolean(part.trim()));
+    if (parts.length) return parts.join(" — ");
+    if (typeof value.code === "string") return `${fallback} (code: ${value.code})`;
+  }
+  return fallback;
+}
+
 async function authorizedAdmin() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -27,7 +39,7 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json({ configured: Boolean(data), baseUrl: data?.base_url ?? "https://platform.dhd-dz.com", updatedAt: data?.updated_at ?? null });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "تعذر قراءة الإعدادات" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage(error, "تعذر قراءة الإعدادات") }, { status: 500 });
   }
 }
 
@@ -51,6 +63,6 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ ok: true, message: "تم حفظ إعدادات Ecotrack بشكل مشفّر." });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "تعذر حفظ الإعدادات" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage(error, "تعذر حفظ الإعدادات") }, { status: 500 });
   }
 }
