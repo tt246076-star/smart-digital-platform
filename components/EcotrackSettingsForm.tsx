@@ -7,7 +7,7 @@ export default function EcotrackSettingsForm() {
   const [token, setToken] = useState("");
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);\n  const [testing, setTesting] = useState(false);
   const [notice, setNotice] = useState<{ kind: "ok" | "error" | "info"; text: string } | null>(null);
 
   useEffect(() => {
@@ -21,6 +21,25 @@ export default function EcotrackSettingsForm() {
       .catch((error) => setNotice({ kind: "error", text: error.message || "تعذر تحميل الإعدادات" }))
       .finally(() => setLoading(false));
   }, []);
+
+  async function testConnection() {
+    setTesting(true);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/admin/ecotrack/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseUrl, token })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "فشل اختبار الاتصال");
+      setNotice({ kind: data.ok ? "ok" : "error", text: data.message || data.error || "تعذر التحقق من الاتصال" });
+    } catch (error) {
+      setNotice({ kind: "error", text: error instanceof Error ? error.message : "تعذر اختبار الاتصال" });
+    } finally {
+      setTesting(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -64,9 +83,9 @@ export default function EcotrackSettingsForm() {
       {notice && <p role="status" className={`mt-4 rounded-xl p-3 text-sm leading-6 ${notice.kind === "ok" ? "bg-emerald-950 text-emerald-200" : notice.kind === "error" ? "bg-red-950 text-red-200" : "bg-slate-800 text-slate-200"}`}>{notice.text}</p>}
       <div className="mt-6 flex flex-wrap gap-3">
         <button type="button" onClick={save} disabled={saving || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl bg-emerald-500 px-6 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{saving ? "جارٍ الحفظ..." : "💾 حفظ"}</button>
-        <button type="button" onClick={() => setNotice({ kind: "info", text: "اختبار الاتصال الحقيقي يحتاج مسار التحقق الرسمي من Ecotrack API. ما راح نرسل طلبًا لمسار مفترض حتى لا نعطيك نتيجة خاطئة." })} className="rounded-xl border border-slate-700 px-5 py-3 font-bold hover:bg-slate-800">🔌 اختبار الاتصال</button>
+        <button type="button" onClick={testConnection} disabled={testing || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl border border-slate-700 px-5 py-3 font-bold hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{testing ? "جارٍ اختبار الاتصال..." : "🔌 اختبار الاتصال"}</button>
       </div>
-      <p className="mt-4 text-xs leading-6 text-slate-400"> {loading ? "جارٍ تحميل حالة الربط..." : "لا تدخل أي مفتاح في رابط عام أو رسالة. الاختبار والمزامنة سيُفعّلان بعد تأكيد مسار API الرسمي."}</p>
+      <p className="mt-4 text-xs leading-6 text-slate-400"> {loading ? "جارٍ تحميل حالة الربط..." : "لا تدخل المفتاح إلا في هذه الخانة الخاصة. الاختبار يتحقق من صلاحية المفتاح؛ مزامنة الشحنات وإشعارات واتساب تحتاج مراحل ربط إضافية."}</p>
     </section>
   );
 }
