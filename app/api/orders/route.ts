@@ -151,7 +151,7 @@ export async function POST(request: Request) {
       items: [{ name: itemName, price: priceText, quantity: finalQuantity, image_url: imageUrl }],
       total_amount: totalAmount,
       status: "new",
-      notes: source === "homepage" ? \`طلب من الصفحة الرئيسية. \${notes}\`.trim() : source === "catalog" ? \`طلب منتج من المتجر الرئيسي. \${notes}\`.trim() : notes
+      notes: source === "homepage" ? `طلب من الصفحة الرئيسية. ${notes}`.trim() : source === "catalog" ? `طلب منتج من المتجر الرئيسي. ${notes}`.trim() : notes
     }).select("id").single();
 
     if (insertError || !order) {
