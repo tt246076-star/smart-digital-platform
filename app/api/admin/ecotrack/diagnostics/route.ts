@@ -32,7 +32,11 @@ async function getJson(base: URL, path: string, token: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
   try {
-    const response = await fetch(new URL(path, base.origin), {
+    // Match the working connection test: DHD/EcoTrack may require api_token
+    // in the query string as well as the Bearer authorization header.
+    const requestUrl = new URL(path, base.origin);
+    requestUrl.searchParams.set("api_token", token);
+    const response = await fetch(requestUrl, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       cache: "no-store",
