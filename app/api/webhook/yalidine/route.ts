@@ -90,6 +90,10 @@ function optionalTextFields(data: JsonRecord): JsonRecord {
     wilaya_name: "wilaya",
     commune_id: "commune_id",
     commune_name: "commune",
+    customer_name: "customer_name",
+    customer_phone: "customer_phone",
+    phone: "customer_phone",
+    product_name: "product_name",
     office_name: "office_name",
     office_address: "office_address",
     office_phone: "office_phone",
@@ -102,6 +106,14 @@ function optionalTextFields(data: JsonRecord): JsonRecord {
     const value = asText(data[source]);
     if (value !== null) fields[target] = value;
   }
+
+  const amountValue = data.total_amount ?? data.total_price ?? data.price;
+  const amount = typeof amountValue === "number"
+    ? amountValue
+    : typeof amountValue === "string" && amountValue.trim()
+      ? Number(amountValue)
+      : NaN;
+  if (Number.isFinite(amount)) fields.total_amount = amount;
 
   return fields;
 }
@@ -131,6 +143,16 @@ async function processEvent(db: ReturnType<typeof createDeliveryDb>, type: strin
   const reason = asText(data.reason);
 
   await ensureShipment(db, tracking);
+
+  const metadata = optionalTextFields(data);
+  if (Object.keys(metadata).length > 0) {
+    const { error: metadataError } = await db
+      .from("delivery_shipments")
+      .update({ ...metadata, updated_at: new Date().toISOString() })
+      .eq("carrier", "yalidine")
+      .eq("tracking", tracking);
+    if (metadataError) throw metadataError;
+  }
 
   const { error: eventError } = await db.from("delivery_shipment_events").insert({
     carrier: "yalidine",
@@ -256,11 +278,17 @@ export async function POST(request: Request) {
     let processed = 0;
     let duplicates = 0;
 
-    for (const rawEvent of events) {
-      const event = asRecord(rawEvent);
-      const result = await processEvent(db, type, event);
-      if (result.duplicate) duplicates += 1;
-      else processed += 1;
+    // Process small concurrent batches to keep the webhook response inside
+    // the provider's request timeout without launching an unbounded burst.
+    for (let index = 0; index < events.length; index += 10) {
+      const batch = events.slice(index, index + 10);
+      const results = await Promise.all(
+        batch.map((rawEvent) => processEvent(db, type, asRecord(rawEvent)))
+      );
+      for (const result of results) {
+        if (result.duplicate) duplicates += 1;
+        else processed += 1;
+      }
     }
 
     return NextResponse.json({
