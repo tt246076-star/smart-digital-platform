@@ -116,6 +116,7 @@ function normalizeFees(value: unknown) {
 export async function POST() {
   if (!(await authorizedAdmin())) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
 
+  let phase: "database" | "url" | "decrypt" | "provider" = "database";
   try {
     const { data: integration, error } = await db()
       .from("private_integrations")
@@ -127,10 +128,14 @@ export async function POST() {
       return NextResponse.json({ error: "احفظ إعدادات DHD أولاً." }, { status: 400 });
     }
 
+    phase = "url";
     const base = new URL(integration.base_url);
     if (!allowedHost(base)) return NextResponse.json({ error: "رابط شركة التوصيل المحفوظ غير مسموح." }, { status: 400 });
+
+    phase = "decrypt";
     const token = decryptSecret(integration.encrypted_secret);
 
+    phase = "provider";
     const checks = await Promise.allSettled([
       getJson(base, "/api/v1/validate/token", token),
       getJson(base, "/api/v1/get/wilayas", token),
@@ -181,9 +186,32 @@ export async function POST() {
       note: "الفحص قراءة فقط: لم يتم إنشاء أو تعديل أو إلغاء أي شحنة. تتبع الشحنات يحتاج رقم تتبع حقيقي.",
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    const message = error instanceof Error && error.name === "AbortError"
-      ? "انتهت مهلة اتصال أحد مسارات DHD."
-      : "تعذر فحص بيانات DHD. تأكد من صلاحية المفتاح ومسارات API.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    const detail = error instanceof Error ? error.message : "";
+    let diagnosticCode = "DIAGNOSTICS_FAILED";
+    let message = "تعذر إكمال فحص بيانات الشركة.";
+
+    if (phase === "database") {
+      diagnosticCode = "INTEGRATION_STORAGE";
+      message = "تعذر قراءة إعدادات الربط من قاعدة البيانات. تحقق من إعدادات Supabase على Vercel.";
+    } else if (phase === "url") {
+      diagnosticCode = "INVALID_SAVED_URL";
+      message = "رابط الشركة المحفوظ غير صالح. أعد حفظ https://platform.dhd-dz.com.";
+    } else if (phase === "decrypt") {
+      diagnosticCode = "SECRET_DECRYPTION";
+      if (detail.includes("ECOTRACK_ENCRYPTION_KEY is not configured")) {
+        message = "مفتاح التشفير ECOTRACK_ENCRYPTION_KEY غير موجود في Vercel.";
+      } else if (detail.includes("must decode to 32 bytes")) {
+        message = "قيمة ECOTRACK_ENCRYPTION_KEY في Vercel بصيغة غير صحيحة؛ يجب أن تتحول إلى 32 بايت.";
+      } else {
+        message = "المفتاح محفوظ لكن تعذّر فك تشفيره. غالبًا تغيّرت ECOTRACK_ENCRYPTION_KEY بعد حفظه. أعد في Vercel نفس قيمة المفتاح القديمة، أو أدخل API Token جديدًا واحفظه بعد تثبيت مفتاح التشفير الصحيح.";
+      }
+    } else if (error instanceof Error && error.name === "AbortError") {
+      diagnosticCode = "PROVIDER_TIMEOUT";
+      message = "انتهت مهلة اتصال أحد مسارات DHD.";
+    }
+
+    // Log only the failure stage and error class; never log tokens or response bodies.
+    console.error("[Ecotrack diagnostics]", { phase, errorName: error instanceof Error ? error.name : "UnknownError" });
+    return NextResponse.json({ error: message, diagnosticCode }, { status: 502, headers: { "Cache-Control": "no-store" } });
   }
 }
