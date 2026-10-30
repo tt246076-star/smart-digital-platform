@@ -8,7 +8,7 @@ function MenuIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" classNa
 function MoonIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.7 8.7 0 1 0 20.5 14.2Z"/></svg>; }
 function GearIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1 1.9-2 3.4-2.2-.5a8 8 0 0 1-1.8 1l-.7 2.1h-4l-.7-2.1a8 8 0 0 1-1.8-1l-2.2.5-2-3.4 1.1-1.9A8 8 0 0 1 4 12c0-.7.1-1.4.3-2L3.2 8.1l2-3.4 2.2.5a8 8 0 0 1 1.8-1L10 2h4l.7 2.1a8 8 0 0 1 1.8 1l2.2-.5 2 3.4L19.6 10c.2.6.4 1.3.4 2s-.2 1.4-.6 3Z"/></svg>; }
 
-export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn: boolean; isAdmin: boolean }) {
+export default function SiteHeaderControls({ isLoggedIn, isAdmin, canTrackDeliveries }: { isLoggedIn: boolean; isAdmin: boolean; canTrackDeliveries: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(true);
 
@@ -56,7 +56,7 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
         <nav className="site-drawer-links">{links.map(([href, label, icon]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">{icon}</span><span>{label}</span><span className="site-drawer-arrow">‹</span></Link>)}
           {isLoggedIn && <Link href="/dashboard" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">♙</span><span>لوحة التحكم</span><span className="site-drawer-arrow">‹</span></Link>}
           {isAdmin && <Link href="/admin/store" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">▤</span><span>إدارة المنتجات والطلبات</span><span className="site-drawer-arrow">‹</span></Link>}
-          {isAdmin && <Link href="/dashboard/tracking" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">🚚</span><span>تتبع طلبات شركة التوصيل</span><span className="site-drawer-arrow">‹</span></Link>}
+          {canTrackDeliveries && <Link href="/dashboard/tracking" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">🚚</span><span>تتبع طلبات شركة التوصيل</span><span className="site-drawer-arrow">‹</span></Link>}
           {!isLoggedIn && <Link href="/login" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">⇥</span><span>تسجيل الدخول</span><span className="site-drawer-arrow">‹</span></Link>}
           {!isLoggedIn && <Link href="/signup" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">＋</span><span>إنشاء حساب</span><span className="site-drawer-arrow">‹</span></Link>}
           {isLoggedIn && <Link href="/settings" onClick={() => setMenuOpen(false)}><span className="site-drawer-link-icon">⚙</span><span>الإعدادات</span><span className="site-drawer-arrow">‹</span></Link>}
