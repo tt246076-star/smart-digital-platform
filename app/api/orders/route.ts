@@ -4,6 +4,33 @@ import { createDeliveryDb, isDeliveryAdmin } from "@/lib/delivery-auth";
 
 export const dynamic = "force-dynamic";
 
+type DeliveryShipmentRow = {
+  id: string;
+  carrier: string;
+  carrier_label: string | null;
+  tracking: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  product_name: string | null;
+  total_amount: number | string | null;
+  wilaya: string | null;
+  commune: string | null;
+  current_status: string;
+  status_label: string | null;
+  payment_status: string | null;
+  reason: string | null;
+  center_name: string | null;
+  office_name: string | null;
+  office_address: string | null;
+  office_phone: string | null;
+  office_map_url: string | null;
+  driver_name: string | null;
+  driver_phone: string | null;
+  is_final: boolean;
+  last_event_at: string | null;
+  updated_at: string;
+};
+
 const HOME_PACKAGES: Record<string,{name:string;price:number}> = {
   "desk-card": { name:"بطاقة مكتب", price:2000 },
   "door-card": { name:"بطاقة باب", price:2500 },
@@ -40,7 +67,8 @@ export async function GET(request: Request) {
 
     if (error) throw error;
 
-    const orders = (data || []).map((row) => ({
+    const shipmentRows = (data ?? []) as unknown as DeliveryShipmentRow[];
+    const orders = shipmentRows.map((row) => ({
       id: row.id,
       carrier: row.carrier,
       carrier_label: row.carrier_label,
