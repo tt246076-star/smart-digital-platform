@@ -52,15 +52,34 @@ export async function POST(request: Request) {
     let data: unknown = null;
     try { data = JSON.parse(text); } catch { /* Some providers may return a non-JSON error page. */ }
 
-    if (upstream.ok && typeof data === "object" && data !== null && "success" in data && (data as { success?: unknown }).success === true) {
-      return NextResponse.json({ ok: true, message: "نجح الاتصال وEcotrack قبل الـ API Token." });
-    }
     if (upstream.status === 401 || upstream.status === 403) {
-      return NextResponse.json({ ok: false, error: "رفضت Ecotrack المفتاح. تأكد من API Token ومن تفعيل API لحسابك." }, { status: 200 });
+      return NextResponse.json({ ok: false, error: "رفضت Ecotrack المفتاح (401/403). تأكد من API Token ومن تفعيل API لحسابك." }, { status: 200 });
     }
+
+    if (upstream.ok && typeof data === "object" && data !== null) {
+      const result = data as Record<string, unknown>;
+      if (result.success === true) {
+        return NextResponse.json({ ok: true, message: "نجح الاتصال وEcotrack قبل الـ API Token." });
+      }
+      const providerMessage = [result.message, result.error, result.msg]
+        .find((value) => typeof value === "string" && value.trim().length > 0);
+      if (result.success === false) {
+        return NextResponse.json({
+          ok: false,
+          error: typeof providerMessage === "string"
+            ? `Ecotrack رفض الطلب: ${providerMessage.slice(0, 220)}`
+            : "Ecotrack ردّ بأن التحقق غير ناجح. راجع صلاحية API Token."
+        }, { status: 200 });
+      }
+      return NextResponse.json({
+        ok: false,
+        error: `Ecotrack ردّ HTTP ${upstream.status} لكن صيغة JSON غير معروفة. الحقول المستلمة: ${Object.keys(result).slice(0, 8).join(", ") || "لا توجد"}.`
+      }, { status: 200 });
+    }
+
     return NextResponse.json({
       ok: false,
-      error: `وصلنا إلى منصة التوصيل لكن نتيجة التحقق غير متوقعة (HTTP ${upstream.status}). تأكد من رابط شركتك ومن صلاحية الـ API.`
+      error: `رابط API رجّع HTTP ${upstream.status} بصيغة ${upstream.headers.get("content-type") || "غير معروفة"} وليس JSON للتحقق. راجع رابط الشركة ومسار API.`
     }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error && error.name === "AbortError"
