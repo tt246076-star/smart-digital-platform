@@ -6,8 +6,7 @@ import SiteHeaderControls from "@/components/SiteHeaderControls";
 export default async function Header() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
-  const isAdmin = !!user?.email && user.email.trim().toLowerCase() === adminEmail;
+  const isAdmin = user?.email?.trim().toLowerCase() === "tt246076@gmail.com";
 
   return (
     <header className="site-main-header">
