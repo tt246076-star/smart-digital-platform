@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createDeliveryDb, isDeliveryAdmin } from "@/lib/delivery-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,72 @@ const HOME_PACKAGES: Record<string,{name:string;price:number}> = {
   "smart-display": { name:"بطاقة عرض ذكية", price:4500 },
   "three-card-bundle": { name:"حزمة 3 بطاقات", price:8500 },
 };
+
+export async function GET(request: Request) {
+  if (!(await isDeliveryAdmin())) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  }
+
+  try {
+    const url = new URL(request.url);
+    const requestedLimit = Number(url.searchParams.get("limit") || 100);
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.min(200, Math.max(1, Math.floor(requestedLimit)))
+      : 100;
+
+    const db = createDeliveryDb();
+    const { data, error } = await db
+      .from("delivery_shipments")
+      .select([
+        "id", "carrier", "carrier_label", "tracking", "customer_name",
+        "customer_phone", "product_name", "total_amount", "wilaya", "commune",
+        "current_status", "status_label", "payment_status", "reason",
+        "center_name", "office_name", "office_address", "office_phone",
+        "office_map_url", "driver_name", "driver_phone", "is_final",
+        "last_event_at", "updated_at"
+      ].join(","))
+      .eq("is_deleted", false)
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    const orders = (data || []).map((row) => ({
+      id: row.id,
+      carrier: row.carrier,
+      carrier_label: row.carrier_label,
+      tracking: row.tracking,
+      customer_name: row.customer_name,
+      phone: row.customer_phone,
+      product_name: row.product_name,
+      total_price: row.total_amount === null ? null : String(row.total_amount),
+      wilaya: row.wilaya,
+      commune: row.commune,
+      stage: row.current_status,
+      stage_label: row.status_label || row.current_status,
+      stage_at: row.last_event_at,
+      is_final: row.is_final,
+      carrier_status: row.status_label,
+      payment_status: row.payment_status,
+      reason: row.reason,
+      center_name: row.center_name,
+      office_name: row.office_name,
+      office_address: row.office_address,
+      office_phone: row.office_phone,
+      office_map_url: row.office_map_url,
+      driver_name: row.driver_name,
+      driver_phone: row.driver_phone,
+      updated_at: row.updated_at,
+    }));
+
+    return NextResponse.json(orders, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
+  } catch (error) {
+    console.error("Delivery orders API failed", error instanceof Error ? error.message : "unknown error");
+    return NextResponse.json({ error: "تعذر جلب الشحنات من قاعدة البيانات" }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -84,7 +151,7 @@ export async function POST(request: Request) {
       items: [{ name: itemName, price: priceText, quantity: finalQuantity, image_url: imageUrl }],
       total_amount: totalAmount,
       status: "new",
-      notes: source === "homepage" ? `طلب من الصفحة الرئيسية. ${notes}`.trim() : source === "catalog" ? `طلب منتج من المتجر الرئيسي. ${notes}`.trim() : notes
+      notes: source === "homepage" ? \`طلب من الصفحة الرئيسية. \${notes}\`.trim() : source === "catalog" ? \`طلب منتج من المتجر الرئيسي. \${notes}\`.trim() : notes
     }).select("id").single();
 
     if (insertError || !order) {
