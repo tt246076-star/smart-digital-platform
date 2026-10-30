@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
+import EcotrackSettingsForm from "@/components/EcotrackSettingsForm";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function TrackingDashboardPage() {
@@ -36,6 +37,10 @@ export default async function TrackingDashboardPage() {
             </div>
             <span className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold dark:border-slate-800 dark:bg-slate-900">واجهة أولية — لم يتم الاتصال بالخدمات بعد</span>
           </div>
+
+          <section className="mt-7">
+            <EcotrackSettingsForm />
+          </section>
 
           <section className="mt-7 grid gap-4 sm:grid-cols-2">
             <IntegrationCard
