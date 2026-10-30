@@ -6,6 +6,7 @@ import { setUserPlan, deleteLandingPage, setUserProductLimit, deleteCatalogProdu
 import DeleteProductForm from "./DeleteProductForm";
 import DeletePageForm from "./DeletePageForm";
 import AdminOrders from "./AdminOrders";
+import EcotrackSettingsForm from "@/components/EcotrackSettingsForm";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,10 @@ export default async function AdminPage({ searchParams }: { searchParams: { save
       </div>
 
       <AdminOrders initialOrders={ordersData as any} />
+
+      <section className="mt-8">
+        <EcotrackSettingsForm />
+      </section>
 
       <section className="mt-8 rounded-2xl border bg-white p-5">
         <h2 className="text-xl font-black">خطط الاشتراك</h2>
