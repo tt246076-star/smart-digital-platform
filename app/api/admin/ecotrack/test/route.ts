@@ -8,8 +8,7 @@ async function authorizedAdmin() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user?.email) return false;
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
-  return user.email.trim().toLowerCase() === adminEmail;
+  return user.email.trim().toLowerCase() === "tt246076@gmail.com";
 }
 
 function allowedHost(url: URL) {
