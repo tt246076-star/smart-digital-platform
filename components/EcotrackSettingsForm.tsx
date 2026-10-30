@@ -7,7 +7,8 @@ export default function EcotrackSettingsForm() {
   const [token, setToken] = useState("");
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);\n  const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [notice, setNotice] = useState<{ kind: "ok" | "error" | "info"; text: string } | null>(null);
 
   useEffect(() => {
