@@ -38,10 +38,19 @@ export async function POST(request: Request) {
     const timeout = setTimeout(() => controller.abort(), 8000);
     let upstream: Response;
     try {
-      upstream = await fetch(new URL("/api/v1/validate/token", base.origin), {
+      // EcoTrack tenants (including DHD) accept the Bearer token. Some
+      // deployed integrations also pass api_token for compatibility, so send
+      // both using URLSearchParams rather than string concatenation.
+      const validationUrl = new URL("/api/v1/validate/token", base.origin);
+      validationUrl.searchParams.set("api_token", token);
+      upstream = await fetch(validationUrl, {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
         cache: "no-store",
+        redirect: "error",
         signal: controller.signal,
       });
     } finally {
