@@ -170,7 +170,13 @@ function destinationLabel(order: Row | null) {
     "destination_wilaya", "destinationWilaya", "dest_wilaya", "destWilaya",
     "wilaya", "wilaya_name", "wilayaName", "province",
   ]);
-  const parts = [commune, wilaya, "Algérie"].filter((value) => value !== null && value !== undefined && String(value).trim());
+  const rawWilaya = wilaya === null || wilaya === undefined ? "" : String(wilaya).trim();
+  // EcoTrack may return only the numeric wilaya code. Convert known codes
+  // to readable names instead of sending a bare code such as "16" to Maps.
+  const wilayaCode = rawWilaya.match(/^0?(\d{1,2})$/)?.[1];
+  const wilayaNames: Record<string, string> = { "16": "Alger" };
+  const readableWilaya = wilayaCode ? (wilayaNames[wilayaCode] || `Wilaya ${wilayaCode}`) : wilaya;
+  const parts = [commune, readableWilaya, "Algérie"].filter((value) => value !== null && value !== undefined && String(value).trim());
   return parts.length > 1 ? parts.map(text).join(", ") : parts.length === 1 ? `${text(parts[0])}, Algérie` : null;
 }
 
@@ -277,7 +283,7 @@ export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "a
       {detailError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-200">{detailError}</p>}
       {details !== null && details !== undefined && <>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail title="المكتب / المحطة الحالية" value={first(office || {}, ["nom", "name", "office_name", "label"]) || currentStation} />
+          <Detail title="المكتب / المحطة الحالية" value={first(office || {}, ["nom", "name", "office_name", "label"]) || currentStation} link />
           <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone", "currentStationPhone"])} />
           <Detail title="GPS المكتب (من بيانات الشركة)" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
           <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"]) || driverName} />
@@ -288,6 +294,13 @@ export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "a
         <h4 className="mt-5 font-black">سجل الحركة</h4>
         {history.length ? <ol className="mt-3 space-y-2">{history.map((event, i) => {
           const rawStatus = text(first(event, ["status", "operation", "event", "label", "description", "action"]));
+          const normalizedEventStatus = rawStatus.trim().toLocaleLowerCase();
+          const isDeliveredEvent = /^(delivered|livre|تم تسليم الطرد|تم التسليم)$/.test(normalizedEventStatus);
+          const deliveredBefore = history.slice(0, i).filter((previous) =>
+            /^(delivered|livre|تم تسليم الطرد|تم التسليم)$/.test(
+              text(first(previous, ["status", "operation", "event", "label", "description", "action"])).trim().toLocaleLowerCase()
+            )
+          ).length;
           const statusNames: Record<string, string> = {
             order_information_received_by_carrier: "استلمت شركة التوصيل معلومات الطلب",
             accepted_by_carrier: "استلمت شركة التوصيل الطرد",
@@ -296,12 +309,17 @@ export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "a
             returned: "تم إرجاع الطرد",
             delivered: "تم تسليم الطرد",
           };
+          const eventLabel = isDeliveredEvent && deliveredBefore > 0
+            ? "تأكيد تسجيل التسليم"
+            : normalizedEventStatus === "payed" || normalizedEventStatus === "paid"
+              ? "تم تحصيل المبلغ"
+              : statusNames[rawStatus] || rawStatus || "تحديث حالة";
           const eventDate = [first(event, ["date", "created_at", "datetime", "date_operation"]), first(event, ["time"])].filter(Boolean).map(text).join(" · ");
           const station = first(event, ["station", "lieu", "location", "bureau"]);
           const driverOnEvent = first(event, ["driver", "livreur"]);
           const reason = first(event, ["reason", "details", "content"]);
           return <li key={i} className="rounded-xl bg-white p-3 text-sm dark:bg-slate-900">
-            <p className="font-bold">{statusNames[rawStatus] || rawStatus || "تحديث حالة"}</p>
+            <p className="font-bold">{eventLabel}</p>
             {eventDate && <p className="mt-1 text-xs text-slate-500">{eventDate}</p>}
             {station && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">المحطة: {text(station)}</p>}
             {driverOnEvent && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">الموزّع: {text(driverOnEvent)}</p>}
