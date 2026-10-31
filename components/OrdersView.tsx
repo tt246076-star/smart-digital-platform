@@ -181,7 +181,7 @@ export default function OrdersView() {
       <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">الطرد {selected.tracking}</h3><button onClick={() => { setSelected(null); setDetails(null); }} className="rounded-lg border px-3 py-1.5 text-sm dark:border-slate-700">إغلاق</button></div>
       {detailLoading && <p className="mt-4 text-sm">جارٍ جلب تفاصيل الطرد وسجل الحركة…</p>}
       {detailError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-200">{detailError}</p>}
-      {details && <>
+      {details !== null && details !== undefined && <>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Detail title="المكتب الحالي" value={first(office || {}, ["nom", "name", "office_name", "label"]) || first(asRecord(selected), ["bureau_actuel", "current_office", "office_name"])} />
           <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone"])} />
