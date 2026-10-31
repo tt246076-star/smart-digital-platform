@@ -81,7 +81,7 @@ function historyRows(payload: unknown): Record<string, unknown>[] {
   if (!root) return [];
   for (const obj of [root, asRecord(root.data), asRecord(root.result), asRecord(root.tracking), asRecord(root.order)]) {
     if (!obj) continue;
-    const value = first(obj, ["historique", "history", "events", "tracking_history", "tracking_info", "operations", "movements"]);
+    const value = first(obj, ["historique", "history", "events", "activity", "tracking_history", "tracking_info", "operations", "movements"]);
     if (Array.isArray(value)) return value.map(asRecord).filter((v): v is Record<string, unknown> => Boolean(v));
   }
   return [];
@@ -140,11 +140,18 @@ export default function OrdersView() {
     finally { setDetailLoading(false); }
   };
 
-  const officeName = pickNested(details, ["bureau_actuel", "current_office", "office", "bureau", "current_station", "station"]);
-  const driverName = pickNested(details, ["livreur", "driver", "delivery_agent", "distributor"]);
-  const office = asRecord(officeName);
-  const driver = asRecord(driverName);
+  const currentStation = pickNested(details, ["currentStation", "bureau_actuel", "current_office", "office", "bureau", "current_station", "station"]);
   const history = historyRows(details);
+  const driverFromHistory = [...history].reverse()
+    .map((event) => first(event, ["driver", "livreur", "delivery_agent", "distributor"]))
+    .find((value) => value !== null) ?? null;
+  const driverName = pickNested(details, ["livreur", "driver", "delivery_agent", "distributor"]) || driverFromHistory;
+  const office = asRecord(currentStation);
+  const driver = asRecord(driverName);
+  const latestReason = [...history].reverse()
+    .map((event) => first(event, ["reason", "details", "content"]))
+    .find((value) => value !== null) ?? pickNested(details, ["retour_raison", "return_reason", "reason"]);
+
 
   return <section dir="rtl" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -169,7 +176,7 @@ export default function OrdersView() {
           : filtered.map((row, i) => <tr key={String(row._key || i)} className="border-t border-slate-100 dark:border-slate-800">
             <td className="px-3 py-3 font-black text-blue-700 dark:text-blue-300" dir="ltr">{row.tracking}</td>
             <td className="px-3 py-3"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold dark:bg-slate-800">{row.statusText}</span><p className="mt-1 text-xs text-slate-500">{label(row.statusKey)}</p></td>
-            <td className="px-3 py-3">{display(first(row, ["name", "customer_name", "receiver", "client_name", "destinataire"]))}</td>
+            <td className="px-3 py-3">{display(first(row, ["name", "customer_name", "receiver", "client_name", "destinataire", "recipientName"]))}</td>
             <td className="px-3 py-3" dir="ltr">{display(first(row, ["phone", "customer_phone", "receiver_phone", "telephone"]))}</td>
             <td className="px-3 py-3">{[first(row, ["wilaya", "wilaya_name"]), first(row, ["commune", "commune_name"])].filter(Boolean).map(text).join(" · ") || "—"}</td>
             <td className="px-3 py-3"><button onClick={() => void openTracking(row)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-extrabold text-white">تفاصيل وسجل الحركة</button></td>
@@ -183,15 +190,37 @@ export default function OrdersView() {
       {detailError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-200">{detailError}</p>}
       {details !== null && details !== undefined && <>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail title="المكتب الحالي" value={first(office || {}, ["nom", "name", "office_name", "label"]) || first(asRecord(selected) || {}, ["bureau_actuel", "current_office", "office_name"])} />
-          <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone"])} />
+          <Detail title="المكتب / المحطة الحالية" value={first(office || {}, ["nom", "name", "office_name", "label"]) || currentStation} />
+          <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone", "currentStationPhone"])} />
           <Detail title="GPS / موقع المكتب" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
-          <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"])} />
+          <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"]) || driverName} />
           <Detail title="هاتف الموزّع" value={first(driver || {}, ["tel", "phone", "telephone", "driver_phone"])} />
-          <Detail title="سبب الإرجاع" value={pickNested(details, ["retour_raison", "return_reason", "reason"])} />
+          <Detail title="آخر سبب أو تعليق مسجل" value={latestReason} />
         </div>
         <h4 className="mt-5 font-black">سجل الحركة</h4>
-        {history.length ? <ol className="mt-3 space-y-2">{history.map((event, i) => <li key={i} className="rounded-xl bg-white p-3 text-sm dark:bg-slate-900"><p className="font-bold">{text(first(event, ["operation", "status", "event", "label", "description", "action"])) || "تحديث حالة"}</p><p className="mt-1 text-xs text-slate-500">{dateLabel(first(event, ["date", "created_at", "datetime", "date_operation", "timestamp"]))}</p>{first(event, ["lieu", "location", "bureau", "station"]) && <p className="mt-1 text-xs">{text(first(event, ["lieu", "location", "bureau", "station"]))}</p>}</li>)}</ol> : <p className="mt-2 rounded-xl bg-white p-3 text-sm text-slate-500 dark:bg-slate-900">الشركة لم ترجع سجل حركة قابلًا للعرض في الاستجابة.</p>}
+        {history.length ? <ol className="mt-3 space-y-2">{history.map((event, i) => {
+          const rawStatus = text(first(event, ["status", "operation", "event", "label", "description", "action"]));
+          const statusNames: Record<string, string> = {
+            order_information_received_by_carrier: "استلمت شركة التوصيل معلومات الطلب",
+            accepted_by_carrier: "استلمت شركة التوصيل الطرد",
+            dispatched_to_driver: "تم إرسال الطرد إلى الموزّع",
+            attempt_delivery: "محاولة توصيل",
+            returned: "تم إرجاع الطرد",
+            delivered: "تم تسليم الطرد",
+          };
+          const eventDate = [first(event, ["date", "created_at", "datetime", "date_operation"]), first(event, ["time"])].filter(Boolean).map(text).join(" · ");
+          const station = first(event, ["station", "lieu", "location", "bureau"]);
+          const driverOnEvent = first(event, ["driver", "livreur"]);
+          const reason = first(event, ["reason", "details", "content"]);
+          return <li key={i} className="rounded-xl bg-white p-3 text-sm dark:bg-slate-900">
+            <p className="font-bold">{statusNames[rawStatus] || rawStatus || "تحديث حالة"}</p>
+            {eventDate && <p className="mt-1 text-xs text-slate-500">{eventDate}</p>}
+            {station && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">المحطة: {text(station)}</p>}
+            {driverOnEvent && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">الموزّع: {text(driverOnEvent)}</p>}
+            {reason && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">ملاحظة: {text(reason)}</p>}
+            {first(event, ["scanLocation"]) && <p className="mt-1 text-xs text-slate-500">مكان المسح: {text(first(event, ["scanLocation"]))}</p>}
+          </li>;
+        })}</ol> : <p className="mt-2 rounded-xl bg-white p-3 text-sm text-slate-500 dark:bg-slate-900">الشركة لم ترجع سجل حركة قابلًا للعرض في الاستجابة.</p>}
         <details className="mt-4"><summary className="cursor-pointer text-xs font-bold text-slate-500">عرض حقول الاستجابة الأصلية (للتشخيص)</summary><pre className="mt-2 max-h-80 overflow-auto rounded-xl bg-slate-950 p-3 text-left text-xs text-slate-100" dir="ltr">{JSON.stringify(details, null, 2)}</pre></details>
       </>}
     </div>}
