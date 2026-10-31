@@ -87,6 +87,46 @@ function historyRows(payload: unknown): Record<string, unknown>[] {
   return [];
 }
 
+function courierPhoneFromOrder(order: Row | null) {
+  if (!order) return null;
+  const direct = first(order, [
+    "driver_phone", "driverPhone", "livreur_phone", "livreurPhone", "phone_livreur",
+    "telephone_livreur", "telephoneLivreur", "tel_livreur", "numero_livreur",
+    "courier_phone", "courierPhone", "delivery_phone", "deliveryPhone",
+    "distributor_phone", "distributorPhone", "driver_mobile", "livreur_mobile",
+  ]);
+  if (direct) return direct;
+
+  for (const [key, value] of Object.entries(order)) {
+    if (!/(driver|livreur|courier|delivery|distributor|rider)/i.test(key)) continue;
+    if (!/(phone|tel|mobile|gsm|numero|number|num)/i.test(key)) continue;
+    if (value !== null && value !== undefined && String(value).trim()) return value;
+    const nested = asRecord(value);
+    const nestedPhone = nested ? first(nested, ["phone", "tel", "telephone", "mobile", "gsm", "numero", "number"]) : null;
+    if (nestedPhone) return nestedPhone;
+  }
+  for (const key of ["driver", "livreur", "courier", "delivery_man", "distributor", "rider"]) {
+    const nested = asRecord(order[key]);
+    const nestedPhone = nested ? first(nested, ["phone", "tel", "telephone", "mobile", "gsm", "numero", "number"]) : null;
+    if (nestedPhone) return nestedPhone;
+  }
+  return null;
+}
+
+function destinationLabel(order: Row | null) {
+  if (!order) return null;
+  const commune = first(order, [
+    "destination_commune", "destinationCommune", "dest_commune", "destCommune",
+    "commune", "commune_name", "communeName", "destLocation", "destination",
+  ]);
+  const wilaya = first(order, [
+    "destination_wilaya", "destinationWilaya", "dest_wilaya", "destWilaya",
+    "wilaya", "wilaya_name", "wilayaName", "province",
+  ]);
+  const parts = [commune, wilaya, "Algérie"].filter((value) => value !== null && value !== undefined && String(value).trim());
+  return parts.length > 1 ? parts.map(text).join(", ") : parts.length === 1 ? `${text(parts[0])}, Algérie` : null;
+}
+
 export default function OrdersView() {
   const [rows, setRows] = useState<Row[]>([]);
   const [selected, setSelected] = useState<Row | null>(null);
@@ -192,9 +232,10 @@ export default function OrdersView() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Detail title="المكتب / المحطة الحالية" value={first(office || {}, ["nom", "name", "office_name", "label"]) || currentStation} />
           <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone", "currentStationPhone"])} />
-          <Detail title="GPS / موقع المكتب" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
+          <Detail title="GPS المكتب (من بيانات الشركة)" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
           <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"]) || driverName} />
-          <Detail title="هاتف الموزّع" value={first(driver || {}, ["tel", "phone", "telephone", "driver_phone"])} />
+          <Detail title="هاتف الموزّع" value={first(driver || {}, ["tel", "phone", "telephone", "driver_phone", "mobile", "gsm"]) || courierPhoneFromOrder(selected)} />
+          <Detail title="موقع وجهة الطرد (تقريبي)" value={destinationLabel(selected)} link />
           <Detail title="آخر سبب أو تعليق مسجل" value={latestReason} />
         </div>
         <h4 className="mt-5 font-black">سجل الحركة</h4>
