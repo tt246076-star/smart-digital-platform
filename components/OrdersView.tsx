@@ -1,190 +1,206 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiGet } from "@/lib/api";
 
-type Shipment = {
-  id: string; carrier: string; carrier_label: string | null; tracking: string;
-  customer_name: string | null; phone: string | null; product_name: string | null;
-  total_price: string | null; wilaya: string | null; commune: string | null;
-  stage: string | null; stage_label: string | null; stage_at: string | null;
-  is_final: boolean; carrier_status: string | null; payment_status: string | null;
-  reason: string | null; center_name: string | null; office_name: string | null;
-  office_address: string | null; office_phone: string | null; office_map_url: string | null;
-  driver_name: string | null; driver_phone: string | null; updated_at: string;
-};
+type Row = Record<string, unknown> & { tracking: string; statusText: string; statusKey: string };
+const filters = [
+  { key: "all", label: "كل الطرود" },
+  { key: "preparing", label: "قيد التحضير" },
+  { key: "pickup", label: "في انتظار الإنتقاط" },
+  { key: "hub", label: "إلى المركز" },
+  { key: "moving", label: "التوصيلات الجارية" },
+  { key: "hold", label: "المعلقة" },
+  { key: "delivered", label: "التوصيلات التامة" },
+  { key: "returned", label: "الطرود المرجعة" },
+];
 
-const labels: Record<string, string> = {
-  delivered: "تم التسليم", returned: "راجع", cancelled: "ملغى",
-  delivery_attempted: "محاولة توصيل فاشلة", out_for_delivery: "خرج للتوصيل",
-  in_transit: "في الطريق", at_hub: "وصل إلى مركز / مكتب",
-  picked_up: "تم الاستلام", on_hold: "معلّق", unknown: "بانتظار تحديث",
-};
-
-function dateLabel(value: string | null | undefined) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("ar-DZ", { dateStyle: "medium", timeStyle: "short" }).format(date);
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
-function statusClass(status: string | null) {
-  if (status === "delivered") return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200";
-  if (status === "returned" || status === "cancelled") return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200";
-  if (status === "delivery_attempted" || status === "on_hold") return "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200";
-  return "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200";
+function first(record: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = record[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+  }
+  return null;
+}
+function text(value: unknown) { return value === null || value === undefined ? "" : String(value); }
+function findRows(payload: unknown): Record<string, unknown>[] {
+  if (Array.isArray(payload)) return payload.map(asRecord).filter((v): v is Record<string, unknown> => Boolean(v));
+  const obj = asRecord(payload);
+  if (!obj) return [];
+  for (const key of ["orders", "parcels", "shipments", "results", "data", "result"]) {
+    if (obj[key] !== undefined) {
+      const nested = findRows(obj[key]);
+      if (nested.length || Array.isArray(obj[key])) return nested;
+    }
+  }
+  return [];
+}
+function classify(status: string): string {
+  const s = status.toLocaleLowerCase();
+  if (/return|returned|راجع|ارجاع|إرجاع|مرتجع/.test(s)) return "returned";
+  if (/deliver|تم التسليم|livr/.test(s) && !/out_for|out for|جاري/.test(s)) return "delivered";
+  if (/hold|pending|suspend|معلق|معلّق|en attente/.test(s)) return "hold";
+  if (/out.for.delivery|delivery|distribut|توصيل|livraison|جاري/.test(s)) return "moving";
+  if (/hub|center|centre|مركز|مكتب|arriv/.test(s)) return "hub";
+  if (/pickup|pick.up|ramass|انتقاط|التقاط|استلام/.test(s)) return "pickup";
+  if (/prepar|prepare|قيد التحضير|new|created/.test(s)) return "preparing";
+  return "other";
+}
+function normalized(payload: unknown): Row[] {
+  return findRows(payload).map((item, index) => {
+    const tracking = text(first(item, ["tracking", "tracking_number", "tracking_code", "code_suivi", "tracking_id", "reference"]));
+    const statusText = text(first(item, ["status", "status_label", "state", "etat", "statut", "last_status", "order_status"]) || "غير معروف");
+    return { ...item, tracking, statusText, statusKey: classify(statusText), _key: tracking || text(first(item, ["id", "order_id"])) || String(index) };
+  }).filter((item) => item.tracking);
+}
+function label(key: string) { return filters.find((f) => f.key === key)?.label || "حالة أخرى"; }
+function dateLabel(value: unknown) {
+  if (!value) return "—";
+  const d = new Date(String(value));
+  return Number.isNaN(d.getTime()) ? text(value) : new Intl.DateTimeFormat("ar-DZ", { dateStyle: "medium", timeStyle: "short" }).format(d);
+}
+function display(value: unknown) {
+  if (value === null || value === undefined || value === "") return "غير متوفر من شركة التوصيل";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+function pickNested(payload: unknown, keys: string[]) {
+  const root = asRecord(payload);
+  if (!root) return null;
+  const candidates = [root, asRecord(root.data), asRecord(root.result), asRecord(root.tracking), asRecord(root.order)].filter(Boolean) as Record<string, unknown>[];
+  for (const obj of candidates) {
+    const v = first(obj, keys);
+    if (v !== null) return v;
+  }
+  return null;
+}
+function historyRows(payload: unknown): Record<string, unknown>[] {
+  const root = asRecord(payload);
+  if (!root) return [];
+  for (const obj of [root, asRecord(root.data), asRecord(root.result), asRecord(root.tracking), asRecord(root.order)]) {
+    if (!obj) continue;
+    const value = first(obj, ["historique", "history", "events", "tracking_history", "tracking_info", "operations", "movements"]);
+    if (Array.isArray(value)) return value.map(asRecord).filter((v): v is Record<string, unknown> => Boolean(v));
+  }
+  return [];
 }
 
 export default function OrdersView() {
-  const [rows, setRows] = useState<Shipment[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [selected, setSelected] = useState<Row | null>(null);
+  const [details, setDetails] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [detailError, setDetailError] = useState("");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [carrierFilter, setCarrierFilter] = useState("all");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [providerPayload, setProviderPayload] = useState<unknown>(null);
 
-  const loadOrders = useCallback(async (manual = false) => {
-    if (manual) setRefreshing(true); else setLoading(true);
+  const loadOrders = useCallback(async (nextPage = page, manual = false) => {
+    manual ? setRefreshing(true) : setLoading(true);
     setError("");
     try {
-      const result = await apiGet<Shipment[]>("/api/orders?limit=200");
-      setRows(Array.isArray(result) ? result : []);
+      const res = await fetch(`/api/ecotrack/orders?page=${nextPage}&start_date=2024-01-01&end_date=2026-12-31`, { cache: "no-store" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "تعذر جلب قائمة الطرود");
+      setProviderPayload(body.data);
+      setRows(normalized(body.data));
+      setPage(nextPage);
       setLastSync(new Date().toISOString());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر تحميل الشحنات");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر جلب قائمة الطرود");
+      setRows([]);
     } finally {
       setLoading(false); setRefreshing(false);
     }
-  }, []);
+  }, [page]);
 
-  useEffect(() => {
-    void loadOrders();
-    const timer = window.setInterval(() => { void loadOrders(true); }, 60_000);
-    return () => window.clearInterval(timer);
-  }, [loadOrders]);
-
+  useEffect(() => { void loadOrders(1); }, []); // Initial provider page only; pagination is explicit.
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
-    return rows.filter((row) => {
-      if (statusFilter !== "all" && row.stage !== statusFilter) return false;
-      if (carrierFilter !== "all" && row.carrier !== carrierFilter) return false;
-      if (!q) return true;
-      return [row.tracking, row.customer_name, row.phone, row.product_name, row.wilaya, row.commune,
-        row.office_name, row.center_name, row.driver_name].some((value) => String(value || "").toLocaleLowerCase().includes(q));
-    });
-  }, [rows, query, statusFilter, carrierFilter]);
+    return rows.filter((row) => (filter === "all" || row.statusKey === filter) &&
+      (!q || [row.tracking, row.statusText, first(row, ["name", "customer_name", "receiver", "client_name"]), first(row, ["phone", "customer_phone", "receiver_phone"]), first(row, ["wilaya", "wilaya_name", "commune", "commune_name"])].some(v => text(v).toLocaleLowerCase().includes(q))));
+  }, [rows, query, filter]);
+  const counts = useMemo(() => Object.fromEntries(filters.map(f => [f.key, f.key === "all" ? rows.length : rows.filter(r => r.statusKey === f.key).length])), [rows]);
 
-  const stats = useMemo(() => ({
-    total: rows.length,
-    moving: rows.filter((r) => !r.is_final && r.stage !== "unknown").length,
-    delivered: rows.filter((r) => r.stage === "delivered").length,
-    attempted: rows.filter((r) => r.stage === "delivery_attempted").length,
-  }), [rows]);
+  const openTracking = async (row: Row) => {
+    setSelected(row); setDetails(null); setDetailError(""); setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/ecotrack/tracking?tracking=${encodeURIComponent(row.tracking)}`, { cache: "no-store" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "تعذر جلب تفاصيل الطرد");
+      setDetails(body.data);
+    } catch (e) { setDetailError(e instanceof Error ? e.message : "تعذر جلب تفاصيل الطرد"); }
+    finally { setDetailLoading(false); }
+  };
 
-  const carriers = useMemo(() => [...new Set(rows.map((r) => r.carrier).filter(Boolean))], [rows]);
-  const active = rows.find((row) => row.id === selected) || null;
+  const officeName = pickNested(details, ["bureau_actuel", "current_office", "office", "bureau", "current_station", "station"]);
+  const driverName = pickNested(details, ["livreur", "driver", "delivery_agent", "distributor"]);
+  const office = asRecord(officeName);
+  const driver = asRecord(driverName);
+  const history = historyRows(details);
 
-  return (
-    <section dir="rtl" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="text-xl font-black">كل الشحنات</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">تتحدث القائمة تلقائياً كل دقيقة، ويمكنك تحديثها يدوياً.</p>
+  return <section dir="rtl" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><h2 className="text-xl font-black">تتبع طرود Ecotrack / DHD</h2><p className="mt-1 text-sm text-slate-500">القائمة تجي مباشرة من API الشركة. آخر تحديث: {dateLabel(lastSync)}</p></div>
+      <button onClick={() => void loadOrders(page, true)} disabled={loading || refreshing} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50 dark:border-slate-700">{refreshing ? "جارٍ التحديث…" : "↻ تحديث"}</button>
+    </div>
+    <div className="mt-5 flex flex-wrap gap-2">
+      {filters.map(f => <button key={f.key} onClick={() => setFilter(f.key)} className={"rounded-full border px-3 py-2 text-sm font-bold " + (filter === f.key ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800")}>{f.label} <span className="mr-1 opacity-75">({counts[f.key] ?? 0})</span></button>)}
+    </div>
+    <div className="mt-4 flex flex-wrap gap-3">
+      <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث برقم التتبع، الحالة، الزبون أو الهاتف…" className="min-w-[230px] flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950" />
+      <button onClick={() => void loadOrders(page + 1)} disabled={loading || refreshing} className="rounded-xl border px-4 py-3 text-sm font-bold dark:border-slate-700">الصفحة التالية ←</button>
+      {page > 1 && <button onClick={() => void loadOrders(page - 1)} disabled={loading || refreshing} className="rounded-xl border px-4 py-3 text-sm font-bold dark:border-slate-700">→ السابقة</button>}
+    </div>
+    {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div>}
+    <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+      <table className="w-full min-w-[720px] text-right text-sm">
+        <thead className="bg-slate-50 dark:bg-slate-800"><tr>{["رقم التتبع","الحالة من الشركة","الزبون","الهاتف","الولاية / البلدية","التفاصيل"].map(h => <th key={h} className="px-3 py-3">{h}</th>)}</tr></thead>
+        <tbody>
+          {loading ? <tr><td colSpan={6} className="px-3 py-12 text-center">جارٍ جلب الطرود من Ecotrack…</td></tr>
+          : filtered.length === 0 ? <tr><td colSpan={6} className="px-3 py-12 text-center text-slate-500">{error ? "تعذر تحميل القائمة؛ راجع رسالة الخطأ أعلاه." : "ما كاين حتى طرد في نتائج هذي الصفحة أو الفلتر."}</td></tr>
+          : filtered.map((row, i) => <tr key={String(row._key || i)} className="border-t border-slate-100 dark:border-slate-800">
+            <td className="px-3 py-3 font-black text-blue-700 dark:text-blue-300" dir="ltr">{row.tracking}</td>
+            <td className="px-3 py-3"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold dark:bg-slate-800">{row.statusText}</span><p className="mt-1 text-xs text-slate-500">{label(row.statusKey)}</p></td>
+            <td className="px-3 py-3">{display(first(row, ["name", "customer_name", "receiver", "client_name", "destinataire"]))}</td>
+            <td className="px-3 py-3" dir="ltr">{display(first(row, ["phone", "customer_phone", "receiver_phone", "telephone"]))}</td>
+            <td className="px-3 py-3">{[first(row, ["wilaya", "wilaya_name"]), first(row, ["commune", "commune_name"])].filter(Boolean).map(text).join(" · ") || "—"}</td>
+            <td className="px-3 py-3"><button onClick={() => void openTracking(row)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-extrabold text-white">تفاصيل وسجل الحركة</button></td>
+          </tr>)}
+        </tbody>
+      </table>
+    </div>
+    {selected && <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50/70 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+      <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">الطرد {selected.tracking}</h3><button onClick={() => { setSelected(null); setDetails(null); }} className="rounded-lg border px-3 py-1.5 text-sm dark:border-slate-700">إغلاق</button></div>
+      {detailLoading && <p className="mt-4 text-sm">جارٍ جلب تفاصيل الطرد وسجل الحركة…</p>}
+      {detailError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-200">{detailError}</p>}
+      {details && <>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Detail title="المكتب الحالي" value={first(office || {}, ["nom", "name", "office_name", "label"]) || first(asRecord(selected), ["bureau_actuel", "current_office", "office_name"])} />
+          <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone"])} />
+          <Detail title="GPS / موقع المكتب" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
+          <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"])} />
+          <Detail title="هاتف الموزّع" value={first(driver || {}, ["tel", "phone", "telephone", "driver_phone"])} />
+          <Detail title="سبب الإرجاع" value={pickNested(details, ["retour_raison", "return_reason", "reason"])} />
         </div>
-        <button type="button" onClick={() => void loadOrders(true)} disabled={loading || refreshing}
-          className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800">
-          {refreshing ? "جارٍ التحديث..." : "↻ تحديث الآن"}
-        </button>
-      </div>
-
-      <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Stat title="إجمالي الشحنات" value={stats.total} />
-        <Stat title="قيد المعالجة" value={stats.moving} />
-        <Stat title="تم التسليم" value={stats.delivered} />
-        <Stat title="محاولات فاشلة" value={stats.attempted} />
-      </div>
-
-      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_190px_190px]">
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-bold text-slate-500">بحث في الشحنات</span>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="رقم التتبع، اسم الزبون، الهاتف، الولاية..."
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" />
-        </label>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-bold text-slate-500">الحالة</span>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">
-            <option value="all">كل الحالات</option>
-            {Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-bold text-slate-500">شركة التوصيل</span>
-          <select value={carrierFilter} onChange={(e) => setCarrierFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">
-            <option value="all">كل الشركات</option>
-            {carriers.map((carrier) => <option key={carrier} value={carrier}>{carrier}</option>)}
-          </select>
-        </label>
-      </div>
-
-      {error && <div role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div>}
-
-      <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-        <table className="w-full min-w-[1120px] text-right text-sm">
-          <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
-            <tr>{["رقم التتبع","شركة التوصيل","الزبون","الهاتف","الولاية / البلدية","الحالة","المكتب / السائق","آخر تحديث",""].map((h) => <th key={h} className="px-3 py-3 font-bold">{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {loading && rows.length === 0 ? <tr><td colSpan={9} className="px-3 py-12 text-center text-slate-500">جارٍ تحميل الشحنات...</td></tr>
-            : filtered.length === 0 ? <tr><td colSpan={9} className="px-3 py-12 text-center">
-                <div className="text-3xl">📦</div>
-                <p className="mt-3 font-extrabold">{rows.length === 0 ? "لا توجد شحنات مسجلة في قاعدة البيانات بعد" : "لا توجد نتائج مطابقة"}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-500">{rows.length === 0 ? "ستظهر الشحنات بعد ربط مصدر بيانات الشركة وإتمام أول مزامنة أو استقبال Webhook." : "غيّر كلمات البحث أو عوامل التصفية."}</p>
-              </td></tr>
-            : filtered.map((row) => <tr key={row.id} className={"border-t border-slate-100 dark:border-slate-800 " + (selected === row.id ? "bg-blue-50/60 dark:bg-blue-950/20" : "")}>
-                <td className="px-3 py-3 font-bold text-blue-700 dark:text-blue-300">{row.tracking}</td>
-                <td className="px-3 py-3">{row.carrier_label || row.carrier}</td>
-                <td className="px-3 py-3">{row.customer_name || "—"}</td>
-                <td className="px-3 py-3" dir="ltr">{row.phone || "—"}</td>
-                <td className="px-3 py-3">{[row.wilaya,row.commune].filter(Boolean).join(" · ") || "—"}</td>
-                <td className="px-3 py-3"><span className={"inline-flex rounded-full px-2.5 py-1 text-xs font-extrabold " + statusClass(row.stage)}>{row.stage_label || labels[row.stage || "unknown"] || row.stage || "غير معروف"}</span>
-                  {row.reason && <p className="mt-1 max-w-[180px] text-xs text-amber-700 dark:text-amber-300">{row.reason}</p>}
-                </td>
-                <td className="px-3 py-3"><p>{row.office_name || row.center_name || "—"}</p>{row.driver_name && <p className="mt-1 text-xs text-slate-500">الموزّع: {row.driver_name}</p>}</td>
-                <td className="px-3 py-3 text-xs text-slate-500">{dateLabel(row.stage_at || row.updated_at)}</td>
-                <td className="px-3 py-3"><button type="button" onClick={() => setSelected(selected === row.id ? null : row.id)} className="whitespace-nowrap rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">{selected === row.id ? "إغلاق" : "التفاصيل"}</button></td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>
-
-      {active && <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50/60 p-4 dark:border-blue-900 dark:bg-blue-950/20">
-        <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">تفاصيل الشحنة · {active.tracking}</h3><span className="text-xs text-slate-500">آخر مزامنة للوحة: {dateLabel(lastSync)}</span></div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail title="المنتج والمبلغ" value={[active.product_name, active.total_price ? active.total_price + " دج" : null].filter(Boolean).join(" · ")} />
-          <Detail title="حالة الدفع" value={active.payment_status} />
-          <Detail title="المركز" value={active.center_name} />
-          <Detail title="اسم المكتب" value={active.office_name} />
-          <Detail title="عنوان المكتب" value={active.office_address} />
-          <Detail title="هاتف المكتب" value={active.office_phone} direction="ltr" />
-          <Detail title="اسم الموزّع" value={active.driver_name} />
-          <Detail title="هاتف الموزّع" value={active.driver_phone} direction="ltr" />
-          <Detail title="سبب آخر تحديث" value={active.reason} />
-        </div>
-        {active.office_map_url && <a href={active.office_map_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white">فتح موقع المكتب على الخريطة</a>}
-      </div>}
-
-      <p className="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">البيانات المعروضة هي الشحنات التي وصلت فعلياً إلى قاعدة بيانات بطاقتي؛ هذه الصفحة لا تدّعي استيراد طرود حساب الشركة قبل تفعيل واجهة الجلب الرسمية.</p>
-    </section>
-  );
+        <h4 className="mt-5 font-black">سجل الحركة</h4>
+        {history.length ? <ol className="mt-3 space-y-2">{history.map((event, i) => <li key={i} className="rounded-xl bg-white p-3 text-sm dark:bg-slate-900"><p className="font-bold">{text(first(event, ["operation", "status", "event", "label", "description", "action"])) || "تحديث حالة"}</p><p className="mt-1 text-xs text-slate-500">{dateLabel(first(event, ["date", "created_at", "datetime", "date_operation", "timestamp"]))}</p>{first(event, ["lieu", "location", "bureau", "station"]) && <p className="mt-1 text-xs">{text(first(event, ["lieu", "location", "bureau", "station"]))}</p>}</li>)}</ol> : <p className="mt-2 rounded-xl bg-white p-3 text-sm text-slate-500 dark:bg-slate-900">الشركة لم ترجع سجل حركة قابلًا للعرض في الاستجابة.</p>}
+        <details className="mt-4"><summary className="cursor-pointer text-xs font-bold text-slate-500">عرض حقول الاستجابة الأصلية (للتشخيص)</summary><pre className="mt-2 max-h-80 overflow-auto rounded-xl bg-slate-950 p-3 text-left text-xs text-slate-100" dir="ltr">{JSON.stringify(details, null, 2)}</pre></details>
+      </>}
+    </div>}
+    <p className="mt-4 text-xs leading-6 text-slate-500">الحالات المعروضة تُصنّف من النص الذي ترجعه الشركة، وقد تحتاج بعض الحالات إلى مطابقة أدق حسب شكل استجابة API الفعلي. لا يتم إنشاء بيانات تجريبية.</p>
+  </section>;
 }
 
-function Stat({ title, value }: { title: string; value: number }) {
-  return <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800"><p className="text-xs font-bold text-slate-500 dark:text-slate-400">{title}</p><p className="mt-2 text-2xl font-black tabular-nums">{value}</p></div>;
-}
-function Detail({ title, value, direction }: { title: string; value: string | null | undefined; direction?: "ltr" }) {
-  return <div className="rounded-xl bg-white/80 p-3 dark:bg-slate-900/70"><p className="text-xs font-bold text-slate-500">{title}</p><p dir={direction} className="mt-1 break-words text-sm font-semibold">{value || "غير متوفر من شركة التوصيل"}</p></div>;
+function Detail({ title, value, link = false }: { title: string; value: unknown; link?: boolean }) {
+  const shown = value === null || value === undefined || value === "" ? "غير متوفر من شركة التوصيل" : display(value);
+  const href = link && value ? (String(value).startsWith("http") ? String(value) : `https://maps.google.com/?q=${encodeURIComponent(String(value))}`) : null;
+  return <div className="rounded-xl bg-white p-3 dark:bg-slate-900"><p className="text-xs font-bold text-slate-500">{title}</p>{href ? <a href={href} target="_blank" rel="noreferrer" className="mt-1 block break-words text-sm font-semibold text-blue-700 underline dark:text-blue-300">{shown} · فتح الخريطة</a> : <p className="mt-1 break-words text-sm font-semibold">{shown}</p>}</div>;
 }
