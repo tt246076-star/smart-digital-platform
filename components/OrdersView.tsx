@@ -10,8 +10,10 @@ const filters = [
   { key: "hub", label: "إلى المركز" },
   { key: "moving", label: "التوصيلات الجارية" },
   { key: "hold", label: "المعلقة" },
-  { key: "delivered", label: "التوصيلات التامة" },
+  { key: "returning", label: "الطرود قيد الإرجاع" },
   { key: "returned", label: "الطرود المرجعة" },
+  { key: "payment_pending", label: "تحصيل غير مسوّى" },
+  { key: "delivered", label: "التوصيلات التامة" },
 ];
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -25,6 +27,25 @@ function first(record: Record<string, unknown>, keys: string[]) {
   return null;
 }
 function text(value: unknown) { return value === null || value === undefined ? "" : String(value); }
+
+function field(record: Record<string, unknown>, keys: string[]) {
+  const sources = [
+    record,
+    asRecord(record.OrderInfo),
+    asRecord(record.order),
+    asRecord(record.data),
+    asRecord(record.recipient),
+    asRecord(record.customer),
+    asRecord(record.client),
+    asRecord(record.destination),
+  ].filter(Boolean) as Record<string, unknown>[];
+  for (const source of sources) {
+    const value = first(source, keys);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
 function findRows(payload: unknown): Record<string, unknown>[] {
   if (Array.isArray(payload)) return payload.map(asRecord).filter((v): v is Record<string, unknown> => Boolean(v));
   const obj = asRecord(payload);
@@ -38,21 +59,47 @@ function findRows(payload: unknown): Record<string, unknown>[] {
   return [];
 }
 function classify(status: string): string {
-  const s = status.toLocaleLowerCase();
-  if (/return|returned|راجع|ارجاع|إرجاع|مرتجع/.test(s)) return "returned";
-  if (/deliver|تم التسليم|livr/.test(s) && !/out_for|out for|جاري/.test(s)) return "delivered";
-  if (/hold|pending|suspend|معلق|معلّق|en attente/.test(s)) return "hold";
-  if (/out.for.delivery|delivery|distribut|توصيل|livraison|جاري/.test(s)) return "moving";
+  const s = status
+    .toLocaleLowerCase()
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[’']/g, " ")
+    .replace(/[\\s-]+/g, "_");
+
+  // EcoTrack order-state values: return progress and financial settlement
+  // are kept separate from successful delivery.
+  if (/retour.*(traitement|cours|dispatched|transmis|expedie)|return.*(process|transit|dispatch)/.test(s)) return "returning";
+  if (/retour.*(recu|stock)|return.*(received|returned)|returned|راجع|ارجاع|مرتجع/.test(s)) return "returned";
+  if (/encaisse.*non.*paye|collected.*unpaid|cash.*unpaid/.test(s)) return "payment_pending";
+  if (/annul|cancel/.test(s)) return "cancelled";
+  if (/livre|deliver|تم_التسليم/.test(s) && !/out_for|out_for_delivery|جاري/.test(s)) return "delivered";
+  if (/echec|failed|absent|injoignable|refus|delivery_attempt/.test(s)) return "failed";
+  if (/hold|pending|suspend|معلق|en_attente/.test(s)) return "hold";
+  if (/out_for_delivery|delivery|distribut|توصيل|livraison|جاري/.test(s)) return "moving";
   if (/hub|center|centre|مركز|مكتب|arriv/.test(s)) return "hub";
-  if (/pickup|pick.up|ramass|انتقاط|التقاط|استلام/.test(s)) return "pickup";
-  if (/prepar|prepare|قيد التحضير|new|created/.test(s)) return "preparing";
+  if (/pickup|pick_up|ramass|انتقاط|التقاط|استلام/.test(s)) return "pickup";
+  if (/prepar|prepare|قيد_التحضير|new|created/.test(s)) return "preparing";
   return "other";
 }
 function normalized(payload: unknown): Row[] {
   return findRows(payload).map((item, index) => {
-    const tracking = text(first(item, ["tracking", "tracking_number", "tracking_code", "code_suivi", "tracking_id", "reference"]));
-    const statusText = text(first(item, ["status", "status_label", "state", "etat", "statut", "last_status", "order_status"]) || "غير معروف");
-    return { ...item, tracking, statusText, statusKey: classify(statusText), _key: tracking || text(first(item, ["id", "order_id"])) || String(index) };
+    const tracking = text(field(item, ["tracking", "tracking_number", "tracking_code", "code_suivi", "tracking_id", "reference"]));
+    const statusText = text(field(item, ["status", "status_label", "state", "etat", "statut", "last_status", "order_status"]) || "غير معروف");
+    const customerName = field(item, ["name", "client", "nom_client", "nom", "customer_name", "receiver", "client_name", "destinataire", "recipientName", "recipient_name", "full_name"]);
+    const customerPhone = field(item, ["phone", "telephone", "customer_phone", "receiver_phone", "phone_client", "telephone_client", "telephone_1", "phone1", "gsm"]);
+    const wilaya = field(item, ["wilaya", "wilaya_name", "wilayaName", "destination_wilaya", "destinationWilaya", "dest_wilaya", "code_wilaya", "wilaya_id", "originCity", "destLocationCity"]);
+    const commune = field(item, ["commune", "commune_name", "communeName", "destination_commune", "destinationCommune", "dest_commune", "destCommune", "municipality"]);
+    return {
+      ...item,
+      tracking,
+      statusText,
+      statusKey: classify(statusText),
+      customerName,
+      customerPhone,
+      wilaya,
+      commune,
+      _key: tracking || text(field(item, ["id", "order_id"])) || String(index),
+    };
   }).filter((item) => item.tracking);
 }
 function label(key: string) { return filters.find((f) => f.key === key)?.label || "حالة أخرى"; }
@@ -165,7 +212,7 @@ export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "a
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
     return rows.filter((row) => (filter === "all" || row.statusKey === filter) &&
-      (!q || [row.tracking, row.statusText, first(row, ["name", "customer_name", "receiver", "client_name"]), first(row, ["phone", "customer_phone", "receiver_phone"]), first(row, ["wilaya", "wilaya_name", "commune", "commune_name"])].some(v => text(v).toLocaleLowerCase().includes(q))));
+      (!q || [row.tracking, row.statusText, row.customerName, row.customerPhone, row.wilaya, row.commune].some(v => text(v).toLocaleLowerCase().includes(q))));
   }, [rows, query, filter]);
   const counts = useMemo(() => Object.fromEntries(filters.map(f => [f.key, f.key === "all" ? rows.length : rows.filter(r => r.statusKey === f.key).length])), [rows]);
 
@@ -216,9 +263,9 @@ export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "a
           : filtered.map((row, i) => <tr key={String(row._key || i)} className="border-t border-slate-100 dark:border-slate-800">
             <td className="px-3 py-3 font-black text-blue-700 dark:text-blue-300" dir="ltr">{row.tracking}</td>
             <td className="px-3 py-3"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold dark:bg-slate-800">{row.statusText}</span><p className="mt-1 text-xs text-slate-500">{label(row.statusKey)}</p></td>
-            <td className="px-3 py-3">{display(first(row, ["name", "customer_name", "receiver", "client_name", "destinataire", "recipientName"]))}</td>
-            <td className="px-3 py-3" dir="ltr">{display(first(row, ["phone", "customer_phone", "receiver_phone", "telephone"]))}</td>
-            <td className="px-3 py-3">{[first(row, ["wilaya", "wilaya_name"]), first(row, ["commune", "commune_name"])].filter(Boolean).map(text).join(" · ") || "—"}</td>
+            <td className="px-3 py-3">{display(row.customerName)}</td>
+            <td className="px-3 py-3" dir="ltr">{display(row.customerPhone)}</td>
+            <td className="px-3 py-3">{[row.wilaya, row.commune].filter(Boolean).map(text).join(" · ") || "—"}</td>
             <td className="px-3 py-3"><button onClick={() => void openTracking(row)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-extrabold text-white">تفاصيل وسجل الحركة</button></td>
           </tr>)}
         </tbody>
