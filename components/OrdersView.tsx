@@ -62,9 +62,9 @@ function classify(status: string): string {
   const s = status
     .toLocaleLowerCase()
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[’']/g, " ")
-    .replace(/[\\s-]+/g, "_");
+    .replace(/[\s-]+/g, "_");
 
   // EcoTrack order-state values: return progress and financial settlement
   // are kept separate from successful delivery.
