@@ -42,10 +42,16 @@ async function authorizedAdmin() {
 }
 
 function db() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) throw new Error("Server-side Supabase service credentials are not configured");
-  return createSupabaseAdmin(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const missing = [
+    !url ? "NEXT_PUBLIC_SUPABASE_URL" : null,
+    !serviceKey ? "SUPABASE_SERVICE_ROLE_KEY" : null,
+  ].filter((name): name is string => Boolean(name));
+  if (missing.length) {
+    throw new Error(`Server-side Supabase credentials missing at runtime: ${missing.join(", ")}`);
+  }
+  return createSupabaseAdmin(url!, serviceKey!, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
 function validProviderUrl(value: string, provider: Provider) {
