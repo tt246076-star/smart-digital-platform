@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import DeliveryCompaniesPanel from "@/components/DeliveryCompaniesPanel";
-import OrdersView from "@/components/OrdersView";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -24,32 +23,9 @@ export default async function TrackingDashboardPage() {
             <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-800">خاص بصاحب المنصة</span>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-500 dark:text-slate-400">
-            إدارة ربط شركات التوصيل وروابط استقبال تحديثات الشحنات. إعدادات API السرية لا تظهر إلا داخل نافذة الإعدادات.
+            إدارة شركتي DHD / Ecotrack وAnderson. لكل شركة API Token مستقل واتصال منفصل.
           </p>
-
           <section className="mt-7"><DeliveryCompaniesPanel /></section>
-          <section className="mt-7">
-            <div className="mb-4">
-              <h2 className="text-xl font-black">تتبع الشحنات والطلبات</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">عرض الشحنات والأحداث المستلمة فعلياً من الشركات المفعّلة.</p>
-            </div>
-            <OrdersView />
-          </section>
-
-          <section className="mt-7 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-lg font-black">WhatsApp Business Platform</h2>
-              <p className="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-400">واجهة الإرسال التلقائي لم تُفعّل بعد. يلزم ربط حساب WhatsApp Business، اعتماد قوالب الرسائل، وتسجيل موافقة الزبائن قبل تشغيل الإشعارات.</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-lg font-black">المرحلة التالية في الربط</h2>
-              <ul className="mt-2 list-disc space-y-2 pr-5 text-sm leading-7 text-slate-500 dark:text-slate-400">
-                <li>تأكيد مسار API الرسمي الذي يعيد قائمة الطرود لحساب DHD/Ecotrack.</li>
-                <li>بناء مزامنة مجدولة مع حفظ آخر مؤشر مزامنة ومنع تكرار الأحداث.</li>
-                <li>ربط كل تغيّر حالة بقالب واتساب مع سجل إرسال ومحاولات فاشلة.</li>
-              </ul>
-            </div>
-          </section>
         </div>
       </main>
     </>
