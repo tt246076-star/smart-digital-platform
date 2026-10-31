@@ -65,3 +65,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: errorMessage(error, "تعذر حفظ الإعدادات") }, { status: 500 });
   }
 }
+
+export async function DELETE() {
+  if (!(await authorizedAdmin())) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  try {
+    const { error } = await db().from("private_integrations").delete().eq("id", "ecotrack");
+    if (error) throw error;
+    return NextResponse.json({ ok: true, message: "تم حذف إعدادات Ecotrack." });
+  } catch (error) {
+    return NextResponse.json({ error: errorMessage(error, "تعذر حذف الإعدادات") }, { status: 500 });
+  }
+}
