@@ -4,6 +4,7 @@ import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { decryptSecret } from "@/lib/ecotrack-secrets";
 
 export const ECOTRACK_ADMIN_EMAIL = "tt246076@gmail.com";
+export type EcotrackProvider = "dhd" | "anderson";
 
 type EcotrackFailureCode =
   | "SUPABASE_CONFIG" | "INTEGRATION_READ" | "INTEGRATION_MISSING"
@@ -24,20 +25,28 @@ export async function isEcotrackAdmin() {
   return !error && user?.email?.trim().toLowerCase() === ECOTRACK_ADMIN_EMAIL;
 }
 
-async function getIntegration() {
+export function parseEcotrackProvider(value: string | null | undefined): EcotrackProvider | null {
+  if (!value || value === "dhd") return "dhd";
+  if (value === "anderson") return "anderson";
+  return null;
+}
+
+async function getIntegration(provider: EcotrackProvider = "dhd") {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) throw new EcotrackApiError("SUPABASE_CONFIG");
 
   const db = createSupabaseAdmin(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const integrationId = provider === "anderson" ? "ecotrack_anderson" : "ecotrack";
   const { data, error } = await db.from("private_integrations")
-    .select("encrypted_secret,base_url").eq("id", "ecotrack").maybeSingle();
+    .select("encrypted_secret,base_url").eq("id", integrationId).maybeSingle();
   if (error) throw new EcotrackApiError("INTEGRATION_READ");
   if (!data?.encrypted_secret || !data?.base_url) throw new EcotrackApiError("INTEGRATION_MISSING");
 
   let base: URL;
   try { base = new URL(data.base_url); } catch { throw new EcotrackApiError("INTEGRATION_URL"); }
-  if (base.protocol !== "https:" || base.hostname !== "platform.dhd-dz.com" || base.pathname !== "/" || base.port || base.username || base.password) {
+  const expectedHost = provider === "anderson" ? "anderson-ecommerce.ecotrack.dz" : "platform.dhd-dz.com";
+  if (base.protocol !== "https:" || base.hostname.toLowerCase() !== expectedHost || base.pathname !== "/" || base.port || base.username || base.password) {
     throw new EcotrackApiError("INTEGRATION_URL");
   }
 
@@ -46,11 +55,10 @@ async function getIntegration() {
   return { base, token };
 }
 
-export async function ecotrackGet(path: string, params?: Record<string, string>) {
-  const { base, token } = await getIntegration();
+export async function ecotrackGet(path: string, params?: Record<string, string>, provider: EcotrackProvider = "dhd") {
+  const { base, token } = await getIntegration(provider);
   const url = new URL(path, base.origin);
   if (params) for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  // Preserve the provider's existing integration convention: Bearer header + api_token query.
   url.searchParams.set("api_token", token);
 
   const controller = new AbortController();
@@ -82,13 +90,13 @@ export function ecotrackFailure(error: unknown) {
   const code = error instanceof EcotrackApiError ? error.code : "UNKNOWN";
   const messages: Record<string, string> = {
     SUPABASE_CONFIG: "إعدادات Supabase الخاصة بالخادم ناقصة على Vercel (URL أو Service Role Key).",
-    INTEGRATION_READ: "تعذر قراءة إعداد Ecotrack من قاعدة البيانات. تحقق من اتصال Supabase وصلاحيات service role.",
-    INTEGRATION_MISSING: "ما كاش إعداد Ecotrack محفوظ. ادخل إلى إعدادات الشركة واحفظ API Token.",
-    INTEGRATION_URL: "رابط Ecotrack المحفوظ غير صالح. تأكد أنه https://platform.dhd-dz.com.",
-    SECRET_DECRYPTION: "تعذر فك تشفير API Token. تحقق من ECOTRACK_ENCRYPTION_KEY في Vercel؛ يجب أن يكون نفس المفتاح الذي استُخدم عند حفظ الرمز. لا تغيّره عشوائيًا.",
-    PROVIDER_TIMEOUT: "انتهت مهلة اتصال الخادم بمنصة DHD/Ecotrack. تحقق من توفر المنصة ثم أعد المحاولة.",
-    PROVIDER_NETWORK: "تعذر إنشاء اتصال آمن مع DHD/Ecotrack (شبكة أو TLS أو إعادة توجيه).",
-    UNKNOWN: "حدث خطأ غير متوقع أثناء قراءة إعدادات Ecotrack أو الاتصال بالشركة.",
+    INTEGRATION_READ: "تعذر قراءة إعداد شركة التوصيل من قاعدة البيانات.",
+    INTEGRATION_MISSING: "ما كاش إعداد محفوظ لهذه الشركة. افتح إعداداتها واحفظ API Token.",
+    INTEGRATION_URL: "رابط API المحفوظ لا يطابق نطاق الشركة المحدد.",
+    SECRET_DECRYPTION: "تعذر فك تشفير API Token. تحقق من ECOTRACK_ENCRYPTION_KEY في Vercel؛ لا تغيّره عشوائيًا.",
+    PROVIDER_TIMEOUT: "انتهت مهلة اتصال الخادم بمنصة شركة التوصيل. حاول لاحقاً.",
+    PROVIDER_NETWORK: "تعذر إنشاء اتصال آمن مع منصة شركة التوصيل.",
+    UNKNOWN: "حدث خطأ غير متوقع أثناء قراءة إعدادات شركة التوصيل أو الاتصال بها.",
   };
   console.error("[Ecotrack API]", { code, errorName: error instanceof Error ? error.name : "UnknownError" });
   return { code, message: messages[code] || messages.UNKNOWN };

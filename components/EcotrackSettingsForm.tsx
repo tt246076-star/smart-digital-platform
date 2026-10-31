@@ -20,8 +20,11 @@ const checkLabels: Record<string, string> = {
   fees: "أسعار التوصيل"
 };
 
-export default function EcotrackSettingsForm() {
-  const [baseUrl, setBaseUrl] = useState("https://platform.dhd-dz.com");
+export default function EcotrackSettingsForm({ provider = "dhd" }: { provider?: "dhd" | "anderson" }) {
+  const companyName = provider === "anderson" ? "Anderson Delivery" : "DHD / Ecotrack";
+  const settingsUrl = `/api/admin/ecotrack/settings?provider=${provider}`;
+  const testUrl = `/api/admin/ecotrack/test?provider=${provider}`;
+  const [baseUrl, setBaseUrl] = useState(provider === "anderson" ? "https://anderson-ecommerce.ecotrack.dz" : "https://platform.dhd-dz.com");
   const [token, setToken] = useState("");
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,7 +36,7 @@ export default function EcotrackSettingsForm() {
   const [notice, setNotice] = useState<{ kind: "ok" | "error" | "info"; text: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/ecotrack/settings", { cache: "no-store" })
+    fetch(settingsUrl, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "تعذر تحميل الإعدادات");
@@ -48,7 +51,7 @@ export default function EcotrackSettingsForm() {
     setTesting(true);
     setNotice(null);
     try {
-      const response = await fetch("/api/admin/ecotrack/test", {
+      const response = await fetch(testUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ baseUrl, token })
@@ -68,6 +71,7 @@ export default function EcotrackSettingsForm() {
     setDiagnosticError("");
     setDiagnostics(null);
     try {
+      if (provider === "anderson") throw new Error("الفحص التفصيلي للولايات والأسعار متاح حالياً لـ DHD فقط؛ اختبار الاتصال وحفظ Anderson يعملان بشكل مستقل.");
       const response = await fetch("/api/admin/ecotrack/diagnostics", { method: "POST", cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر فحص بيانات الشركة");
@@ -84,7 +88,7 @@ export default function EcotrackSettingsForm() {
     setNotice(null);
     setDiagnostics(null);
     try {
-      const response = await fetch("/api/admin/ecotrack/settings", {
+      const response = await fetch(settingsUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ baseUrl, token })
@@ -104,12 +108,12 @@ export default function EcotrackSettingsForm() {
   return (
     <section dir="rtl" className="rounded-3xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
       <header className="flex items-center justify-between border-b border-slate-700 pb-5">
-        <div className="flex items-center gap-3"><span className="text-3xl">🟢</span><div><h2 className="text-2xl font-black">Ecotrack / DHD</h2><p className="mt-1 text-sm text-slate-400">إعداد وفحص ربط شركة التوصيل</p></div></div>
+        <div className="flex items-center gap-3"><span className="text-3xl">🟢</span><div><h2 className="text-2xl font-black">{companyName}</h2><p className="mt-1 text-sm text-slate-400">إعداد وفحص ربط شركة التوصيل</p></div></div>
         <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-bold">{configured ? "إعداد محفوظ" : "غير مربوط"}</span>
       </header>
       <div className="mt-5">
         <label htmlFor="ecotrack-url" className="mb-2 block font-bold">رابط المنصة</label>
-        <input id="ecotrack-url" type="url" autoComplete="url" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://platform.dhd-dz.com" className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-4 text-left text-base outline-none focus:border-emerald-400" />
+        <input id="ecotrack-url" type="url" autoComplete="url" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={provider === "anderson" ? "https://anderson-ecommerce.ecotrack.dz" : "https://platform.dhd-dz.com"} className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-4 text-left text-base outline-none focus:border-emerald-400" />
       </div>
       <div className="mt-5 rounded-2xl border border-amber-400 bg-amber-400/10 p-4">
         <h3 className="text-lg font-black">🔑 API Token تاع حسابك</h3>
@@ -123,7 +127,7 @@ export default function EcotrackSettingsForm() {
       <div className="mt-6 flex flex-wrap gap-3">
         <button type="button" onClick={save} disabled={saving || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl bg-emerald-500 px-6 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{saving ? "جارٍ الحفظ..." : "💾 حفظ"}</button>
         <button type="button" onClick={testConnection} disabled={testing || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl border border-slate-700 px-5 py-3 font-bold hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{testing ? "جارٍ اختبار الاتصال..." : "🔌 اختبار الاتصال بالمفتاح"}</button>
-        <button type="button" onClick={diagnose} disabled={diagnosing || loading || !configured} className="rounded-xl bg-sky-500 px-5 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{diagnosing ? "نفحص بيانات DHD..." : "🔎 فحص بيانات الشركة المحفوظة"}</button>
+        {provider === "dhd" && <button type="button" onClick={diagnose} disabled={diagnosing || loading || !configured} className="rounded-xl bg-sky-500 px-5 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{diagnosing ? "نفحص بيانات DHD..." : "🔎 فحص بيانات الشركة المحفوظة"}</button>}
       </div>
       {diagnosticError && <p role="alert" className="mt-5 rounded-xl bg-red-950 p-3 text-sm font-bold text-red-200">{diagnosticError}</p>}
       {diagnostics && <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-4 sm:p-5">

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ecotrackGet, ecotrackFailure, isEcotrackAdmin, providerError } from "@/lib/ecotrack-api";
+import { ecotrackGet, ecotrackFailure, isEcotrackAdmin, providerError, parseEcotrackProvider } from "@/lib/ecotrack-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   if (!(await isEcotrackAdmin())) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   const incoming = new URL(request.url);
+  const provider = parseEcotrackProvider(incoming.searchParams.get("provider"));
+  if (!provider) return NextResponse.json({ error: "شركة التوصيل غير معروفة" }, { status: 400 });
   const pageValue = Number(incoming.searchParams.get("page") || "1");
   const page = Number.isInteger(pageValue) && pageValue > 0 ? Math.min(pageValue, 10000) : 1;
   const startDate = incoming.searchParams.get("start_date") || "2024-01-01";
@@ -17,9 +19,9 @@ export async function GET(request: Request) {
   try {
     const { response, body } = await ecotrackGet("/api/v1/get/orders", {
       page: String(page), start_date: startDate, end_date: endDate,
-    });
+    }, provider);
     if (!response.ok) return NextResponse.json({ error: providerError(response.status), providerStatus: response.status }, { status: response.status === 401 || response.status === 403 ? 502 : response.status });
-    return NextResponse.json({ data: body, page, start_date: startDate, end_date: endDate }, {
+    return NextResponse.json({ data: body, page, start_date: startDate, end_date: endDate, provider }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (error) {
