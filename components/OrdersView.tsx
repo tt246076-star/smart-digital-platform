@@ -173,7 +173,7 @@ function destinationLabel(order: Row | null) {
   const rawWilaya = wilaya === null || wilaya === undefined ? "" : String(wilaya).trim();
   // EcoTrack may return only the numeric wilaya code. Convert known codes
   // to readable names instead of sending a bare code such as "16" to Maps.
-  const wilayaCode = rawWilaya.match(/^0?(\\d{1,2})$/)?.[1];
+  const wilayaCode = rawWilaya.match(/^0?(\d{1,2})$/)?.[1];
   const wilayaNames: Record<string, string> = { "16": "Alger" };
   const readableWilaya = wilayaCode ? (wilayaNames[wilayaCode] || `Wilaya ${wilayaCode}`) : wilaya;
   const parts = [commune, readableWilaya, "Algérie"].filter((value) => value !== null && value !== undefined && String(value).trim());
