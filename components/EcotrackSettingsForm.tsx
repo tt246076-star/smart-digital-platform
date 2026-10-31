@@ -113,7 +113,7 @@ export default function EcotrackSettingsForm({ provider = "dhd" }: { provider?: 
       </header>
       <div className="mt-5">
         <label htmlFor="ecotrack-url" className="mb-2 block font-bold">رابط المنصة</label>
-        <input id="ecotrack-url" type="url" autoComplete="url" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://platform.dhd-dz.com" className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-4 text-left text-base outline-none focus:border-emerald-400" />
+        <input id="ecotrack-url" type="url" autoComplete="url" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={provider === "anderson" ? "https://anderson-ecommerce.ecotrack.dz" : "https://platform.dhd-dz.com"} className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-4 text-left text-base outline-none focus:border-emerald-400" />
       </div>
       <div className="mt-5 rounded-2xl border border-amber-400 bg-amber-400/10 p-4">
         <h3 className="text-lg font-black">🔑 API Token تاع حسابك</h3>
@@ -127,7 +127,7 @@ export default function EcotrackSettingsForm({ provider = "dhd" }: { provider?: 
       <div className="mt-6 flex flex-wrap gap-3">
         <button type="button" onClick={save} disabled={saving || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl bg-emerald-500 px-6 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{saving ? "جارٍ الحفظ..." : "💾 حفظ"}</button>
         <button type="button" onClick={testConnection} disabled={testing || loading || !baseUrl.trim() || !token.trim()} className="rounded-xl border border-slate-700 px-5 py-3 font-bold hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{testing ? "جارٍ اختبار الاتصال..." : "🔌 اختبار الاتصال بالمفتاح"}</button>
-        <button type="button" onClick={diagnose} disabled={diagnosing || loading || !configured} className="rounded-xl bg-sky-500 px-5 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{diagnosing ? "نفحص بيانات DHD..." : "🔎 فحص بيانات الشركة المحفوظة"}</button>
+        {provider === "dhd" && <button type="button" onClick={diagnose} disabled={diagnosing || loading || !configured} className="rounded-xl bg-sky-500 px-5 py-3 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">{diagnosing ? "نفحص بيانات DHD..." : "🔎 فحص بيانات الشركة المحفوظة"}</button>}
       </div>
       {diagnosticError && <p role="alert" className="mt-5 rounded-xl bg-red-950 p-3 text-sm font-bold text-red-200">{diagnosticError}</p>}
       {diagnostics && <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-4 sm:p-5">
