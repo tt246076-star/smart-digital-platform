@@ -127,7 +127,7 @@ function destinationLabel(order: Row | null) {
   return parts.length > 1 ? parts.map(text).join(", ") : parts.length === 1 ? `${text(parts[0])}, Algérie` : null;
 }
 
-export default function OrdersView() {
+export default function OrdersView({ provider = "dhd" }: { provider?: "dhd" | "anderson" }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [selected, setSelected] = useState<Row | null>(null);
   const [details, setDetails] = useState<unknown>(null);
@@ -146,7 +146,7 @@ export default function OrdersView() {
     manual ? setRefreshing(true) : setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/ecotrack/orders?page=${nextPage}&start_date=2024-01-01&end_date=2026-12-31`, { cache: "no-store" });
+      const res = await fetch(`/api/ecotrack/orders?provider=${provider}&page=${nextPage}&start_date=2024-01-01&end_date=2026-12-31`, { cache: "no-store" });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "تعذر جلب قائمة الطرود");
       setProviderPayload(body.data);
@@ -159,9 +159,9 @@ export default function OrdersView() {
     } finally {
       setLoading(false); setRefreshing(false);
     }
-  }, [page]);
+  }, [page, provider]);
 
-  useEffect(() => { void loadOrders(1); }, []); // Initial provider page only; pagination is explicit.
+  useEffect(() => { void loadOrders(1); }, [provider]); // Reload when the selected courier changes.
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
     return rows.filter((row) => (filter === "all" || row.statusKey === filter) &&
@@ -172,7 +172,7 @@ export default function OrdersView() {
   const openTracking = async (row: Row) => {
     setSelected(row); setDetails(null); setDetailError(""); setDetailLoading(true);
     try {
-      const res = await fetch(`/api/ecotrack/tracking?tracking=${encodeURIComponent(row.tracking)}`, { cache: "no-store" });
+      const res = await fetch(`/api/ecotrack/tracking?provider=${provider}&tracking=${encodeURIComponent(row.tracking)}`, { cache: "no-store" });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "تعذر جلب تفاصيل الطرد");
       setDetails(body.data);
@@ -195,7 +195,7 @@ export default function OrdersView() {
 
   return <section dir="rtl" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h2 className="text-xl font-black">تتبع طرود Ecotrack / DHD</h2><p className="mt-1 text-sm text-slate-500">القائمة تجي مباشرة من API الشركة. آخر تحديث: {dateLabel(lastSync)}</p></div>
+      <div><h2 className="text-xl font-black">{provider === "anderson" ? "تتبع طرود Anderson Delivery" : "تتبع طرود DHD / Ecotrack"}</h2><p className="mt-1 text-sm text-slate-500">القائمة تجي مباشرة من API الشركة. آخر تحديث: {dateLabel(lastSync)}</p></div>
       <button onClick={() => void loadOrders(page, true)} disabled={loading || refreshing} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50 dark:border-slate-700">{refreshing ? "جارٍ التحديث…" : "↻ تحديث"}</button>
     </div>
     <div className="mt-5 flex flex-wrap gap-2">
@@ -211,7 +211,7 @@ export default function OrdersView() {
       <table className="w-full min-w-[720px] text-right text-sm">
         <thead className="bg-slate-50 dark:bg-slate-800"><tr>{["رقم التتبع","الحالة من الشركة","الزبون","الهاتف","الولاية / البلدية","التفاصيل"].map(h => <th key={h} className="px-3 py-3">{h}</th>)}</tr></thead>
         <tbody>
-          {loading ? <tr><td colSpan={6} className="px-3 py-12 text-center">جارٍ جلب الطرود من Ecotrack…</td></tr>
+          {loading ? <tr><td colSpan={6} className="px-3 py-12 text-center">جارٍ جلب الطرود من شركة التوصيل…</td></tr>
           : filtered.length === 0 ? <tr><td colSpan={6} className="px-3 py-12 text-center text-slate-500">{error ? "تعذر تحميل القائمة؛ راجع رسالة الخطأ أعلاه." : "ما كاين حتى طرد في نتائج هذي الصفحة أو الفلتر."}</td></tr>
           : filtered.map((row, i) => <tr key={String(row._key || i)} className="border-t border-slate-100 dark:border-slate-800">
             <td className="px-3 py-3 font-black text-blue-700 dark:text-blue-300" dir="ltr">{row.tracking}</td>
