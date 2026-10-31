@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const page = Number.isInteger(pageValue) && pageValue > 0 ? Math.min(pageValue, 10000) : 1;
   const startDate = incoming.searchParams.get("start_date") || "2024-01-01";
   const endDate = incoming.searchParams.get("end_date") || "2026-12-31";
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startDate) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(endDate) || startDate > endDate) {
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(startDate) || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(endDate) || startDate > endDate) {
     return NextResponse.json({ error: "نطاق التاريخ غير صالح." }, { status: 400 });
   }
   try {
