@@ -183,7 +183,7 @@ export default function OrdersView() {
       {detailError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800 dark:bg-red-950 dark:text-red-200">{detailError}</p>}
       {details !== null && details !== undefined && <>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail title="المكتب الحالي" value={first(office || {}, ["nom", "name", "office_name", "label"]) || first(asRecord(selected), ["bureau_actuel", "current_office", "office_name"])} />
+          <Detail title="المكتب الحالي" value={first(office || {}, ["nom", "name", "office_name", "label"]) || first(asRecord(selected) || {}, ["bureau_actuel", "current_office", "office_name"])} />
           <Detail title="هاتف المكتب" value={first(office || {}, ["tel", "phone", "telephone", "office_phone"])} />
           <Detail title="GPS / موقع المكتب" value={first(office || {}, ["gps", "coordinates", "location", "map_url", "google_maps_url"])} link />
           <Detail title="الموزّع" value={first(driver || {}, ["nom", "name", "driver_name", "label"])} />
