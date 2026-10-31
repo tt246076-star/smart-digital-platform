@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ecotrackGet, isEcotrackAdmin, providerError } from "@/lib/ecotrack-api";
+import { ecotrackGet, ecotrackFailure, isEcotrackAdmin, providerError } from "@/lib/ecotrack-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const page = Number.isInteger(pageValue) && pageValue > 0 ? Math.min(pageValue, 10000) : 1;
   const startDate = incoming.searchParams.get("start_date") || "2024-01-01";
   const endDate = incoming.searchParams.get("end_date") || "2026-12-31";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate) || startDate > endDate) {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startDate) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(endDate) || startDate > endDate) {
     return NextResponse.json({ error: "نطاق التاريخ غير صالح." }, { status: 400 });
   }
   try {
@@ -23,16 +23,7 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (error) {
-    const message = error instanceof Error && error.name === "AbortError"
-      ? "انتهت مهلة الاتصال بشركة التوصيل."
-      : error instanceof Error && error.message === "INTEGRATION_MISSING"
-        ? "إعدادات Ecotrack غير محفوظة. احفظ API Token من قسم إعدادات الشركة أولاً."
-        : error instanceof Error && error.message === "INTEGRATION_READ"
-          ? "تعذر قراءة إعدادات Ecotrack من قاعدة البيانات."
-          : error instanceof Error && error.message === "SUPABASE_CONFIG"
-            ? "إعدادات Supabase على الخادم غير مكتملة."
-            : "تعذر الاتصال بشركة التوصيل. تحقق من إعدادات الربط.";
-    console.error("[Ecotrack orders]", error instanceof Error ? error.name : "UnknownError");
-    return NextResponse.json({ error: message }, { status: 502 });
+    const failure = ecotrackFailure(error);
+    return NextResponse.json({ error: failure.message, diagnosticCode: failure.code }, { status: 502 });
   }
 }
