@@ -22,7 +22,6 @@ const defaultHours: Record<DayKey, DayHours> = Object.fromEntries(weekDays.map((
 function NewLandingPageForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
-  useEffect(()=>{let active=true;const load=async()=>{try{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {data}=await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id",user.id).maybeSingle();if(active&&data)setGalleryLimit({count:Math.max(0,Math.min(100,data.normal_max_images??2)),size:Math.max(0.1,Math.min(20,data.normal_max_image_mb??2))});}catch{}};load();return()=>{active=false}},[]);
   const [logoUrl, setLogoUrl] = useState("");
   const [roundImageUrl, setRoundImageUrl] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
@@ -33,6 +32,8 @@ function NewLandingPageForm() {
   const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
   const [cardColor, setCardColor] = useState("#ffffff");
   const [template, setTemplate] = useState("aurora");
+  useEffect(()=>{let active=true;const load=async()=>{try{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {data}=await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id",user.id).maybeSingle();if(active&&data)setGalleryLimit({count:Math.max(0,Math.min(100,data.normal_max_images??2)),size:Math.max(0.1,Math.min(20,data.normal_max_image_mb??2))});}catch{}};load();return()=>{active=false}},[]);
+
   const templateOptions = [
     { id: "profile", name: "بطاقة تواصل", hint: "معلومات وروابط التواصل", color: "linear-gradient(135deg,#0f172a,#64748b)" },
     { id: "aurora", name: "عصري", hint: "تدرجات ناعمة ومظهر متوازن", color: "linear-gradient(135deg,#4f46e5,#06b6d4)" },
@@ -45,11 +46,11 @@ function NewLandingPageForm() {
     { id: "portfolio", name: "معرض أعمال", hint: "مظهر فني يبرز أعمالك", color: "linear-gradient(135deg,#111827,#4b5563)" },
   ];
 
-  async function uploadImage(file: File | undefined, done: (url: string) => void) {
+  async function uploadImage(file: File | undefined, done: (url: string) => void, galleryUpload = false) {
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
-    if (file.size > galleryLimit.size * 1024 * 1024) { setUploadError("حجم الصورة يتجاوز الحد المسموح لهذا الحساب."); return; }
+    if (galleryUpload && file.size > galleryLimit.size * 1024 * 1024) { setUploadError("حجم الصورة يتجاوز الحد المسموح لهذا الحساب."); return; }
     setUploading(true);
     try {
       const supabase = createClient();
@@ -129,7 +130,7 @@ function NewLandingPageForm() {
           <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معرض الصور</h2>
             <p className="text-sm text-slate-500">ارفع حتى {galleryLimit.count} صورة. الحد الأقصى للصورة الواحدة {galleryLimit.size} MB.</p>
-            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,galleryLimit.count-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));}} />
+            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,galleryLimit.count-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]),true);}} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,i)=><div key={url} className="relative"><img src={url} alt={`صورة المعرض ${i+1}`} className="aspect-square w-full rounded-xl border object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,j)=>j!==i))} className="mt-1 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
             <input type="hidden" name="gallery_json" value={JSON.stringify(gallery)}/>
           </section>
