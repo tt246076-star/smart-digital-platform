@@ -27,6 +27,10 @@ export default async function EditLandingPage({ params, searchParams }: {
 
   if (error || !page) notFound();
 
+  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id", user.id).maybeSingle();
+  const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
+  const maxGalleryImageMb = Math.max(0.1, Math.min(20, galleryLimit?.normal_max_image_mb ?? 2));
+
   return (
     <main dir="rtl" className="min-h-screen bg-slate-950 px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-6xl">
