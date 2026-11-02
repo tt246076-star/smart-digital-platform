@@ -77,7 +77,7 @@ function NewLandingPageForm() {
       <Link href="/dashboard" className="text-sm font-bold text-slate-500 hover:text-blue-600">← العودة إلى لوحة التحكم</Link>
       <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-9">
         <div className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">صفحة جديدة</div>
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950">أنشئ صفحة نشاطك التجاري</h1>
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950">أنشئ بطاقتك العادية</h1>
         <p className="mt-3 leading-7 text-slate-500">كل معلومات المحل والصور وأوقات العمل في نموذج واحد.</p>
         {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error === "trial" ? "حسابك التجريبي يسمح بالمشاهدة فقط. تواصل مع الإدارة لتفعيل الإنشاء." : error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : error === "gallery_limit" ? "عدد صور المعرض تجاوز الحد المسموح لحسابك." : "تعذر حفظ الصفحة. تحقق من إعدادات Supabase ثم حاول مجددًا."}</p>}
         {error === "trial" ? <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">العودة إلى لوحة التحكم</Link> : <form action={createLandingPage} className="mt-8 space-y-7">
