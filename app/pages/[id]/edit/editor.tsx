@@ -157,7 +157,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
         <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى للصورة الواحدة {maxGalleryImageMb} MB.</p>
-        <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");e.currentTarget.value="";}} />
+        <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");}} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,i)=>i!==index))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
