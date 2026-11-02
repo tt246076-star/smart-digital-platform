@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { THEMES } from "@/lib/theme";
@@ -22,10 +22,12 @@ const defaultHours: Record<DayKey, DayHours> = Object.fromEntries(weekDays.map((
 function NewLandingPageForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  useEffect(()=>{let active=true;const load=async()=>{try{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {data}=await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id",user.id).maybeSingle();if(active&&data)setGalleryLimit({count:Math.max(0,Math.min(100,data.normal_max_images??2)),size:Math.max(0.1,Math.min(20,data.normal_max_image_mb??2))});}catch{}};load();return()=>{active=false}},[]);
   const [logoUrl, setLogoUrl] = useState("");
   const [roundImageUrl, setRoundImageUrl] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
+  const [galleryLimit, setGalleryLimit] = useState({count:2,size:2});
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
@@ -34,7 +36,7 @@ function NewLandingPageForm() {
   const templateOptions = [
     { id: "profile", name: "بطاقة تواصل", hint: "معلومات وروابط التواصل", color: "linear-gradient(135deg,#0f172a,#64748b)" },
     { id: "aurora", name: "عصري", hint: "تدرجات ناعمة ومظهر متوازن", color: "linear-gradient(135deg,#4f46e5,#06b6d4)" },
-    { id: "store", name: "متجر", hint: "تركيز على المنتجات والأسعار", color: "linear-gradient(135deg,#0f766e,#2dd4bf)" },
+    { id: "store", name: "متجر", hint: "عرض الصور والأعمال", color: "linear-gradient(135deg,#0f766e,#2dd4bf)" },
     { id: "minimal", name: "بسيط", hint: "تصميم هادئ ومساحات واضحة", color: "linear-gradient(135deg,#e5e7eb,#9ca3af)" },
     { id: "bold", name: "جريء", hint: "ألوان قوية وعناوين بارزة", color: "linear-gradient(135deg,#7f1d1d,#ef4444)" },
     { id: "beauty", name: "جمال وعناية", hint: "لمسة ناعمة للصالونات", color: "linear-gradient(135deg,#f9a8d4,#831843)" },
@@ -47,7 +49,7 @@ function NewLandingPageForm() {
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
-    if (file.size > 5 * 1024 * 1024) { setUploadError("الصورة لازم تكون أقل من 5 ميغابايت."); return; }
+    if (file.size > galleryLimit.size * 1024 * 1024) { setUploadError("حجم الصورة يتجاوز الحد المسموح لهذا الحساب."); return; }
     setUploading(true);
     try {
       const supabase = createClient();
@@ -75,8 +77,8 @@ function NewLandingPageForm() {
       <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-9">
         <div className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">صفحة جديدة</div>
         <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950">أنشئ صفحة نشاطك التجاري</h1>
-        <p className="mt-3 leading-7 text-slate-500">كل معلومات المحل والصور وأوقات العمل والكاتالوج في فورم واحد.</p>
-        {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error === "trial" ? "حسابك التجريبي يسمح بالمشاهدة فقط. تواصل مع الإدارة لتفعيل الإنشاء." : error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : "تعذر حفظ الصفحة. تحقق من إعدادات Supabase ثم حاول مجددًا."}</p>}
+        <p className="mt-3 leading-7 text-slate-500">كل معلومات المحل والصور وأوقات العمل في نموذج واحد.</p>
+        {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error === "trial" ? "حسابك التجريبي يسمح بالمشاهدة فقط. تواصل مع الإدارة لتفعيل الإنشاء." : error === "limit" ? "وصلت إلى الحد المسموح به من الصفحات." : error === "name" ? "اسم النشاط مطلوب ويجب ألا يتجاوز 100 حرف." : error === "length" ? "تحقق من أطوال النصوص وأرقام الهاتف." : error === "gallery_limit" ? "عدد صور المعرض تجاوز الحد المسموح لحسابك." : "تعذر حفظ الصفحة. تحقق من إعدادات Supabase ثم حاول مجددًا."}</p>}
         {error === "trial" ? <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">العودة إلى لوحة التحكم</Link> : <form action={createLandingPage} className="mt-8 space-y-7">
           <section className="space-y-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معلومات النشاط</h2>
@@ -126,8 +128,8 @@ function NewLandingPageForm() {
           </section>
           <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معرض الصور</h2>
-            <p className="text-sm text-slate-500">ارفع صورًا لأعمالك أو محلك. تظهر الصور في البطاقة دون أسماء أو أسعار.</p>
-            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));}} />
+            <p className="text-sm text-slate-500">ارفع حتى {galleryLimit.count} صورة. الحد الأقصى للصورة الواحدة {galleryLimit.size} MB.</p>
+            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,galleryLimit.count-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));}} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,i)=><div key={url} className="relative"><img src={url} alt={`صورة المعرض ${i+1}`} className="aspect-square w-full rounded-xl border object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,j)=>j!==i))} className="mt-1 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
             <input type="hidden" name="gallery_json" value={JSON.stringify(gallery)}/>
           </section>
