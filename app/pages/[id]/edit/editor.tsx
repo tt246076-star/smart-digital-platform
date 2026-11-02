@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { updateLandingPage } from "./actions";
+import { createLandingPage } from "../../new/actions";
+import SubmitButton from "../../new/SubmitButton";
 import { createClient } from "@/lib/supabase/client";
 import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
@@ -41,7 +43,7 @@ function readHours(value: string | undefined): Record<DayKey,DayHours> {
 const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100";
 const label = "block text-sm font-extrabold text-slate-800";
 
-export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalleryImageMb = 2 }: { page: PageData; maxGalleryImages?: number; maxGalleryImageMb?: number }) {
+export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalleryImageMb = 2, isCreating = false }: { page: PageData; maxGalleryImages?: number; maxGalleryImageMb?: number; isCreating?: boolean }) {
   const [template, setTemplate] = useState(page.template || "profile");
   const [theme, setTheme] = useState(() => normalizeThemeId(page.theme || "blue"));
   const [logo, setLogo] = useState(page.logo_url || "");
@@ -95,8 +97,8 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   }
 
   return (
-    <form action={updateLandingPage} className="mt-8">
-      <input type="hidden" name="id" value={page.id} />
+    <form action={isCreating ? createLandingPage : updateLandingPage} className="mt-8">
+      {!isCreating && <input type="hidden" name="id" value={page.id} />}
       <input type="hidden" name="template" value={template} />
       <input type="hidden" name="theme" value={theme} />
       <input type="hidden" name="logo_url" value={logo} />
@@ -264,7 +266,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         </div>
       </details>
       </aside></div>
-      <button disabled={uploading} type="submit" className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50">حفظ التعديلات ونشر الصفحة ✨</button>
+      {isCreating ? <SubmitButton uploading={uploading} /> : <button disabled={uploading} type="submit" className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50">حفظ التعديلات ونشر الصفحة ✨</button>}
     </form>
   );
 }
