@@ -29,8 +29,8 @@ export async function createLandingPage(formData: FormData) {
   const { count: currentPages, error: countError } = await supabase.from("landing_pages")
     .select("id", { count: "exact", head: true }).eq("user_id", user.id);
   const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
-  const { data: productLimitRow } = await supabase.from("user_product_limits").select("max_products").eq("user_id", user.id).maybeSingle();
-  const maxProducts = Math.max(0, Math.min(500, productLimitRow?.max_products ?? 3));
+  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
+  const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
   const maxPages = Math.min(pageLimit?.max_pages ?? 1, accessPlan?.max_pages ?? 0);
   if (countError || (currentPages ?? 0) >= maxPages) redirect("/pages/new?error=limit");
 
@@ -61,8 +61,10 @@ export async function createLandingPage(formData: FormData) {
   let gallery: string[] = [];
   try {
     const parsed = JSON.parse(String(formData.get("gallery_json") || "[]"));
-    if (Array.isArray(parsed)) gallery = parsed.slice(0,12).map(cleanSectionUrl).filter(Boolean);
+    if (Array.isArray(parsed)) gallery = parsed.slice(0,maxGalleryImages).map(cleanSectionUrl).filter(Boolean);
   } catch { gallery = []; }
+
+  if (gallery.length > maxGalleryImages) redirect("/pages/new?error=gallery_limit");
 
   const sections = {
     address: String(formData.get("address") || "").trim().slice(0,200),
