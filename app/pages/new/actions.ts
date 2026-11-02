@@ -102,5 +102,5 @@ export async function createLandingPage(formData: FormData) {
     redirect("/pages/new?error=save");
   }
   revalidatePath("/dashboard");
-  redirect(`/p/${slug}?created=1`);
+  redirect("/dashboard?created=1");
 }
