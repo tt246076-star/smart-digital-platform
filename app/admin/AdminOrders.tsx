@@ -8,7 +8,7 @@ type Order = {
   status: "new" | "confirmed" | "shipped" | "completed" | "cancelled"; notes: string; created_at: string;
   landing_pages?: { business_name?: string; slug?: string } | Array<{ business_name?: string; slug?: string }> | null;
 };
-const statusLabels: Record<Order["status"],string> = {new:"طلب جديد",confirmed:"تم التأكيد",shipped:"خرج للتوصيل",completed:"مكتمل",cancelled:"ملغي"};
+const statusLabels: Record<Order["status"],string> = {new:"طلب جديد",confirmed:"تم التأكيد",shipped:"تم الإرسال",completed:"مكتمل",cancelled:"ملغي"};
 const statusStyles: Record<Order["status"],string> = {new:"bg-amber-100 text-amber-800",confirmed:"bg-blue-100 text-blue-800",shipped:"bg-violet-100 text-violet-800",completed:"bg-emerald-100 text-emerald-800",cancelled:"bg-slate-100 text-slate-600"};
 
 export default function AdminOrders({ initialOrders }: { initialOrders: Order[] }) {
