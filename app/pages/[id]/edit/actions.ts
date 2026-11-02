@@ -21,8 +21,8 @@ export async function updateLandingPage(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const { data: accessPlan } = await supabase.from("user_access_plans").select("plan_type, expires_at").eq("user_id", user.id).maybeSingle();
-  const { data: productLimitRow } = await supabase.from("user_product_limits").select("max_products").eq("user_id", user.id).maybeSingle();
-  const maxProducts = Math.max(0, Math.min(500, productLimitRow?.max_products ?? 3));
+  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
+  const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
   const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
   if (!planActive || accessPlan.plan_type === "trial") redirect("/dashboard?readOnly=1");
 
@@ -62,7 +62,7 @@ export async function updateLandingPage(formData: FormData) {
     theme_mode: ["light", "dark"].includes(String(sections.theme_mode || "")) ? String(sections.theme_mode) : "",
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
-    gallery: Array.isArray(sections.gallery) ? sections.gallery.slice(0,12).map(cleanSectionUrl).filter(Boolean) : [],
+    gallery: Array.isArray(sections.gallery) ? sections.gallery.slice(0,maxGalleryImages).map(cleanSectionUrl).filter(Boolean) : [],
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "blue");
