@@ -120,3 +120,24 @@ export async function deleteCatalogProduct(formData: FormData) {
   revalidatePath("/p/" + page.slug);
   redirect("/admin?productdeleted=1");
 }
+
+
+export async function setUserGalleryLimit(formData: FormData) {
+  const sessionClient = await createClient();
+  const { data: { user } } = await sessionClient.auth.getUser();
+  if (!user) redirect("/login");
+  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
+  if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
+  const userId = String(formData.get("user_id") || "");
+  const maxImages = Number(formData.get("max_images"));
+  const maxImageMb = Number(formData.get("max_image_mb"));
+  if (!userId || !Number.isInteger(maxImages) || maxImages < 0 || maxImages > 100 || !Number.isFinite(maxImageMb) || maxImageMb < 0.1 || maxImageMb > 20) redirect("/admin?error=gallery_limit");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) redirect("/admin?error=1");
+  const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { error } = await admin.from("user_gallery_limits").upsert({ user_id: userId, max_images: maxImages, max_image_mb: maxImageMb, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) { console.error("Admin gallery limit update failed:", error.message); redirect("/admin?error=1"); }
+  revalidatePath("/admin"); revalidatePath("/vip/new");
+  redirect("/admin?gallerysaved=1");
+}
