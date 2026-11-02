@@ -58,16 +58,11 @@ export async function createLandingPage(formData: FormData) {
     try { const url = new URL(String(value || "")); return ["https:","http:"].includes(url.protocol) ? url.toString() : ""; }
     catch { return ""; }
   };
-  let products: any[] = [];
+  let gallery: string[] = [];
   try {
-    const parsed = JSON.parse(String(formData.get("products_json") || "[]"));
-    if (Array.isArray(parsed)) products = parsed.slice(0,maxProducts).map((p:any) => ({
-      name: String(p?.name || "").trim().slice(0,80),
-      price: String(p?.price || "").trim().slice(0,30),
-      image_url: cleanSectionUrl(p?.image_url),
-      description: String(p?.description || "").trim().slice(0,160),
-    })).filter((p:any) => p.name || p.image_url || p.price);
-  } catch { products = []; }
+    const parsed = JSON.parse(String(formData.get("gallery_json") || "[]"));
+    if (Array.isArray(parsed)) gallery = parsed.slice(0,12).map(cleanSectionUrl).filter(Boolean);
+  } catch { gallery = []; }
 
   const sections = {
     address: String(formData.get("address") || "").trim().slice(0,200),
@@ -76,7 +71,7 @@ export async function createLandingPage(formData: FormData) {
     card_color: /^#[0-9a-fA-F]{6}$/.test(String(formData.get("card_color") || "")) ? String(formData.get("card_color")) : "#ffffff",
     round_image_url: cleanSectionUrl(formData.get("round_image_url")),
     cover_image_url: cleanSectionUrl(formData.get("cover_image_url")),
-    products,
+    gallery,
   };
 
   if (!business_name || business_name.length > 100) redirect("/pages/new?error=name");
