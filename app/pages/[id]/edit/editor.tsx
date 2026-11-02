@@ -11,7 +11,7 @@ type PageData = {
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; products?: {name:string; price:string; image_url:string; description:string}[] } | null;
+  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; gallery?: string[] } | null;
 };
 
 const templates = [
@@ -63,8 +63,8 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const [mode, setMode] = useState<"" | "light" | "dark">(initialSections.theme_mode === "light" || initialSections.theme_mode === "dark" ? initialSections.theme_mode : "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
-  const [products, setProducts] = useState(() => Array.from({length:Math.max(3, initialSections.products?.length || 0)}, (_,i) => initialSections.products?.[i] || {name:"",price:"",image_url:"",description:""}));
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,google_review_url:googleReviewUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,products:products.filter(p=>p.name.trim() || p.image_url.trim() || p.price.trim())});
+  const [gallery, setGallery] = useState<string[]>(Array.isArray((initialSections as any).gallery) ? (initialSections as any).gallery : []);
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,google_review_url:googleReviewUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery});
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES.find((item) => item.id === "volcano")!;
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
@@ -88,7 +88,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       if (target === "logo") setLogo(data.publicUrl);
       else if (target === "round") setRoundImageUrl(data.publicUrl);
       else if (target === "cover") setCoverImageUrl(data.publicUrl);
-      else setProducts(old => old.map((p, i) => i === target ? { ...p, image_url: data.publicUrl } : p));
+      else setGallery(old => [...old, data.publicUrl].slice(0,12));
     } catch {
       setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
     } finally { setUploading(false); }
@@ -154,17 +154,10 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
-        <h2 className="text-lg font-black text-slate-950">5. كتالوج المنتجات (حتى 3 منتجات)</h2>
-        <p className="text-sm text-slate-500">أضف اسم المنتج وسعره وصورته؛ المنتجات التي تتركها فارغة لن تظهر للزوار.</p>
-        {products.map((product,index)=><div key={index} className="space-y-3 rounded-xl bg-slate-50 p-3">
-          <div className="flex items-center justify-between gap-3"><h3 className="font-extrabold text-slate-800">المنتج {index+1}</h3><button type="button" onClick={()=>setProducts(old=>old.filter((_,i)=>i!==index))} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600">حذف المنتج</button></div>
-          <input className={field} aria-label={"اسم المنتج "+(index+1)} value={product.name} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,name:e.target.value}:p))} placeholder="اسم المنتج" maxLength={80} />
-          <input className={field} aria-label={"سعر المنتج "+(index+1)} value={product.price} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,price:e.target.value}:p))} placeholder="السعر (دج)" maxLength={30} />
-          <label className={label} htmlFor={`product_image_${index}`}>صورة المنتج {index + 1}</label>
-          <input id={`product_image_${index}`} className={field} type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], index)} />
-          {product.image_url && <div className="flex items-center gap-3"><img src={product.image_url} alt={`معاينة المنتج ${index+1}`} className="h-20 w-20 rounded-xl border object-cover" /><button type="button" onClick={()=>setProducts(old=>old.map((p,i)=>i===index?{...p,image_url:""}:p))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
-          <input className={field} aria-label={"وصف المنتج "+(index+1)} value={product.description} onChange={e=>setProducts(old=>old.map((p,i)=>i===index?{...p,description:e.target.value}:p))} placeholder="وصف قصير (اختياري)" maxLength={160} />
-        </div>)}
+        <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
+        <p className="text-sm text-slate-500">ارفع حتى 12 صورة لأعمالك أو محلك، دون أسماء أو أسعار.</p>
+        <input className={field} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,"cover");}} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,i)=>i!==index))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">6. الظهور في Google (SEO)</h2>
@@ -233,17 +226,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
                 </div>
               )}
               {(address || mapUrl) && <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}><span className="font-black" style={{ color: "var(--primary)" }}>موقعنا على الخريطة</span><span className="text-xs" style={{ color: "var(--muted)" }}>{address || "عرض الموقع"}</span></div>}
-              {products.some((product) => product.name || product.image_url || product.price) && (
-                <section className="mt-6">
-                  <div className="mb-3 flex items-center justify-between"><h4 className="text-lg font-black">✨ {template === "restaurant" ? "قائمة الطعام" : template === "store" ? "المنتجات" : "كتالوج الأعمال"}</h4><span className="text-xs" style={{ color: "var(--muted)" }}>{products.filter((product) => product.name || product.image_url || product.price).length} عناصر</span></div>
-                  <div className={`grid gap-3 ${template === "minimal" || template === "portfolio" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2"}`}>
-                    {products.filter((product) => product.name || product.image_url || product.price).map((product, index) => <article key={index} className={`overflow-hidden border ${template === "minimal" ? "rounded-lg" : template === "bold" || template === "portfolio" ? "rounded-none" : template === "beauty" ? "rounded-3xl" : "rounded-2xl"}`} style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-                      {product.image_url ? <img src={product.image_url} alt={product.name || ""} className="aspect-[4/3] w-full object-cover" /> : <div className="grid aspect-[4/3] place-items-center text-3xl" style={{ background: "var(--tint)", color: "var(--primary)" }}>▧</div>}
-                      <div className="p-3"><p className="font-black">{product.name || "اسم المنتج"}</p>{product.price && <p className="mt-1 text-sm font-extrabold" style={{ color: "var(--primary)" }}>{product.price}</p>}{product.description && <p className="mt-1 text-xs leading-5" style={{ color: "var(--muted)" }}>{product.description}</p>}</div>
-                    </article>)}
-                  </div>
-                </section>
-              )}
+              {gallery.length > 0 && <section className="mt-6"><h4 className="mb-3 text-lg font-black">معرض الصور</h4><div className="grid grid-cols-2 gap-2">{gallery.map((url,index)=><img key={url} src={url} alt={`صورة ${index+1}`} className="aspect-square w-full rounded-xl object-cover"/>)}</div></section>}
             </div>
           </div>
           <p className="mt-3 text-center text-xs" style={{ color: "var(--muted)" }}>هذه معاينة مباشرة للقالب والثيم ومحتوى الصفحة؛ اختيار قالب آخر يغيّر شكل البطاقة كاملة.</p>
