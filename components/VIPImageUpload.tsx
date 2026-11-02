@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function VIPImageUpload({ name, label, initialValue = "" }: { name: string; label: string; initialValue?: string }) {
+export default function VIPImageUpload({ name, label, initialValue = "", maxFileSizeMB = 2 }: { name: string; label: string; initialValue?: string; maxFileSizeMB?: number }) {
   const [url, setUrl] = useState(initialValue);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -12,7 +12,7 @@ export default function VIPImageUpload({ name, label, initialValue = "" }: { nam
     if (!file) return;
     setError("");
     if (!file.type.startsWith("image/")) { setError("اختار ملف صورة فقط."); return; }
-    if (file.size > 5 * 1024 * 1024) { setError("حجم الصورة لازم يكون أقل من 5 ميغابايت."); return; }
+    if (file.size > maxFileSizeMB * 1024 * 1024) { setError(`حجم الصورة لازم ما يفوتش ${maxFileSizeMB} MB.`); return; }
     setUploading(true);
     try {
       const supabase = createClient();
