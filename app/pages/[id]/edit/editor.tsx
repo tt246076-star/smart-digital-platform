@@ -17,7 +17,7 @@ type PageData = {
 const templates = [
   {id:"profile",name:"بطاقة تواصل",hint:"معلومات وروابط التواصل"},
   {id:"aurora",name:"Aurora",hint:"تدرجات ناعمة ومظهر متوازن"},
-  {id:"store",name:"Store",hint:"عرض الصور والمعلومات"},
+  {id:"store",name:"Store",hint:"تركيز على المنتجات والأسعار"},
   {id:"minimal",name:"Minimal",hint:"تصميم هادئ ومساحات واضحة"},
   {id:"bold",name:"Bold",hint:"ألوان قوية وعناوين بارزة"},
   {id:"beauty",name:"Beauty",hint:"ستايل ناعم للصالونات والجمال"},
@@ -41,7 +41,7 @@ function readHours(value: string | undefined): Record<DayKey,DayHours> {
 const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100";
 const label = "block text-sm font-extrabold text-slate-800";
 
-export default function LandingPageEditor({ page, maxGalleryImages, maxGalleryImageMb }: { page: PageData; maxGalleryImages: number; maxGalleryImageMb: number }) {
+export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalleryImageMb = 2 }: { page: PageData; maxGalleryImages?: number; maxGalleryImageMb?: number }) {
   const [template, setTemplate] = useState(templates.some((item) => item.id === page.template) ? (page.template as string) : "aurora");
   const [theme, setTheme] = useState(page.theme || "volcano");
   const [logo, setLogo] = useState(page.logo_url || "");
@@ -63,7 +63,7 @@ export default function LandingPageEditor({ page, maxGalleryImages, maxGalleryIm
   const [mode, setMode] = useState<"" | "light" | "dark">(initialSections.theme_mode === "light" || initialSections.theme_mode === "dark" ? initialSections.theme_mode : "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
-  const [gallery, setGallery] = useState<string[]>(Array.isArray((initialSections as any).gallery) ? (initialSections as any).gallery.slice(0,maxGalleryImages) : []);
+  const [gallery, setGallery] = useState<string[]>(Array.isArray(initialSections.gallery) ? initialSections.gallery.slice(0, maxGalleryImages) : []);
   const sectionsJson = JSON.stringify({address,map_url:mapUrl,google_review_url:googleReviewUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery});
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES.find((item) => item.id === "volcano")!;
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
@@ -71,16 +71,17 @@ export default function LandingPageEditor({ page, maxGalleryImages, maxGalleryIm
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
 
-  async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | "gallery" | number) {
+  async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | "gallery") {
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
     if (file.size > (target === "gallery" ? maxGalleryImageMb : 5) * 1024 * 1024) { setUploadError("حجم الصورة يتجاوز الحد المسموح."); return; }
+    if (target === "gallery" && gallery.length >= maxGalleryImages) { setUploadError("وصلت للحد الأقصى لصور المعرض في حسابك."); return; }
     setUploading(true);
     try {
       const supabase = createClient();
       const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-      const targetName = typeof target === "number" ? `product-${target + 1}` : target;
+      const targetName = target;
       const path = `${page.id}/${targetName}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
@@ -88,8 +89,7 @@ export default function LandingPageEditor({ page, maxGalleryImages, maxGalleryIm
       if (target === "logo") setLogo(data.publicUrl);
       else if (target === "round") setRoundImageUrl(data.publicUrl);
       else if (target === "cover") setCoverImageUrl(data.publicUrl);
-      else if (target === "gallery") setGallery(old => [...old, data.publicUrl].slice(0,maxGalleryImages));
-      else setGallery(old => [...old, data.publicUrl].slice(0,12));
+      else if (target === "gallery") setGallery(old => old.length < maxGalleryImages ? [...old, data.publicUrl] : old);
     } catch {
       setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
     } finally { setUploading(false); }
@@ -157,7 +157,7 @@ export default function LandingPageEditor({ page, maxGalleryImages, maxGalleryIm
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
         <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى للصورة الواحدة {maxGalleryImageMb} MB.</p>
-        <input className={field} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");}} />
+        <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");e.currentTarget.value="";}} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,i)=>i!==index))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
