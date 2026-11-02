@@ -46,6 +46,9 @@ export default async function EditVIPPage({params}:{params:{slug:string}}) {
  if (!user) redirect("/login");
  const {data:page} = await supabase.from("landing_pages").select("slug,sections,business_name").eq("slug",params.slug).eq("user_id",user.id).eq("template","vip").maybeSingle();
  if (!page) redirect("/dashboard");
+ const {data:galleryLimit} = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
+ const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
+ const maxGalleryImageMb = Math.max(0.1, Math.min(20, galleryLimit?.max_image_mb ?? 2));
  const {data:plan} = await supabase.from("user_access_plans").select("plan_type,expires_at,advanced_features").eq("user_id",user.id).maybeSingle();
  if (!plan?.advanced_features || plan.plan_type === "trial" || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) redirect("/dashboard?vipError=plan");
  const shop = page.sections?.vip_card || {};
