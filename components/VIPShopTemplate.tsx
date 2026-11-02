@@ -133,7 +133,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
           <span className={`vip-social-icon vip-brand-${item.brandClass}`}><BrandIcon brand={item.label === "الهاتف" ? "phone" : item.label} /></span><small>{item.label}</small>
         </a>)}</div></section>}
 
-      {(shop.gallery || []).filter(Boolean).length > 0 && <section className="vip-section"><h2>معرض الصور</h2><div className="vip-gallery">{(shop.gallery || []).filter(Boolean).slice(0, 4).map((src, index) =>
+      {(shop.gallery || []).filter(Boolean).length > 0 && <section className="vip-section"><h2>معرض الصور</h2><div className="vip-gallery">{(shop.gallery || []).filter(Boolean).slice(0, 100).map((src, index) =>
         <button key={src + index} onClick={() => setLightbox(src)} aria-label={`عرض الصورة ${index + 1}`}><img src={src} alt={`صورة من ${shop.name}`} loading="lazy" /></button>)}</div></section>}
 
       {shop.address && <a className="vip-map" href={shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`} target="_blank" rel="noreferrer">
