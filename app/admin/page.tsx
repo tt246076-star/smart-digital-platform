@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { SITE } from "@/lib/site";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { setUserPlan, deleteLandingPage, setUserProductLimit, deleteCatalogProduct } from "./actions";
+import { setUserPlan, deleteLandingPage, setUserProductLimit, setUserGalleryLimit, deleteCatalogProduct } from "./actions";
 import DeleteProductForm from "./DeleteProductForm";
 import DeletePageForm from "./DeletePageForm";
 import AdminOrders from "./AdminOrders";
