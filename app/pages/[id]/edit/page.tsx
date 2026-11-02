@@ -37,7 +37,7 @@ export default async function EditLandingPage({ params, searchParams }: {
             <h1 className="mt-4 text-3xl font-black text-slate-950">خلّي صفحتك تشبه علامتك ✨</h1>
             <p className="mt-2 leading-7 text-slate-500">بدّل القالب والألوان والمعلومات، وشوف معاينة مباشرة قبل الحفظ.</p>
             {searchParams.error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{searchParams.error === "length" ? "بعض الحقول طويلة بزاف. راجع النصوص وحاول من جديد." : searchParams.error === "name" ? "اسم النشاط مطلوب." : "ما قدرناش نحفظ التعديلات. تأكد من تحديث قاعدة البيانات ثم أعد المحاولة."}</p>}
-            <LandingPageEditor page={page} />
+            <LandingPageEditor page={page} maxGalleryImages={maxGalleryImages} maxGalleryImageMb={maxGalleryImageMb} />
           </section>
           <aside className="h-fit rounded-3xl border border-white/10 bg-white/5 p-5 text-white lg:sticky lg:top-6">
             <p className="text-xs font-black uppercase tracking-widest text-violet-300">نصيحة تصميم</p>
