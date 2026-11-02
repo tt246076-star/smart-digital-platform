@@ -127,7 +127,7 @@ function NewLandingPageForm() {
           <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معرض الصور</h2>
             <p className="text-sm text-slate-500">ارفع صورًا لأعمالك أو محلك. تظهر الصور في البطاقة دون أسماء أو أسعار.</p>
-            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));e.currentTarget.value="";}} />
+            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));}} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,i)=><div key={url} className="relative"><img src={url} alt={`صورة المعرض ${i+1}`} className="aspect-square w-full rounded-xl border object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,j)=>j!==i))} className="mt-1 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
             <input type="hidden" name="gallery_json" value={JSON.stringify(gallery)}/>
           </section>
