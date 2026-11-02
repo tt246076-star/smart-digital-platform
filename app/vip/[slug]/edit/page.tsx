@@ -40,11 +40,12 @@ async function updateVIPCard(formData: FormData) {
   redirect("/dashboard?vipUpdated=1");
 }
 
-export default async function EditVIPPage({params}:{params:{slug:string}}) {
+export default async function EditVIPPage({params}:{params:Promise<{slug:string}>}) {
+ const {slug} = await params;
  const supabase = await createClient();
  const {data:{user}} = await supabase.auth.getUser();
  if (!user) redirect("/login");
- const {data:page} = await supabase.from("landing_pages").select("slug,sections,business_name").eq("slug",params.slug).eq("user_id",user.id).eq("template","vip").maybeSingle();
+ const {data:page} = await supabase.from("landing_pages").select("slug,sections,business_name").eq("slug",slug).eq("user_id",user.id).eq("template","vip").maybeSingle();
  if (!page) redirect("/dashboard");
  const {data:galleryLimit} = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
  const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
