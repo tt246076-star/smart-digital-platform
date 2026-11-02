@@ -4,10 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import LandingPageEditor from "./editor";
 
 export default async function EditLandingPage({ params, searchParams }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  const resolvedSearchParams = await searchParams;
+  const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
@@ -24,7 +24,7 @@ export default async function EditLandingPage({ params, searchParams }: {
 
   const { data: page, error } = await supabase.from("landing_pages")
     .select("id, slug, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme, seo_title, seo_description, sections")
-    .eq("id", params.id).eq("user_id", user.id).maybeSingle();
+    .eq("id", id).eq("user_id", user.id).maybeSingle();
 
   if (error || !page) notFound();
 
