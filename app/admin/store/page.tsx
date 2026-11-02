@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 type Product = { id: string; name: string; description: string; price: number; image_url: string; is_active: boolean; sort_order: number };
 
-export default async function StoreProductsPage({ searchParams }: { searchParams: { saved?: string; deleted?: string; error?: string } }) {
+export default async function StoreProductsPage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; error?: string }> }) {
+  const params = await searchParams;
   const session = await createClient();
   const { data: { user } } = await session.auth.getUser();
   if (!user) redirect("/login");
@@ -23,9 +24,9 @@ export default async function StoreProductsPage({ searchParams }: { searchParams
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
     <div className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-emerald-700">إدارة المتجر</p><h1 className="mt-1 text-3xl font-black">المنتجات والأسعار</h1><p className="mt-2 text-slate-500">المنتجات النشطة تظهر للزبائن في الصفحة الرئيسية.</p></div><div className="flex gap-2"><Link href="/admin" className="rounded-xl border bg-white px-4 py-2 font-bold">لوحة الإدارة</Link><Link href="/#pricing" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">عرض المتجر ↗</Link></div></div>
-      {searchParams.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ المنتج.</p>}
-      {searchParams.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف المنتج.</p>}
-      {searchParams.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">{searchParams.error === "config" ? "إعدادات الإدارة غير مكتملة." : searchParams.error === "image" ? "رابط الصورة لازم يبدأ بـ https://" : searchParams.error === "file" ? "الصورة لازم تكون بصيغة صورة وحجمها أقل من 5 ميغابايت." : searchParams.error === "upload" ? "تعذر رفع الصورة. نفّذ إعداد تخزين الصور في Supabase." : searchParams.error === "fields" ? "راجع اسم المنتج والسعر والترتيب." : "تعذر حفظ البيانات. تأكد أنك نفذت ملف SQL في Supabase."}</p>}
+      {params.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ المنتج.</p>}
+      {params.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف المنتج.</p>}
+      {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">{params.error === "config" ? "إعدادات الإدارة غير مكتملة." : params.error === "image" ? "رابط الصورة لازم يبدأ بـ https://" : params.error === "file" ? "الصورة لازم تكون بصيغة صورة وحجمها أقل من 5 ميغابايت." : params.error === "upload" ? "تعذر رفع الصورة. نفّذ إعداد تخزين الصور في Supabase." : params.error === "fields" ? "راجع اسم المنتج والسعر والترتيب." : "تعذر حفظ البيانات. تأكد أنك نفذت ملف SQL في Supabase."}</p>}
       {error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">جدول المنتجات غير جاهز. نفّذ ملف supabase/storefront_products.sql في SQL Editor داخل Supabase.</p>}
       <section className="mt-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-7"><h2 className="text-xl font-black">إضافة منتج جديد</h2><form action={saveStoreProduct} className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">اسم المنتج<input name="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border px-3 py-3" placeholder="مثال: بطاقة NFC"/></label>
