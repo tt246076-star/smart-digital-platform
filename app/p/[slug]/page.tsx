@@ -61,7 +61,8 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
     address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
     products?: { name: string; price: string; image_url: string; description: string }[]; gallery?: string[];
   };
-  const products = Array.isArray(sections.products) ? sections.products : [];\n  const gallery = Array.isArray(sections.gallery) ? sections.gallery.filter((url:string)=>typeof url==="string" && /^https?:\\/\\//.test(url)).slice(0,12) : [];
+  const products = Array.isArray(sections.products) ? sections.products : [];
+  const gallery = Array.isArray(sections.gallery) ? sections.gallery.filter((url:string)=>typeof url==="string" && /^https?:\\/\\//.test(url)).slice(0,12) : [];
   const template: string = page.template || "minimal";
   const isReferenceTemplate = template === "store" || template === "aurora";
   const resolvedTheme = resolveTheme(page.theme || (isReferenceTemplate ? "volcano" : "blue"), pagePrimary(sections) || undefined, sections.theme_mode);
