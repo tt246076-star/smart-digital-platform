@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { THEMES } from "@/lib/theme";
 import { createLandingPage } from "./actions";
+import SubmitButton from "./SubmitButton";
 import { createClient } from "@/lib/supabase/client";
 
 const inputClass = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
@@ -151,7 +152,7 @@ function NewLandingPageForm() {
           </section>
           {uploadError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{uploadError}</p>}
           {uploading && <p className="text-sm font-bold text-blue-700">جاري رفع الصورة، انتظر حتى يكتمل الرفع...</p>}
-          <button disabled={uploading} type="submit" className="w-full rounded-xl bg-blue-600 px-5 py-4 font-extrabold text-white shadow-sm hover:bg-blue-700">{uploading?"انتظر حتى يكتمل رفع الصورة...":"إنشاء الصفحة"}</button>
+          <SubmitButton uploading={uploading} />
         </form>}
       </div>
     </div>
