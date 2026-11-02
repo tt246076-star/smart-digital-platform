@@ -17,7 +17,7 @@ type PageData = {
 const templates = [
   {id:"profile",name:"بطاقة تواصل",hint:"معلومات وروابط التواصل"},
   {id:"aurora",name:"Aurora",hint:"تدرجات ناعمة ومظهر متوازن"},
-  {id:"store",name:"Store",hint:"تركيز على المنتجات والأسعار"},
+  {id:"store",name:"Store",hint:"عرض الصور والمعلومات"},
   {id:"minimal",name:"Minimal",hint:"تصميم هادئ ومساحات واضحة"},
   {id:"bold",name:"Bold",hint:"ألوان قوية وعناوين بارزة"},
   {id:"beauty",name:"Beauty",hint:"ستايل ناعم للصالونات والجمال"},
