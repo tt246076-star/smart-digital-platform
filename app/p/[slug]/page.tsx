@@ -38,22 +38,24 @@ function BrandMark({ kind, circle = false }: { kind: string; circle?: boolean })
   </span>;
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
     .select("business_name, headline, seo_title, seo_description, description")
-    .eq("slug", params.slug).eq("is_published", true).maybeSingle();
+    .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) return { title: "صفحة غير موجودة | بطاقاتي" };
   const title = page.seo_title?.trim() || page.headline?.trim() || page.business_name;
   const description = page.seo_description?.trim() || page.description?.trim() || `تعرّف على ${page.business_name} وتواصل معنا عبر بطاقاتي.`;
   return { title, description, openGraph: { title, description, type: "website" } };
 }
 
-export default async function PublicLandingPage({ params }: { params: { slug: string } }) {
+export default async function PublicLandingPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
     .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
-    .eq("slug", params.slug).eq("is_published", true).maybeSingle();
+    .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) notFound();
 
   const links = socialLinks(page);
@@ -121,7 +123,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   if (template === "profile" || isReferenceTemplate) {
     return (
       <main dir="rtl" className="min-h-screen px-0 py-0 sm:px-4 sm:py-6" style={{ backgroundColor: resolvedTheme.bg, color: resolvedTheme.text }}>
-        <LandingPageAnalytics slug={params.slug} />
+        <LandingPageAnalytics slug={slug} />
         <article className="mx-auto min-h-screen max-w-lg overflow-hidden border shadow-2xl sm:min-h-0 sm:rounded-[1.4rem]" style={{ backgroundColor: resolvedTheme.surface, borderColor: resolvedTheme.border, color: resolvedTheme.text }}>
           <header className="relative">
             {sections.cover_image_url ? (
@@ -249,7 +251,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
 
   return (
     <main dir="rtl" className="min-h-screen px-3 py-5 text-slate-900 sm:px-6 sm:py-8" style={{ backgroundColor: pageBackground, color: customText }}>
-      <LandingPageAnalytics slug={params.slug} />
+      <LandingPageAnalytics slug={slug} />
       <div className="mx-auto max-w-6xl">
         <nav className="mb-5 flex items-center justify-between px-1">
           <a href="/" className="flex items-center gap-2.5 text-sm font-black text-slate-700"><span className="grid h-9 w-9 place-items-center rounded-xl text-white shadow-sm" style={{background:palette.gradient}}>ب</span> بطاقاتي</a>
