@@ -59,9 +59,9 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
     address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
-    products?: { name: string; price: string; image_url: string; description: string }[];
+    products?: { name: string; price: string; image_url: string; description: string }[]; gallery?: string[];
   };
-  const products = Array.isArray(sections.products) ? sections.products : [];
+  const products = Array.isArray(sections.products) ? sections.products : [];\n  const gallery = Array.isArray(sections.gallery) ? sections.gallery.filter((url:string)=>typeof url==="string" && /^https?:\\/\\//.test(url)).slice(0,12) : [];
   const template: string = page.template || "minimal";
   const isReferenceTemplate = template === "store" || template === "aurora";
   const resolvedTheme = resolveTheme(page.theme || (isReferenceTemplate ? "volcano" : "blue"), pagePrimary(sections) || undefined, sections.theme_mode);
@@ -232,22 +232,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
             </section>
           )}
 
-          {products.length > 0 && (
-            <section className="px-5 pb-7 sm:px-7">
-              <div className="mb-4 flex items-center gap-3"><span className="h-px flex-1" style={{ background: resolvedTheme.border }} /><h2 className="whitespace-nowrap text-sm font-black" style={{ color: resolvedTheme.muted }}>كتالوج الأعمال ✨</h2><span className="h-px flex-1" style={{ background: resolvedTheme.border }} /></div>
-              <div className="space-y-4">
-                {products.map((product, index) => <article key={index} className="overflow-hidden rounded-3xl border" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
-                  {product.image_url && <img src={product.image_url} alt={product.name || "صورة من الأعمال"} className="max-h-[330px] w-full object-cover" />}
-                  {(product.name || product.description || product.price) && <div className="p-4">
-                    {product.name && <h3 className="font-black">{product.name}</h3>}
-                    {product.description && <p className="mt-2 whitespace-pre-wrap text-sm leading-7" style={{ color: resolvedTheme.muted }}>{product.description}</p>}
-                    {product.price && <p className="mt-3 font-black" style={{ color: resolvedTheme.primary }}>{product.price} دج</p>}
-                  </div>}
-                </article>)}
-              </div>
-            </section>
-          )}
-
+          {gallery.length > 0 && <section className="px-5 pb-7 sm:px-7"><h2 className="mb-4 text-center text-lg font-black" style={{color:resolvedTheme.text}}>معرض الصور</h2><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><img key={url+index} src={url} alt={`صورة من معرض ${page.business_name}`} loading="lazy" className="aspect-square w-full rounded-2xl border object-cover" style={{borderColor:resolvedTheme.border}}/>)}</div></section>}
           <footer className="border-t px-5 py-7 text-center" style={{ borderColor: resolvedTheme.border, color: resolvedTheme.muted }}>
             <p className="text-xs">© {new Date().getFullYear()} {page.business_name}</p>
             <a href="/" className="group mx-auto mt-4 flex w-fit flex-col items-center gap-2 rounded-2xl border px-7 py-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: resolvedTheme.primary + "55", background: `linear-gradient(145deg, ${resolvedTheme.palette.tint}, ${resolvedTheme.surface}, ${resolvedTheme.palette.tint})` }}>
@@ -304,20 +289,7 @@ export default async function PublicLandingPage({ params }: { params: { slug: st
           <div className={`grid gap-5 px-4 py-5 sm:px-7 sm:py-6 ${template === "bold" ? "grid-cols-1" : "lg:grid-cols-[minmax(0,1fr)_230px] lg:gap-6"}`}>
             <div className="min-w-0">
               {page.description && <section className="mb-9"><div className="mb-3 flex items-center gap-3"><span className="h-8 w-1.5 rounded-full" style={{background:palette.accent}}/><h2 className="text-xl font-black" style={{color:cardText}}>من نحن</h2></div><p className="whitespace-pre-wrap text-sm leading-8 sm:text-base" style={{color:cardMuted}}>{page.description}</p></section>}
-              <section>
-                <div className="mb-5 flex items-end justify-between gap-3"><div><p className="text-xs font-black" style={{color:palette.accent}}>{isRestaurant ? "من قائمتنا" : "تعرّف على ما نقدّمه"}</p><h2 className="mt-1 text-2xl font-black" style={{color:cardText}}>{isRestaurant ? "قائمة الطعام" : isStore ? "المنتجات" : "خدماتنا وأعمالنا"}</h2></div>{products.length>0 && <span className="rounded-full px-3 py-1.5 text-xs font-black" style={{background:palette.tint,color:palette.accent}}>{products.length} {products.length===1?"عنصر":"عناصر"}</span>}</div>
-                {products.length ? <div className={`grid ${template === "minimal" || template === "portfolio" ? "grid-cols-1 sm:grid-cols-2" : template === "bold" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2"} gap-3 sm:gap-5 xl:grid-cols-3`}>
-                  {products.map((product,i)=><article key={i} className={`group overflow-hidden border transition duration-300 hover:-translate-y-1 hover:shadow-xl ${template === "minimal" ? "rounded-lg" : template === "bold" ? "rounded-none border-2" : template === "beauty" ? "rounded-[2rem]" : template === "agency" ? "rounded-xl" : template === "restaurant" ? "rounded-lg" : template === "portfolio" ? "rounded-none" : "rounded-3xl"}`} style={{backgroundColor:customPanel,borderColor:customAccent+"35"}}>
-                    <div className={`relative ${template === "bold" || template === "portfolio" ? "aspect-square" : template === "beauty" ? "aspect-[3/4]" : "aspect-[4/3]"} overflow-hidden`} style={{background:palette.tint}} >
-                      {product.image_url ? <img src={product.image_url} alt={product.name||"صورة المنتج"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/> : <div className="grid h-full place-items-center text-4xl" style={{color:palette.accent}}>{isRestaurant?"🍽️":"✦"}</div>}
-                      {product.price && <span className="absolute bottom-3 right-3 rounded-xl bg-white px-3 py-2 text-xs font-black shadow-lg" style={{color:palette.accent}}>{product.price} دج</span>}
-                    </div>
-                    <div className="p-3.5 sm:p-5">{product.name && <h3 className="line-clamp-2 font-black leading-6 text-slate-900">{product.name}</h3>}{product.description && <p className="mt-2 line-clamp-3 text-xs leading-6 sm:text-sm" style={{color:cardMuted}}>{product.description}</p>}
-                      {page.phone && <a href={`tel:${page.phone}`} data-track-event="contact" className="mt-4 flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-black text-white sm:text-sm" style={{background:palette.gradient}}><span>☎</span> {isRestaurant?"اتصل للطلب":"اسأل عن المنتج"}</a>}
-                    </div>
-                  </article>)}
-                </div> : <div className="rounded-3xl border border-dashed px-5 py-10 text-center" style={{backgroundColor:customPanel,borderColor:customAccent+"55"}}><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl text-2xl" style={{background:palette.tint,color:palette.accent}}>✦</span><h3 className="mt-4 font-black" style={{color:cardText}}>مرحبًا بكم في {page.business_name}</h3><p className="mt-2 text-sm leading-7" style={{color:cardMuted}}>تواصلوا معنا لمعرفة المزيد عن منتجاتنا وخدماتنا.</p></div>}
-              </section>
+              {gallery.length > 0 && <section className="mb-8"><div className="mb-4 flex items-center gap-3"><span className="h-px flex-1" style={{background:customAccent+"55"}}/><h2 className="whitespace-nowrap text-xl font-black" style={{color:cardText}}>معرض الصور</h2><span className="h-px flex-1" style={{background:customAccent+"55"}}/></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><img key={url+index} src={url} alt={`صورة من معرض ${page.business_name}`} loading="lazy" className="aspect-square w-full rounded-2xl border object-cover shadow-sm" style={{borderColor:customAccent+"35"}}/>)}</div></section>}
             </div>
 
             <aside className="space-y-4">
