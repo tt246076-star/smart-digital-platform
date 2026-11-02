@@ -8,12 +8,11 @@ export default async function Header() {
   const { data: { user } } = await supabase.auth.getUser();
   const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
   const isAdmin = !!user?.email && user.email.trim().toLowerCase() === adminEmail;
-  const canTrackDeliveries = user?.email?.trim().toLowerCase() === "tt246076@gmail.com";
 
   return (
     <header className="site-main-header">
       <div className="site-main-header-inner" dir="rtl">
-        <SiteHeaderControls isLoggedIn={!!user} isAdmin={isAdmin} canTrackDeliveries={canTrackDeliveries} />
+        <SiteHeaderControls isLoggedIn={!!user} isAdmin={isAdmin} />
         <Link href={user ? "/dashboard" : "/"} className="site-brand" aria-label={SITE.name}>
           <img src="/brand/bitakaty-mark.svg" alt="" className="site-brand-mark" />
           <span>{SITE.name}</span>
