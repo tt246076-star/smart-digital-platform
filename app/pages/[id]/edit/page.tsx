@@ -5,8 +5,9 @@ import LandingPageEditor from "./editor";
 
 export default async function EditLandingPage({ params, searchParams }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
@@ -40,7 +41,7 @@ export default async function EditLandingPage({ params, searchParams }: {
             <div className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-700">محرر بطاقاتي الذكي</div>
             <h1 className="mt-4 text-3xl font-black text-slate-950">خلّي صفحتك تشبه علامتك ✨</h1>
             <p className="mt-2 leading-7 text-slate-500">بدّل القالب والألوان والمعلومات، وشوف معاينة مباشرة قبل الحفظ.</p>
-            {searchParams.error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{searchParams.error === "length" ? "بعض الحقول طويلة بزاف. راجع النصوص وحاول من جديد." : searchParams.error === "name" ? "اسم النشاط مطلوب." : "ما قدرناش نحفظ التعديلات. تأكد من تحديث قاعدة البيانات ثم أعد المحاولة."}</p>}
+            {resolvedSearchParams.error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{resolvedSearchParams.error === "length" ? "بعض الحقول طويلة بزاف. راجع النصوص وحاول من جديد." : resolvedSearchParams.error === "name" ? "اسم النشاط مطلوب." : "ما قدرناش نحفظ التعديلات. تأكد من تحديث قاعدة البيانات ثم أعد المحاولة."}</p>}
             <LandingPageEditor page={page} maxGalleryImages={maxGalleryImages} maxGalleryImageMb={maxGalleryImageMb} />
           </section>
           <aside className="h-fit rounded-3xl border border-white/10 bg-white/5 p-5 text-white lg:sticky lg:top-6">
