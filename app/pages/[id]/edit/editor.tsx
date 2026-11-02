@@ -4,26 +4,26 @@
 import { useState } from "react";
 import { updateLandingPage } from "./actions";
 import { createClient } from "@/lib/supabase/client";
-import { resolveTheme, themeVars, pagePrimary, THEMES } from "@/lib/theme";
+import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
 type PageData = {
   id: string; slug: string; business_name: string; headline: string; description: string;
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; gallery?: string[] } | null;
+  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; gallery?: string[] } | null;
 };
 
 const templates = [
-  {id:"profile",name:"بطاقة تواصل",hint:"معلومات وروابط التواصل"},
-  {id:"aurora",name:"Aurora",hint:"تدرجات ناعمة ومظهر متوازن"},
-  {id:"store",name:"Store",hint:"تركيز على المنتجات والأسعار"},
-  {id:"minimal",name:"Minimal",hint:"تصميم هادئ ومساحات واضحة"},
-  {id:"bold",name:"Bold",hint:"ألوان قوية وعناوين بارزة"},
-  {id:"beauty",name:"Beauty",hint:"ستايل ناعم للصالونات والجمال"},
-  {id:"agency",name:"Agency",hint:"عرض منظم للخدمات والمهن"},
-  {id:"restaurant",name:"Restaurant",hint:"ستايل دافئ للمطاعم والمقاهي"},
-  {id:"portfolio",name:"Portfolio",hint:"معرض يبرز الأعمال والصور"},
+  {id:"profile",name:"Profile",hint:"بطاقة نشاط كاملة"},
+  {id:"store",name:"Store",hint:"متجر ومنتجات"},
+  {id:"aurora",name:"Aurora",hint:"واجهة عصرية متدرجة"},
+  {id:"bold",name:"Bold",hint:"جريء ولافت"},
+  {id:"minimal",name:"Minimal",hint:"بسيط وراقي"},
+  {id:"agency",name:"Agency",hint:"خدمات وشركات"},
+  {id:"beauty",name:"Beauty",hint:"جمال وعناية"},
+  {id:"portfolio",name:"Portfolio",hint:"عرض الأعمال"},
+  {id:"restaurant",name:"Restaurant",hint:"مطاعم ومقاهٍ"},
 ];
 const weekDays = [["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]] as const;
 type DayKey = typeof weekDays[number][0];
@@ -42,8 +42,8 @@ const field = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3
 const label = "block text-sm font-extrabold text-slate-800";
 
 export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalleryImageMb = 2 }: { page: PageData; maxGalleryImages?: number; maxGalleryImageMb?: number }) {
-  const [template, setTemplate] = useState(templates.some((item) => item.id === page.template) ? (page.template as string) : "aurora");
-  const [theme, setTheme] = useState(page.theme || "volcano");
+  const [template, setTemplate] = useState(page.template || "profile");
+  const [theme, setTheme] = useState(() => normalizeThemeId(page.theme || "blue"));
   const [logo, setLogo] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -57,15 +57,14 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const initialSections = page.sections || {};
   const [address, setAddress] = useState(initialSections.address || "");
   const [mapUrl, setMapUrl] = useState(initialSections.map_url || "");
-  const [googleReviewUrl, setGoogleReviewUrl] = useState(initialSections.google_review_url || "");
   const [hours, setHours] = useState<Record<DayKey, DayHours>>(() => readHours(initialSections.hours));
   const [primary, setPrimary] = useState<string>(pagePrimary(initialSections as any) || "");
   const [mode, setMode] = useState<"" | "light" | "dark">(initialSections.theme_mode === "light" || initialSections.theme_mode === "dark" ? initialSections.theme_mode : "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
   const [gallery, setGallery] = useState<string[]>(Array.isArray(initialSections.gallery) ? initialSections.gallery.slice(0, maxGalleryImages) : []);
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,google_review_url:googleReviewUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery});
-  const activeDef = THEMES.find((item) => item.id === theme) || THEMES.find((item) => item.id === "volcano")!;
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery});
+  const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
   const todayKey = weekDays[new Date().getDay()][0];
@@ -119,6 +118,25 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
           </button>)}
         </div>
       </section>
+      <section className="space-y-4 rounded-3xl border border-zinc-800 bg-[#09090b] p-4 text-white">
+        <h2 className="text-lg font-black text-white">2. الثيم والألوان</h2>
+        <p className="text-sm leading-6 text-zinc-400">اختار المظهر الخاص ببطاقتك. تتبدل معاينة البطاقة مباشرة، مع الحفاظ على وضوح النصوص وزر الاتصال الأخضر.</p>
+        <div className="grid grid-cols-3 gap-2.5">
+          {THEMES.map((item) => {
+            const p = resolveTheme(item.id).palette;
+            const active = normalizeThemeId(theme) === item.id;
+            return (
+              <button key={item.id} type="button" aria-pressed={active} onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }}
+                className={`flex min-h-[90px] flex-col items-center justify-center rounded-2xl border bg-[#111114] px-2 py-3 text-center transition ${active ? "border-blue-500 ring-2 ring-blue-500/35" : "border-zinc-800 hover:border-zinc-600"}`}>
+                <span className="mb-2 grid h-11 w-11 place-items-center rounded-full border-2 text-base font-black shadow-sm" style={{ background: item.primary, borderColor: item.id === "white" ? "#d4d4d8" : item.primary, color: p.ink }}>
+                  {active ? <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-current text-sm">✓</span> : null}
+                </span>
+                <span className="block text-xs font-bold text-zinc-100">{item.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">3. معلومات الصفحة</h2>
         <div><label className={label} htmlFor="business_name">اسم النشاط *</label><input className={field} id="business_name" name="business_name" value={business} onChange={(e) => setBusiness(e.target.value)} required maxLength={100} /></div>
@@ -131,7 +149,6 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         <h2 className="text-lg font-black text-slate-950">4. معلومات المحل والصور</h2>
         <div><label className={label} htmlFor="address">عنوان المحل</label><input className={field} id="address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="الشارع، البلدية، الولاية" /></div>
         <div><label className={label} htmlFor="map_url">رابط Google Maps للمحل</label><input className={field} id="map_url" type="url" value={mapUrl} onChange={e=>setMapUrl(e.target.value)} placeholder="https://maps.google.com/..." /></div>
-        <div><label className={label} htmlFor="google_review_url">رابط تقييم المحل على Google</label><input className={field} id="google_review_url" type="url" value={googleReviewUrl} onChange={e=>setGoogleReviewUrl(e.target.value)} placeholder="ضع رابط كتابة تقييم Google للمحل" /><p className="mt-1 text-xs text-slate-500">يظهر زر «قيّمنا على Google» في البطاقة عند حفظ الرابط.</p></div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="mb-3"><h3 className="font-extrabold text-slate-900">أوقات العمل الأسبوعية</h3><p className="mt-1 text-sm leading-6 text-slate-500">علّم الأيام المفتوحة وحدد وقت الفتح والإغلاق. ما راح يظهرلك كود JSON.</p></div>
           <div className="space-y-3">
@@ -207,7 +224,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
               </div>
               <p className="mx-auto mt-4 max-w-xl whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--muted)" }}>{description || "اكتب وصفًا قصيرًا يشرح للزائر ماذا تقدم."}</p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm font-black">
-                <span style={{ color: "var(--primary)" }}>★★★★★</span><span>5.0</span><span className="text-xs" style={{ color: "var(--muted)" }}>(8 تقييم)</span>
+                <span style={{ color: "#f5bd35" }}>★★★★★</span><span>5.0</span><span className="text-xs" style={{ color: "var(--muted)" }}>(8 تقييم)</span>
               </div>
               <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--border)", background: "var(--tint)" }}>
                 <div className="flex items-center justify-between gap-3"><span className="font-black">أوقات العمل</span><span className="text-sm font-extrabold" style={{ color: "var(--primary)" }}>◷ جدول الأسبوع</span></div>
@@ -234,15 +251,8 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         </div>
       </section>
       <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-extrabold text-slate-800">اختر ألوان البطاقة</summary>
+        <summary className="cursor-pointer text-sm font-extrabold text-slate-800">خيارات الألوان المتقدمة</summary>
         <div className="mt-4 space-y-4">
-          <p className="text-sm leading-6 text-slate-600">اختيار أي لوحة يغيّر الخلفية والأزرار والإطارات وألوان النص تلقائيًا، مع ضبط وضوح الكتابة.</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {THEMES.map((item) => <button key={item.id} type="button" onClick={() => { setTheme(item.id); setPrimary(""); setMode(""); }} aria-pressed={theme === item.id} className={`flex items-center gap-3 rounded-xl border p-3 text-right transition ${theme === item.id ? "border-violet-600 ring-2 ring-violet-100" : "border-slate-200 hover:border-slate-400"}`}>
-              <span className="flex h-9 w-9 shrink-0 overflow-hidden rounded-full border border-black/10"><span className="h-full w-1/2" style={{ background: item.primary }} /><span className="h-full w-1/2" style={{ background: item.bg }} /></span>
-              <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">{item.name}</span><span className="block text-xs text-slate-500">{item.defaultMode === "dark" ? "داكن" : "فاتح"}</span></span>
-            </button>)}
-          </div>
           <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
             <input type="color" aria-label="اللون الرئيسي" value={primary || activeDef.primary} onChange={(e) => setPrimary(e.target.value)} className="h-12 w-14 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
             <span className="min-w-0"><span className="block text-sm font-extrabold text-slate-800">لون رئيسي مخصص (اختياري)</span><span className="text-xs text-slate-500">{(primary || activeDef.primary).toUpperCase()}</span></span>
@@ -250,7 +260,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
           <div role="group" aria-label="وضع الخلفية" className="flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-bold">
             {([["", "حسب الثيم"], ["light", "فاتح"], ["dark", "داكن"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={mode === v} onClick={() => setMode(v)} className={`flex-1 rounded-lg px-3 py-2 ${mode === v ? "bg-violet-600 text-white" : "text-slate-700"}`}>{l}</button>)}
           </div>
-          {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان اللوحة المختارة</button>}
+          {(primary || mode) && <button type="button" onClick={() => { setPrimary(""); setMode(""); }} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700">إرجاع ألوان الثيم الأصلية</button>}
         </div>
       </details>
       </aside></div>
