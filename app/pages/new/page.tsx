@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const inputClass = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 const labelClass = "block text-sm font-bold text-slate-800";
-type Product = { name: string; price: string; image_url: string; description: string };
+
 
 const weekDays = [
   ["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"],["saturday","السبت"]
@@ -25,7 +25,7 @@ function NewLandingPageForm() {
   const [logoUrl, setLogoUrl] = useState("");
   const [roundImageUrl, setRoundImageUrl] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
-  const [products, setProducts] = useState<Product[]>(Array.from({length:3},()=>({name:"",price:"",image_url:"",description:""})));
+  const [gallery, setGallery] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [hours, setHours] = useState<Record<DayKey,DayHours>>(defaultHours);
@@ -124,18 +124,12 @@ function NewLandingPageForm() {
               </div>
             </div>
           </section>
-          <section className="space-y-4">
-            <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">كاتالوج المنتجات (حتى 3 منتجات)</h2>
-            {products.map((p,i)=><div key={i} className="space-y-3 rounded-2xl border border-slate-200 p-4">
-              <h3 className="font-extrabold">المنتج {i+1}</h3>
-              <input className={inputClass} value={p.name} onChange={e=>setProducts(old=>old.map((x,j)=>j===i?{...x,name:e.target.value}:x))} placeholder="اسم المنتج" maxLength={80}/>
-              <input className={inputClass} value={p.price} onChange={e=>setProducts(old=>old.map((x,j)=>j===i?{...x,price:e.target.value}:x))} placeholder="السعر (اختياري)" maxLength={30}/>
-              <input className={inputClass} value={p.description} onChange={e=>setProducts(old=>old.map((x,j)=>j===i?{...x,description:e.target.value}:x))} placeholder="وصف المنتج" maxLength={160}/>
-              <label className={labelClass}>صورة المنتج (رفع ملف، مش رابط)</label>
-              <input className={inputClass} type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0],url=>setProducts(old=>old.map((x,j)=>j===i?{...x,image_url:url}:x)))}/>
-              {p.image_url && <div className="flex items-center gap-3"><img src={p.image_url} alt={p.name||"المنتج"} className="h-16 w-16 rounded-xl border object-cover"/><button type="button" onClick={()=>setProducts(old=>old.map((x,j)=>j===i?{...x,image_url:""}:x))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
-            </div>)}
-            <input type="hidden" name="products_json" value={JSON.stringify(products)}/>
+          <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
+            <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">معرض الصور</h2>
+            <p className="text-sm text-slate-500">ارفع صورًا لأعمالك أو محلك. تظهر الصور في البطاقة دون أسماء أو أسعار.</p>
+            <input className={inputClass} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,url=>setGallery(old=>[...old,url]));e.currentTarget.value="";}} />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,i)=><div key={url} className="relative"><img src={url} alt={`صورة المعرض ${i+1}`} className="aspect-square w-full rounded-xl border object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,j)=>j!==i))} className="mt-1 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
+            <input type="hidden" name="gallery_json" value={JSON.stringify(gallery)}/>
           </section>
           <section className="space-y-4">
             <h2 className="border-b border-slate-100 pb-3 text-lg font-extrabold">التواصل</h2>
