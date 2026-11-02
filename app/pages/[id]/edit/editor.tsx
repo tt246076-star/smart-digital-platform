@@ -71,7 +71,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
 
-  async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | number) {
+  async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | "gallery" | number) {
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
@@ -88,6 +88,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       if (target === "logo") setLogo(data.publicUrl);
       else if (target === "round") setRoundImageUrl(data.publicUrl);
       else if (target === "cover") setCoverImageUrl(data.publicUrl);
+      else if (target === "gallery") setGallery(old => [...old, data.publicUrl].slice(0,12));
       else setGallery(old => [...old, data.publicUrl].slice(0,12));
     } catch {
       setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
@@ -156,7 +157,7 @@ export default function LandingPageEditor({ page }: { page: PageData }) {
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
         <p className="text-sm text-slate-500">ارفع حتى 12 صورة لأعمالك أو محلك، دون أسماء أو أسعار.</p>
-        <input className={field} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,"cover");}} />
+        <input className={field} type="file" accept="image/*" multiple onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,12-gallery.length);for(const file of files) await uploadImage(file,"gallery");}} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>setGallery(old=>old.filter((_,i)=>i!==index))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
