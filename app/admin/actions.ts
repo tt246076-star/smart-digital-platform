@@ -88,3 +88,38 @@ export async function setUserGalleryLimit(formData: FormData) {
   revalidatePath("/admin"); revalidatePath("/vip/new"); revalidatePath("/pages/new"); revalidatePath("/dashboard");
   redirect("/admin?gallerysaved=1");
 }
+
+
+export async function setUserPageTypeLimits(formData: FormData) {
+  const sessionClient = await createClient();
+  const { data: { user } } = await sessionClient.auth.getUser();
+  if (!user) redirect("/login");
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail || user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
+
+  const userId = String(formData.get("user_id") || "");
+  const normalMaxPages = Number(formData.get("normal_max_pages"));
+  const vipMaxPages = Number(formData.get("vip_max_pages"));
+  if (!userId || !Number.isInteger(normalMaxPages) || normalMaxPages < 0 || normalMaxPages > 100 ||
+      !Number.isInteger(vipMaxPages) || vipMaxPages < 0 || vipMaxPages > 100) redirect("/admin?error=page_limits");
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) redirect("/admin?error=1");
+  const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { error } = await admin.from("user_page_type_limits").upsert({
+    user_id: userId,
+    normal_max_pages: normalMaxPages,
+    vip_max_pages: vipMaxPages,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "user_id" });
+  if (error) {
+    console.error("Admin page type limit update failed:", error.message);
+    redirect("/admin?error=page_limits");
+  }
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/pages/new");
+  revalidatePath("/vip/new");
+  redirect("/admin?pagesaved=1");
+}
