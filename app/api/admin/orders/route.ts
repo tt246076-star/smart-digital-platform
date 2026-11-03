@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 async function getAdminClient() {
   const session = await createClient();
   const { data: { user } } = await session.auth.getUser();
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) return { response: NextResponse.json({ error: "إعدادات الإدارة غير مكتملة." }, { status: 503 }) };
   if (!user || user.email?.trim().toLowerCase() !== adminEmail) return { response: NextResponse.json({ error: "غير مسموح." }, { status: 403 }) };
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

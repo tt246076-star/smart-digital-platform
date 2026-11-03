@@ -9,7 +9,7 @@ export async function setUserPlan(formData: FormData) {
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!adminEmail || user.email?.toLowerCase() !== adminEmail) redirect("/dashboard");
 
   const userId = String(formData.get("user_id") || "");
@@ -42,7 +42,9 @@ export async function deleteLandingPage(formData: FormData) {
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  if (user.email?.trim().toLowerCase() !== (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase()) redirect("/dashboard");
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) redirect("/admin?error=config");
+  if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
 
   const pageId = String(formData.get("page_id") || "");
   if (!pageId) redirect("/admin?error=1");
@@ -66,7 +68,8 @@ export async function setUserGalleryLimit(formData: FormData) {
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) redirect("/admin?error=config");
   if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
   const userId = String(formData.get("user_id") || "");
   const galleryType = String(formData.get("gallery_type") || "");
