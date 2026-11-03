@@ -49,7 +49,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط وحدود معرض الصور لكل نوع بطاقة.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط وحدود معرض الصور لكل نوع بطاقة.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/pages" className="rounded-xl bg-blue-600 px-4 py-2 font-bold text-white">إدارة صفحات العملاء</a><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
       {params.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم تحديث الاشتراك بنجاح.</p>}
       {params.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف الصفحة.</p>}
       {params.gallerysaved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ صلاحيات معرض الصور.</p>}
@@ -77,8 +77,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </section>
 
       <section className="mt-8 rounded-2xl border bg-white p-5">
-        <h2 className="text-xl font-black">إدارة الصفحات</h2>
-        <p className="mt-1 text-sm text-slate-500">حذف الصفحة نهائي ولا يحذف حساب صاحبها. راجع اسم الصفحة قبل الحذف.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-black">إدارة الصفحات</h2><p className="mt-1 text-sm text-slate-500">عرض مختصر للصفحات؛ افتح إدارة صفحات العملاء لمعاينة كل صفحة ومعرفة منشئها ونوعها وحالتها وتاريخ إنشائها.</p></div><a href="/admin/pages" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">فتح قائمة إدارة صفحات العملاء <span aria-hidden="true">←</span></a></div>
         <div className="mt-4 space-y-3">
           {pagesData.map((page: any) => <article key={page.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
             <div><p className="font-extrabold">{page.business_name || "صفحة بلا اسم"}</p><p className="mt-1 text-xs text-slate-500" dir="ltr">{page.slug} · {page.user_id}</p></div>
