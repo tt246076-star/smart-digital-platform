@@ -28,9 +28,11 @@ export async function createLandingPage(formData: FormData) {
 
   const { count: currentPages, error: countError } = await supabase.from("landing_pages")
     .select("id", { count: "exact", head: true }).eq("user_id", user.id).neq("template", "vip");
+  const { data: pageTypeLimit, error: pageTypeLimitError } = await supabase.from("user_page_type_limits").select("normal_max_pages").eq("user_id", user.id).maybeSingle();
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
-  if (countError || (accessPlan.plan_type === "trial" && (currentPages ?? 0) >= 1)) redirect("/pages/new?error=limit");
+  const maxNormalPages = accessPlan.plan_type === "trial" ? 1 : pageTypeLimit?.normal_max_pages ?? 1;
+  if (countError || pageTypeLimitError || (currentPages ?? 0) >= maxNormalPages) redirect("/pages/new?error=limit");
 
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
