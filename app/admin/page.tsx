@@ -56,7 +56,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">الحسابات المسجلة</p><p className="mt-2 text-3xl font-black">{users.length}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">تجربة مجانية</p><p className="mt-2 text-3xl font-black">{countPlan("trial")}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء عاديون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
+        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء مميزون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء VIP</p><p className="mt-2 text-3xl font-black">{countPlan("vip")}</p></div>
       </div>
 
