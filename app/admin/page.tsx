@@ -29,7 +29,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     admin.from("user_access_plans").select("user_id, plan_type, expires_at, max_pages, advanced_features"),
     admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
     admin.from("user_gallery_limits").select("user_id, max_images, max_image_mb"),
-    admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)").order("created_at", { ascending: false }).limit(100),
+    admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" }).order("created_at", { ascending: false }).limit(20),
     admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages")
   ]);
   const users = usersResult.data?.users || [];
@@ -65,7 +65,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء VIP</p><p className="mt-2 text-3xl font-black">{countPlan("vip")}</p></div>
       </div>
 
-      <AdminOrders initialOrders={ordersData as any} />
+      <AdminOrders initialOrders={ordersData as any} initialTotal={ordersResult.count || 0} />
 
 
       <section className="mt-8 rounded-2xl border bg-white p-5">
