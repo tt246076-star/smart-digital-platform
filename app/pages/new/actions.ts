@@ -27,12 +27,14 @@ export async function createLandingPage(formData: FormData) {
   if (!planActive || accessPlan.plan_type === "trial" || (accessPlan.max_pages ?? 0) < 1) redirect("/pages/new?error=trial");
 
   const { count: currentPages, error: countError } = await supabase.from("landing_pages")
-    .select("id", { count: "exact", head: true }).eq("user_id", user.id);
+    .select("id", { count: "exact", head: true }).eq("user_id", user.id).neq("template", "vip");
   const { data: pageLimit } = await supabase.from("user_page_limits").select("max_pages").eq("user_id", user.id).maybeSingle();
+  const { data: typeLimit, error: typeLimitError } = await supabase.from("user_page_type_limits").select("normal_max_pages").eq("user_id", user.id).maybeSingle();
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
-  const maxPages = Math.min(pageLimit?.max_pages ?? 1, accessPlan?.max_pages ?? 0);
-  if (countError || (currentPages ?? 0) >= maxPages) redirect("/pages/new?error=limit");
+  const configuredLimit = typeLimit?.normal_max_pages ?? pageLimit?.max_pages ?? 1;
+  const maxPages = Math.min(configuredLimit, accessPlan?.max_pages ?? 0);
+  if (countError || typeLimitError || (currentPages ?? 0) >= maxPages) redirect("/pages/new?error=limit");
 
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
