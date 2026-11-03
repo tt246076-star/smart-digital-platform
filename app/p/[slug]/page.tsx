@@ -42,9 +42,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
-    .select("business_name, headline, seo_title, seo_description, description")
+    .select("user_id, business_name, headline, seo_title, seo_description, description")
     .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) return { title: "صفحة غير موجودة | بطاقاتي" };
+  const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",page.user_id).maybeSingle();
+  if (!plan || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) return { title: "صفحة غير متاحة | بطاقاتي" };
   const title = page.seo_title?.trim() || page.headline?.trim() || page.business_name;
   const description = page.seo_description?.trim() || page.description?.trim() || `تعرّف على ${page.business_name} وتواصل معنا عبر بطاقاتي.`;
   return { title, description, openGraph: { title, description, type: "website" } };
@@ -54,9 +56,12 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
-    .select("id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
+    .select("id, user_id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
     .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) notFound();
+  const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",page.user_id).maybeSingle();
+  if (!plan || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) notFound();
+  if (page.template === "vip" && plan.plan_type !== "vip" && plan.plan_type !== "trial") notFound();
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
