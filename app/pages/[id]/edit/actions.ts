@@ -24,7 +24,7 @@ export async function updateLandingPage(formData: FormData) {
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
   const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
-  if (!planActive || accessPlan.plan_type === "trial") redirect("/dashboard?readOnly=1");
+  if (!planActive) redirect("/dashboard?readOnly=1");
 
   const id = String(formData.get("id") || "");
   const business_name = String(formData.get("business_name") || "").trim();
