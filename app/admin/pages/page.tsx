@@ -32,10 +32,7 @@ export default async function AdminPagesPage({
   }
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const [pagesResult, usersResult] = await Promise.all([
-    admin.from("landing_pages").select("id,user_id,slug,business_name,template,is_published,created_at", { count: "exact" }).order("created_at", { ascending: false }).range((currentPage - 1) * pageSize, currentPage * pageSize - 1),
-    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-  ]);
+  const pagesResult = await admin.from("landing_pages").select("id,user_id,slug,business_name,template,is_published,created_at", { count: "exact" }).order("created_at", { ascending: false }).range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
   const pages = pagesResult.data || [];
   const ownerIds = [...new Set(pages.map((page: any) => page.user_id).filter(Boolean))];
   const ownerResults = await Promise.all(ownerIds.map(async (id) => {
@@ -45,7 +42,6 @@ export default async function AdminPagesPage({
   const usersById = new Map(ownerResults);
   const loadErrors = [
     pagesResult.error ? `الصفحات: ${pagesResult.error.message}` : "",
-    usersResult.error ? `الحسابات: ${usersResult.error.message}` : "",
   ].filter(Boolean);
 
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
