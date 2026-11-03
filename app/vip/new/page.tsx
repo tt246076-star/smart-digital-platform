@@ -17,7 +17,9 @@ async function createVIPCard(formData: FormData) {
   const active = !!plan && (!plan.expires_at || new Date(plan.expires_at).getTime() > Date.now());
   if (!active || !["trial","vip"].includes(plan.plan_type)) redirect("/dashboard?vipError=plan");
   const { count, error: countError } = await supabase.from("landing_pages").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("template","vip");
-  if (countError || (plan.plan_type === "trial" && (count ?? 0) >= 1)) redirect("/dashboard?vipError=limit");
+  const { data: pageTypeLimit, error: pageTypeLimitError } = await supabase.from("user_page_type_limits").select("vip_max_pages").eq("user_id",user.id).maybeSingle();
+  const maxVIPPages = plan.plan_type === "trial" ? 1 : pageTypeLimit?.vip_max_pages ?? 1;
+  if (countError || pageTypeLimitError || (count ?? 0) >= maxVIPPages) redirect("/dashboard?vipError=limit");
   const name = String(formData.get("name") || "").trim().slice(0,100);
   if (!name) redirect("/vip/new?error=name");
   const cleanUrl = (raw: FormDataEntryValue | null) => { try { const u = new URL(String(raw || "")); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
