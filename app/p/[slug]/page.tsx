@@ -61,6 +61,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   if (!page) notFound();
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",page.user_id).maybeSingle();
   if (!plan || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) notFound();
+  if (page.template === "vip" && plan.plan_type !== "vip" && plan.plan_type !== "trial") notFound();
 
   const links = socialLinks(page);
   const sections = (page.sections && typeof page.sections === "object" ? page.sections : {}) as {
