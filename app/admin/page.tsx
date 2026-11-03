@@ -89,7 +89,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <div className="mb-4"><h2 className="text-2xl font-black">الحسابات وإدارة الاشتراكات</h2><p className="mt-1 text-sm text-slate-500">اختر نوع عضوية كل حساب بعد التأكد من الشراء. لا يوجد حد صفحات للعميل المميز أو VIP.</p></div>
         {usersResult.error ? <p className="rounded-xl bg-red-50 p-4 text-red-800">لم نتمكن من قراءة الحسابات: {usersResult.error.message}</p> : users.length === 0 ? <div className="rounded-2xl border bg-white p-5"><p className="font-bold">لم يتم العثور على حسابات في Auth بهذا المشروع.</p><p className="mt-2 text-sm text-slate-600">بما أن الصفحات موجودة، فالاحتمال الأقوى أن رابط Supabase أو مفتاح الخدمة لا يعودان إلى مشروع تسجيل الحسابات. قارن Project URL في Supabase مع NEXT_PUBLIC_SUPABASE_URL في Vercel، ولا ترسل المفتاح السري لأي شخص.</p></div> : <div className="space-y-4">{users.map((item) => {
           const plan: any = plans.get(item.id);
-          const typeLimits: any = pageTypeLimits.get(item.id);
           const planName = plan?.plan_type === "vip" || plan?.plan_type === "special" ? "عميل VIP" : plan?.plan_type === "customer" ? "عميل مميز" : "تجربة مجانية";
           const expired = plan?.expires_at && new Date(plan.expires_at).getTime() < Date.now();
           return <article key={item.id} className="rounded-2xl border bg-white p-5 shadow-sm">
