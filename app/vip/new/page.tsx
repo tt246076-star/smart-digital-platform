@@ -16,10 +16,12 @@ async function createVIPCard(formData: FormData) {
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at,max_pages,advanced_features").eq("user_id",user.id).maybeSingle();
   const active = !!plan && (!plan.expires_at || new Date(plan.expires_at).getTime() > Date.now());
   if (!active || plan.plan_type === "trial" || !plan.advanced_features || (plan.max_pages ?? 0) < 1) redirect("/dashboard?vipError=plan");
-  const { count } = await supabase.from("landing_pages").select("id",{count:"exact",head:true}).eq("user_id",user.id);
+  const { count, error: countError } = await supabase.from("landing_pages").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("template","vip");
   const { data: limits } = await supabase.from("user_page_limits").select("max_pages").eq("user_id",user.id).maybeSingle();
-  const max = Math.min(limits?.max_pages ?? plan.max_pages, plan.max_pages ?? 0);
-  if ((count ?? 0) >= max) redirect("/dashboard?vipError=limit");
+  const { data: typeLimit, error: typeLimitError } = await supabase.from("user_page_type_limits").select("vip_max_pages").eq("user_id",user.id).maybeSingle();
+  const configuredLimit = typeLimit?.vip_max_pages ?? limits?.max_pages ?? plan.max_pages;
+  const max = Math.min(configuredLimit, plan.max_pages ?? 0);
+  if (countError || typeLimitError || (count ?? 0) >= max) redirect("/dashboard?vipError=limit");
   const name = String(formData.get("name") || "").trim().slice(0,100);
   if (!name) redirect("/vip/new?error=name");
   const cleanUrl = (raw: FormDataEntryValue | null) => { try { const u = new URL(String(raw || "")); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
