@@ -10,9 +10,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminPagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ deleted?: string; error?: string }>;
+  searchParams: Promise<{ deleted?: string; error?: string; page?: string }>;
 }) {
   const params = await searchParams;
+  const currentPage = Math.max(1, Math.min(100000, Number.parseInt(params.page || "1", 10) || 1));
+  const pageSize = 20;
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
@@ -30,15 +32,16 @@ export default async function AdminPagesPage({
   }
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const [pagesResult, usersResult] = await Promise.all([
-    admin.from("landing_pages").select("id,user_id,slug,business_name,template,is_published,created_at").order("created_at", { ascending: false }).limit(1000),
-    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-  ]);
+  const pagesResult = await admin.from("landing_pages").select("id,user_id,slug,business_name,template,is_published,created_at", { count: "exact" }).order("created_at", { ascending: false }).range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
   const pages = pagesResult.data || [];
-  const usersById = new Map((usersResult.data?.users || []).map((item) => [item.id, item.email || "بريد غير متوفر"]));
+  const ownerIds = [...new Set(pages.map((page: any) => page.user_id).filter(Boolean))];
+  const ownerResults = await Promise.all(ownerIds.map(async (id) => {
+    const { data } = await admin.auth.admin.getUserById(id);
+    return [id, data.user?.email || "بريد غير متوفر"] as const;
+  }));
+  const usersById = new Map(ownerResults);
   const loadErrors = [
     pagesResult.error ? `الصفحات: ${pagesResult.error.message}` : "",
-    usersResult.error ? `الحسابات: ${usersResult.error.message}` : "",
   ].filter(Boolean);
 
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
@@ -51,7 +54,7 @@ export default async function AdminPagesPage({
       {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">تعذّر تنفيذ العملية. راجع أخطاء التحميل أدناه.</p>}
       {loadErrors.length > 0 && <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900"><h2 className="font-black">مشكلة في تحميل البيانات</h2><ul className="mt-2 list-disc space-y-1 pr-5 text-sm">{loadErrors.map((error, i) => <li key={i}>{error}</li>)}</ul></section>}
       <section className="mt-6 rounded-2xl border bg-white p-4 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-black">كل الصفحات</h2><span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold">{pages.length} صفحة</span></div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-black">كل الصفحات</h2><span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold">{pagesResult.count ?? pages.length} صفحة</span></div>
         <div className="space-y-3">
           {pages.map((page: any) => {
             const isVip = page.template === "vip";
@@ -71,7 +74,13 @@ export default async function AdminPagesPage({
           })}
           {!pagesResult.error && pages.length === 0 && <p className="py-10 text-center text-slate-500">لا توجد صفحات بعد.</p>}
         </div>
-        {pages.length >= 1000 && <p className="mt-4 text-sm text-amber-700">تُعرض أول 1000 صفحة فقط حاليًا.</p>}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+          <span className="text-sm text-slate-600">صفحة {currentPage} من {Math.max(1, Math.ceil((pagesResult.count || 0) / pageSize))}</span>
+          <div className="flex gap-2">
+            {currentPage > 1 && <Link href={`/admin/pages?page=${currentPage - 1}`} className="rounded-lg border px-4 py-2 text-sm font-bold">السابق</Link>}
+            {currentPage * pageSize < (pagesResult.count || 0) && <Link href={`/admin/pages?page=${currentPage + 1}`} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white">التالي</Link>}
+          </div>
+        </div>
       </section>
     </div>
   </main>;

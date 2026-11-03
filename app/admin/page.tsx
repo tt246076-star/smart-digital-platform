@@ -8,8 +8,10 @@ import AdminOrders from "./AdminOrders";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; gallerysaved?: string; pagesaved?: string; error?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; gallerysaved?: string; pagesaved?: string; error?: string; usersPage?: string }> }) {
   const params = await searchParams;
+  const usersPage = Math.max(1, Math.min(100000, Number.parseInt(params.usersPage || "1", 10) || 1));
+  const usersPerPage = 20;
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
@@ -23,11 +25,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   const [usersResult, plansResult, pagesResult, galleryLimitsResult, ordersResult, pageTypeLimitsResult] = await Promise.all([
-    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    admin.auth.admin.listUsers({ page: usersPage, perPage: usersPerPage }),
     admin.from("user_access_plans").select("user_id, plan_type, expires_at, max_pages, advanced_features"),
     admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
     admin.from("user_gallery_limits").select("user_id, max_images, max_image_mb"),
-    admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)").order("created_at", { ascending: false }).limit(100),
+    admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" }).order("created_at", { ascending: false }).limit(20),
     admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages")
   ]);
   const users = usersResult.data?.users || [];
@@ -57,13 +59,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">تعذّر تنفيذ العملية. راجع رسائل الخطأ أدناه وإعدادات Supabase.</p>}
       {loadErrors.length > 0 && <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900"><h2 className="font-black">مشكلة في تحميل بيانات الإدارة</h2><p className="mt-1 text-sm">هذه رسالة الخطأ الفعلية من Supabase للمساعدة في تحديد السبب. لا تعرض مفاتيح سرية هنا.</p><ul className="mt-3 list-disc space-y-1 pr-5 text-sm">{loadErrors.map((err, i) => <li key={i}>{err}</li>)}</ul><p className="mt-3 text-sm">إذا كانت الحسابات 0 بينما توجد صفحات، تحقق أن NEXT_PUBLIC_SUPABASE_URL وSUPABASE_SERVICE_ROLE_KEY من مشروع Supabase نفسه.</p></section>}
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">الحسابات المسجلة</p><p className="mt-2 text-3xl font-black">{users.length}</p></div>
+        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">حسابات الصفحة الحالية</p><p className="mt-2 text-3xl font-black">{users.length}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">تجربة مجانية</p><p className="mt-2 text-3xl font-black">{countPlan("trial")}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء مميزون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
         <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء VIP</p><p className="mt-2 text-3xl font-black">{countPlan("vip")}</p></div>
       </div>
 
-      <AdminOrders initialOrders={ordersData as any} />
+      <AdminOrders initialOrders={ordersData as any} initialTotal={ordersResult.count || 0} />
 
 
       <section className="mt-8 rounded-2xl border bg-white p-5">
@@ -114,7 +116,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <form action={setUserPlan} className="mt-4 flex flex-wrap items-end gap-3"><input type="hidden" name="user_id" value={item.id}/><label className="min-w-48 flex-1 text-sm font-bold">تغيير الخطة<select name="plan_type" defaultValue={plan?.plan_type || "trial"} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3"><option value="trial">تجربة مجانية — 3 أيام</option><option value="customer">عميل مميز</option><option value="vip">عميل VIP</option></select></label><button className="rounded-xl bg-blue-600 px-5 py-3 font-bold text-white hover:bg-blue-700">حفظ الصلاحيات</button></form>
           </article>;
         })}</div>}
-        {users.length >= 1000 && <p className="mt-4 text-sm text-amber-700">يتم عرض أول 1000 حساب. يلزم إضافة ترقيم صفحات إذا كان لديك أكثر من ذلك.</p>}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4">
+          <span className="text-sm text-slate-600">صفحة الحسابات {usersPage} · {users.length} حساب في هذه الصفحة</span>
+          <div className="flex gap-2">
+            {usersPage > 1 && <a href={`/admin?usersPage=${usersPage - 1}`} className="rounded-lg border px-4 py-2 text-sm font-bold">السابق</a>}
+            {users.length === usersPerPage && <a href={`/admin?usersPage=${usersPage + 1}`} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white">التالي</a>}
+          </div>
+        </div>
       </section>
     </div>
   </main>;

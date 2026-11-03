@@ -11,8 +11,10 @@ type Order = {
 const statusLabels: Record<Order["status"],string> = {new:"طلب جديد",confirmed:"تم التأكيد",shipped:"تم الإرسال",completed:"مكتمل",cancelled:"ملغي"};
 const statusStyles: Record<Order["status"],string> = {new:"bg-amber-100 text-amber-800",confirmed:"bg-blue-100 text-blue-800",shipped:"bg-violet-100 text-violet-800",completed:"bg-emerald-100 text-emerald-800",cancelled:"bg-slate-100 text-slate-600"};
 
-export default function AdminOrders({ initialOrders }: { initialOrders: Order[] }) {
+export default function AdminOrders({ initialOrders, initialTotal }: { initialOrders: Order[]; initialTotal: number }) {
   const [orders,setOrders] = useState(initialOrders);
+  const [page,setPage] = useState(1);
+  const [total,setTotal] = useState(initialTotal);
   const [loading,setLoading] = useState(false);
   const [error,setError] = useState("");
   const [notice,setNotice] = useState("");
@@ -22,7 +24,7 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
   const refresh = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
     try {
-      const response = await fetch("/api/admin/orders", { cache: "no-store" });
+      const response = await fetch(`/api/admin/orders?page=${page}`, { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر تحميل الطلبات");
       const fresh: Order[] = data.orders || [];
@@ -37,12 +39,13 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
       }
       firstPoll.current = false;
       fresh.forEach(o=>knownIds.current.add(o.id));
-      setOrders(fresh); setError("");
+      setOrders(fresh); setTotal(data.total ?? fresh.length); setError("");
     } catch (e) { setError(e instanceof Error ? e.message : "تعذر تحميل الطلبات"); }
     finally { if (!quiet) setLoading(false); }
-  }, []);
+  }, [page]);
 
   useEffect(() => {
+    void refresh();
     const id = window.setInterval(() => { void refresh(true); }, 15000);
     return () => window.clearInterval(id);
   }, [refresh]);
@@ -66,6 +69,7 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر حذف الطلب.");
       setOrders(old => old.filter(order => order.id !== orderId));
+      setTotal(old => Math.max(0, old - 1));
       knownIds.current.delete(orderId);
       setNotice("تم حذف الطلب.");
     } catch (e) { setError(e instanceof Error ? e.message : "تعذر حذف الطلب."); }
@@ -83,6 +87,7 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
       <div><div className="flex items-center gap-2"><h2 className="text-2xl font-black">طلبات الزبائن</h2>{newCount>0&&<span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white">{newCount} جديد</span>}</div><p className="mt-1 text-sm text-slate-500">تتحدّث القائمة تلقائيًا كل 15 ثانية.</p></div>
       <div className="flex flex-wrap gap-2"><button onClick={enableNotifications} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-800">تفعيل الإشعارات</button><button onClick={()=>void refresh()} disabled={loading} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{loading?"جاري التحديث...":"تحديث الطلبات ↻"}</button></div>
     </div>
+    <div className="mt-3 flex items-center justify-between text-sm text-slate-600"><span>إجمالي الطلبات: {total}</span><span>الصفحة {page} / {Math.max(1, Math.ceil(total / 20))}</span></div>
     {notice&&<p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{notice}</p>}
     {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
     <div className="mt-5 space-y-3">
@@ -98,6 +103,10 @@ export default function AdminOrders({ initialOrders }: { initialOrders: Order[] 
         </article>;
       })}
       {!orders.length&&<div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center"><span className="text-3xl">🛍️</span><h3 className="mt-3 font-black text-slate-800">ما كاين حتى طلب جديد لحد الآن</h3><p className="mt-1 text-sm leading-6 text-slate-500">كي يطلب زبون منتج من صفحة متجر، الطلب يبان هنا تلقائيًا.</p></div>}
+    </div>
+    <div className="mt-5 flex justify-center gap-2">
+      <button type="button" disabled={page <= 1 || loading} onClick={() => setPage(value => Math.max(1, value - 1))} className="rounded-lg border px-4 py-2 text-sm font-bold disabled:opacity-40">السابق</button>
+      <button type="button" disabled={page * 20 >= total || loading} onClick={() => setPage(value => value + 1)} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">التالي</button>
     </div>
   </section>;
 }

@@ -16,18 +16,21 @@ async function getAdminClient() {
   return { client: createSupabaseClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } }) };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const result = await getAdminClient();
     if ("response" in result) return result.response;
-    const { data, error } = await result.client.from("store_orders")
-      .select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)")
-      .order("created_at", { ascending: false }).limit(100);
+    const url = new URL(request.url);
+    const page = Math.max(1, Math.min(100000, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
+    const pageSize = 20;
+    const { data, error, count } = await result.client.from("store_orders")
+      .select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" })
+      .order("created_at", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
     if (error) {
       console.error("Admin orders read failed:", error.message);
       return NextResponse.json({ error: "تعذر تحميل الطلبات. تأكد من إعداد جدول store_orders في Supabase." }, { status: 503 });
     }
-    return NextResponse.json({ orders: data || [] }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ orders: data || [], total: count || 0, page, pageSize }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "تعذر تحميل الطلبات." }, { status: 500 });
   }
