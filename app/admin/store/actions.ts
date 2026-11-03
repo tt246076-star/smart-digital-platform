@@ -8,8 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 async function getAdmin() {
   const session = await createClient();
   const { data: { user } } = await session.auth.getUser();
-  const email = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
-  if (!user || user.email?.trim().toLowerCase() !== email) redirect("/dashboard");
+  if (!user) redirect("/login");
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email) redirect("/admin/store?error=config");
+  if (user.email?.trim().toLowerCase() !== email) redirect("/dashboard");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) redirect("/admin/store?error=config");
