@@ -45,6 +45,7 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
   }, [page]);
 
   useEffect(() => {
+    void refresh();
     const id = window.setInterval(() => { void refresh(true); }, 15000);
     return () => window.clearInterval(id);
   }, [refresh]);
