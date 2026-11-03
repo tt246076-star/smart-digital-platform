@@ -11,10 +11,10 @@ type Order = {
 const statusLabels: Record<Order["status"],string> = {new:"طلب جديد",confirmed:"تم التأكيد",shipped:"تم الإرسال",completed:"مكتمل",cancelled:"ملغي"};
 const statusStyles: Record<Order["status"],string> = {new:"bg-amber-100 text-amber-800",confirmed:"bg-blue-100 text-blue-800",shipped:"bg-violet-100 text-violet-800",completed:"bg-emerald-100 text-emerald-800",cancelled:"bg-slate-100 text-slate-600"};
 
-export default function AdminOrders({ initialOrders }: { initialOrders: Order[] }) {
+export default function AdminOrders({ initialOrders, initialTotal }: { initialOrders: Order[]; initialTotal: number }) {
   const [orders,setOrders] = useState(initialOrders);
   const [page,setPage] = useState(1);
-  const [total,setTotal] = useState(initialOrders.length);
+  const [total,setTotal] = useState(initialTotal);
   const [loading,setLoading] = useState(false);
   const [error,setError] = useState("");
   const [notice,setNotice] = useState("");
