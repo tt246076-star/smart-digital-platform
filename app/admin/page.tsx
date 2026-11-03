@@ -13,8 +13,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
   if (!user) redirect("/login");
-  const adminEmail = (process.env.ADMIN_EMAIL || "tt246076@gmail.com").trim().toLowerCase();
-  if (!adminEmail || user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard?error=readonly");
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!adminEmail) return <main dir="rtl" className="min-h-screen bg-slate-50 p-6"><div className="mx-auto max-w-4xl rounded-2xl bg-white p-6"><h1 className="text-2xl font-black">إعداد لوحة الإدارة</h1><p className="mt-3 leading-7">أضف ADMIN_EMAIL إلى إعدادات Environment Variables في Vercel ثم أعد النشر. لن يتم منح صلاحيات الإدارة عند غياب هذا الإعداد.</p></div></main>;
+  if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard?error=readonly");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
