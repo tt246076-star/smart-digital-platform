@@ -19,7 +19,6 @@ export default function AnimatedMetric({ value, label, hint, icon, delay = 0 }: 
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const duration = 1050;
-    let frame = 0;
     let start = 0;
     let raf = 0;
     const tick = (now: number) => {
