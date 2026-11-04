@@ -49,21 +49,24 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   ].filter(Boolean);
   const countPlan = (type: string) => plansData.filter((p: any) => p.plan_type === type).length;
 
-  return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
+  return <main dir="rtl" className="min-h-screen bg-[#FFF8F0] px-4 py-8 text-slate-900 sm:px-6">
     <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط وحدود معرض الصور لكل نوع بطاقة.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/pages" className="rounded-xl bg-blue-600 px-4 py-2 font-bold text-white">إدارة صفحات العملاء</a><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-orange-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط وحدود معرض الصور لكل نوع بطاقة.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/pages" className="rounded-xl bg-[#F97316] px-4 py-2 font-bold text-white transition hover:bg-orange-700">إدارة صفحات العملاء</a><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
       {params.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم تحديث الاشتراك بنجاح.</p>}
       {params.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف الصفحة.</p>}
       {params.gallerysaved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ صلاحيات معرض الصور.</p>}
       {params.pagesaved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ حدود البطاقات العادية وVIP.</p>}
       {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">تعذّر تنفيذ العملية. راجع رسائل الخطأ أدناه وإعدادات Supabase.</p>}
       {loadErrors.length > 0 && <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900"><h2 className="font-black">مشكلة في تحميل بيانات الإدارة</h2><p className="mt-1 text-sm">هذه رسالة الخطأ الفعلية من Supabase للمساعدة في تحديد السبب. لا تعرض مفاتيح سرية هنا.</p><ul className="mt-3 list-disc space-y-1 pr-5 text-sm">{loadErrors.map((err, i) => <li key={i}>{err}</li>)}</ul><p className="mt-3 text-sm">إذا كانت الحسابات 0 بينما توجد صفحات، تحقق أن NEXT_PUBLIC_SUPABASE_URL وSUPABASE_SERVICE_ROLE_KEY من مشروع Supabase نفسه.</p></section>}
-      <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">حسابات الصفحة الحالية</p><p className="mt-2 text-3xl font-black">{users.length}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">تجربة مجانية</p><p className="mt-2 text-3xl font-black">{countPlan("trial")}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء مميزون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء VIP</p><p className="mt-2 text-3xl font-black">{countPlan("vip")}</p></div>
-      </div>
+      <section className="mt-6">
+        <div className="mb-3"><h2 className="text-lg font-black">ملخص العضويات</h2><p className="mt-1 text-sm text-slate-500">أرقام الخطط من قاعدة البيانات؛ الحسابات المعروضة أدناه مقسمة إلى صفحات.</p></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"><div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-orange-500 to-amber-300"/><p className="text-sm font-semibold text-slate-500">حسابات في هذه الصفحة</p><p className="mt-2 text-3xl font-black text-slate-950">{users.length}<span className="mr-2 text-xs font-medium text-slate-400">/ 20</span></p></div>
+          <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"><div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-amber-400 to-orange-300"/><p className="text-sm font-semibold text-slate-500">تجربة مجانية</p><p className="mt-2 text-3xl font-black text-slate-950">{countPlan("trial")}</p></div>
+          <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"><div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-orange-500 to-red-400"/><p className="text-sm font-semibold text-slate-500">عملاء مميزون</p><p className="mt-2 text-3xl font-black text-slate-950">{countPlan("customer")}</p></div>
+          <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-[#171717] p-5 text-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"><div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-amber-300 to-orange-500"/><p className="text-sm font-semibold text-orange-100/70">عملاء VIP</p><p className="mt-2 text-3xl font-black text-amber-300">{countPlan("vip")}</p></div>
+        </div>
+      </section>
 
       <AdminOrders initialOrders={ordersData as any} initialTotal={ordersResult.count || 0} />
 
