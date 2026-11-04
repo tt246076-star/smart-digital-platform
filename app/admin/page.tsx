@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { setUserPlan, deleteLandingPage, setUserGalleryLimit, setUserPageTypeLimits } from "./actions";
 import DeletePageForm from "./DeletePageForm";
-import AdminOrders from "./AdminOrders";
+import AdminOrders from "./AdminOrders";\nimport AnimatedMetric from "@/components/AnimatedMetric";
 
 export const dynamic = "force-dynamic";
 
@@ -24,13 +24,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (!url || !serviceKey) return <main dir="rtl" className="min-h-screen bg-slate-50 p-6"><div className="mx-auto max-w-4xl rounded-2xl bg-white p-6"><h1 className="text-2xl font-black">إعداد لوحة الإدارة</h1><p className="mt-3 leading-7">أضف ADMIN_EMAIL و SUPABASE_SERVICE_ROLE_KEY في إعدادات Vercel ثم أعد النشر. لا تضع مفتاح الخدمة في أي ملف ظاهر للمتصفح.</p><p className="mt-3 text-sm text-amber-700">تأكد أن المفتاح تابع لنفس مشروع Supabase الذي يستخدمه الموقع.</p></div></main>;
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const [usersResult, plansResult, pagesResult, galleryLimitsResult, ordersResult, pageTypeLimitsResult] = await Promise.all([
+  const [usersResult, plansResult, pagesResult, galleryLimitsResult, ordersResult, pageTypeLimitsResult, accountCountResult, cardCountResult] = await Promise.all([
     admin.auth.admin.listUsers({ page: usersPage, perPage: usersPerPage }),
     admin.from("user_access_plans").select("user_id, plan_type, expires_at, max_pages, advanced_features"),
     admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
     admin.from("user_gallery_limits").select("user_id, max_images, max_image_mb"),
     admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" }).order("created_at", { ascending: false }).limit(20),
-    admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages")
+    admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages"),\n    admin.from("profiles").select("id", { count: "exact", head: true }),\n    admin.from("landing_pages").select("id", { count: "exact", head: true })
   ]);
   const users = usersResult.data?.users || [];
   const plansData = plansResult.data || [];
@@ -45,30 +45,30 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     pagesResult.error ? `الصفحات: ${pagesResult.error.message}` : "",
     galleryLimitsResult.error ? `حدود المعرض: ${galleryLimitsResult.error.message}` : "",
     ordersResult.error ? `طلبات الزبائن: ${ordersResult.error.message}` : "",
-    pageTypeLimitsResult.error ? `حدود البطاقات: ${pageTypeLimitsResult.error.message}` : "",
+    pageTypeLimitsResult.error ? `حدود البطاقات: ${pageTypeLimitsResult.error.message}` : "",\n    accountCountResult.error ? `عدد الحسابات: ${accountCountResult.error.message}` : "",\n    cardCountResult.error ? `عدد البطاقات: ${cardCountResult.error.message}` : "",
   ].filter(Boolean);
   const countPlan = (type: string) => plansData.filter((p: any) => p.plan_type === type).length;
 
-  return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-blue-600">{SITE.name}</p><h1 className="mt-1 text-3xl font-black">لوحة إدارة الاشتراكات</h1><p className="mt-2 text-slate-500">إدارة الحسابات والخطط وحدود معرض الصور لكل نوع بطاقة.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/pages" className="rounded-xl bg-blue-600 px-4 py-2 font-bold text-white">إدارة صفحات العملاء</a><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
+  return <main dir="rtl" className="admin-ember min-h-screen px-4 py-8 text-slate-900 sm:px-6">
+    <div className="admin-ember-shell mx-auto max-w-7xl">
+      <div className="ember-admin-hero flex flex-wrap items-center justify-between gap-3"><div><p className="ember-kicker font-bold">{SITE.name} · CONTROL CENTER</p><h1 className="mt-2 text-3xl font-black">لوحة إدارة بطاقتي</h1><p className="mt-2 text-slate-500">مركز التحكم بالمنصة والحسابات والعضويات والصفحات.</p></div><div className="flex flex-wrap gap-2"><a href="/admin/pages" className="rounded-xl bg-blue-600 px-4 py-2 font-bold text-white">إدارة صفحات العملاء</a><a href="/admin/store" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">إدارة منتجات المتجر</a><a href="/dashboard" className="rounded-xl border bg-white px-4 py-2 font-bold">العودة للموقع</a></div></div>
       {params.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم تحديث الاشتراك بنجاح.</p>}
       {params.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف الصفحة.</p>}
       {params.gallerysaved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ صلاحيات معرض الصور.</p>}
       {params.pagesaved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ حدود البطاقات العادية وVIP.</p>}
       {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">تعذّر تنفيذ العملية. راجع رسائل الخطأ أدناه وإعدادات Supabase.</p>}
       {loadErrors.length > 0 && <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900"><h2 className="font-black">مشكلة في تحميل بيانات الإدارة</h2><p className="mt-1 text-sm">هذه رسالة الخطأ الفعلية من Supabase للمساعدة في تحديد السبب. لا تعرض مفاتيح سرية هنا.</p><ul className="mt-3 list-disc space-y-1 pr-5 text-sm">{loadErrors.map((err, i) => <li key={i}>{err}</li>)}</ul><p className="mt-3 text-sm">إذا كانت الحسابات 0 بينما توجد صفحات، تحقق أن NEXT_PUBLIC_SUPABASE_URL وSUPABASE_SERVICE_ROLE_KEY من مشروع Supabase نفسه.</p></section>}
-      <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">حسابات الصفحة الحالية</p><p className="mt-2 text-3xl font-black">{users.length}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">تجربة مجانية</p><p className="mt-2 text-3xl font-black">{countPlan("trial")}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء مميزون</p><p className="mt-2 text-3xl font-black">{countPlan("customer")}</p></div>
-        <div className="rounded-2xl border bg-white p-5"><p className="text-sm text-slate-500">عملاء VIP</p><p className="mt-2 text-3xl font-black">{countPlan("vip")}</p></div>
-      </div>
+      <section className="ember-metrics-grid mt-8" aria-label="إحصائيات المنصة">
+        <AnimatedMetric value={accountCountResult.count || 0} label="إجمالي الحسابات" hint="كل حسابات العملاء المسجلة" icon="users" />
+        <AnimatedMetric value={cardCountResult.count || 0} label="إجمالي البطاقات" hint="البطاقات العادية وVIP" icon="cards" delay={100} />
+        <AnimatedMetric value={countPlan("trial")} label="تجارب مجانية" hint="حسابات على الفترة التجريبية" icon="trial" delay={200} />
+        <AnimatedMetric value={countPlan("vip")} label="عملاء VIP" hint="عضويات VIP المسجلة" icon="vip" delay={300} />
+      </section>
 
       <AdminOrders initialOrders={ordersData as any} initialTotal={ordersResult.count || 0} />
 
 
-      <section className="mt-8 rounded-2xl border bg-white p-5">
+      <section className="ember-panel mt-8 rounded-2xl border bg-white p-5">
         <h2 className="text-xl font-black">أنواع العضوية</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <article className="rounded-xl border p-4"><h3 className="font-black">تجربة مجانية</h3><p className="mt-2 text-sm text-slate-600">3 أيام · بطاقة عادية واحدة وبطاقة VIP واحدة.</p></article>
@@ -90,7 +90,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
-      <section className="mt-8">
+      <section className="ember-panel mt-8">
         <div className="mb-4"><h2 className="text-2xl font-black">الحسابات وإدارة الاشتراكات</h2><p className="mt-1 text-sm text-slate-500">اختر نوع عضوية كل حساب بعد التأكد من الشراء. حدد لكل عميل عدد البطاقات العادية وVIP من لوحة الإدارة.</p></div>
         {usersResult.error ? <p className="rounded-xl bg-red-50 p-4 text-red-800">لم نتمكن من قراءة الحسابات: {usersResult.error.message}</p> : users.length === 0 ? <div className="rounded-2xl border bg-white p-5"><p className="font-bold">لم يتم العثور على حسابات في Auth بهذا المشروع.</p><p className="mt-2 text-sm text-slate-600">بما أن الصفحات موجودة، فالاحتمال الأقوى أن رابط Supabase أو مفتاح الخدمة لا يعودان إلى مشروع تسجيل الحسابات. قارن Project URL في Supabase مع NEXT_PUBLIC_SUPABASE_URL في Vercel، ولا ترسل المفتاح السري لأي شخص.</p></div> : <div className="space-y-4">{users.map((item) => {
           const plan: any = plans.get(item.id);
