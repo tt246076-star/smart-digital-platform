@@ -7,7 +7,7 @@ import { GlobalLanguageProvider } from "@/components/GlobalLanguageProvider";
 const cairo = Cairo({ subsets: ["arabic", "latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://smart-digital-platform.vercel.app"),
+  metadataBase: new URL("https://bitaqati.online"),
   title: {
     default: `${SITE.name} | بطاقتك الرقمية الذكية`,
     template: `%s | ${SITE.name}`,
