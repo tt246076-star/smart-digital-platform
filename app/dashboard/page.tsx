@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
-import SharePageButton from "@/components/SharePageButton";\nimport AnimatedMetric from "@/components/AnimatedMetric";
+import SharePageButton from "@/components/SharePageButton";
+import AnimatedMetric from "@/components/AnimatedMetric";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ created?: string; editError?: string; readOnly?: string; vipCreated?: string; vipError?: string; vipUpdated?: string; vipEditError?: string }> }) {
