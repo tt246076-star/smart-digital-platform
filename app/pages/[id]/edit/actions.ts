@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
 
 function safeUrl(value: FormDataEntryValue | null) {
   const input = String(value || "").trim();
@@ -13,6 +14,18 @@ function safeUrl(value: FormDataEntryValue | null) {
   } catch {
     return "";
   }
+}
+
+function readRemovedImageUrls(formData: FormData): string[] {
+  const urls: string[] = [];
+  formData.forEach((value, key) => {
+    if (key !== "removed_image_urls" && !key.endsWith("_removed")) return;
+    try {
+      const parsed = JSON.parse(String(value));
+      if (Array.isArray(parsed)) urls.push(...parsed.filter((item): item is string => typeof item === "string"));
+    } catch { /* Ignore malformed optional cleanup metadata. */ }
+  });
+  return [...new Set(urls)];
 }
 
 export async function updateLandingPage(formData: FormData) {
@@ -27,7 +40,7 @@ export async function updateLandingPage(formData: FormData) {
   if (!planActive) redirect("/dashboard?readOnly=1");
 
   const id = String(formData.get("id") || "");
-  const { data: existingPage } = await supabase.from("landing_pages").select("template").eq("id", id).eq("user_id", user.id).maybeSingle();
+  const { data: existingPage } = await supabase.from("landing_pages").select("template,logo_url,sections").eq("id", id).eq("user_id", user.id).maybeSingle();
   if (!existingPage || (existingPage.template === "vip" && accessPlan?.plan_type !== "vip" && accessPlan?.plan_type !== "trial")) redirect("/dashboard?readOnly=1");
   const business_name = String(formData.get("business_name") || "").trim();
   const headline = String(formData.get("headline") || "").trim();
@@ -87,6 +100,7 @@ export async function updateLandingPage(formData: FormData) {
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);
   }
 
+  await cleanupLandingPageImages([existingPage, readRemovedImageUrls(formData)]);
   revalidatePath("/dashboard");
   revalidatePath(`/p/${data.slug}`);
   redirect(`/p/${data.slug}?updated=1`);

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { cleanupStoreProductImages } from "@/lib/server/storage-cleanup";
 
 async function getAdmin() {
   const session = await createClient();
@@ -24,6 +25,12 @@ export async function saveStoreProduct(formData: FormData) {
   const name = String(formData.get("name") || "").trim().slice(0, 120);
   const description = String(formData.get("description") || "").trim().slice(0, 1000);
   let imageUrl = String(formData.get("image_url") || "").trim().slice(0, 1000);
+  let previousImageUrl = "";
+  if (id) {
+    const { data: previousProduct, error: previousProductError } = await admin.from("storefront_products").select("image_url").eq("id", id).maybeSingle();
+    if (previousProductError) { console.error("Store product image lookup failed:", previousProductError.message); redirect("/admin/store?error=db"); }
+    previousImageUrl = previousProduct?.image_url || "";
+  }
   const imageFile = formData.get("image_file");
   if (imageFile instanceof File && imageFile.size > 0) {
     if (!imageFile.type.startsWith("image/") || imageFile.size > 5 * 1024 * 1024) redirect("/admin/store?error=file");
@@ -46,6 +53,7 @@ export async function saveStoreProduct(formData: FormData) {
     console.error("Store product save failed:", result.error.message);
     redirect("/admin/store?error=db");
   }
+  if (id && previousImageUrl && previousImageUrl !== imageUrl) await cleanupStoreProductImages([previousImageUrl]);
   revalidatePath("/");
   revalidatePath("/admin/store");
   redirect("/admin/store?saved=1");
@@ -55,11 +63,14 @@ export async function deleteStoreProduct(formData: FormData) {
   const admin = await getAdmin();
   const id = String(formData.get("id") || "").trim();
   if (!id) redirect("/admin/store?error=fields");
+  const { data: productToDelete, error: lookupError } = await admin.from("storefront_products").select("image_url").eq("id", id).maybeSingle();
+  if (lookupError) { console.error("Store product image lookup failed:", lookupError.message); redirect("/admin/store?error=db"); }
   const { error } = await admin.from("storefront_products").delete().eq("id", id);
   if (error) {
     console.error("Store product delete failed:", error.message);
     redirect("/admin/store?error=db");
   }
+  await cleanupStoreProductImages([productToDelete]);
   revalidatePath("/");
   revalidatePath("/admin/store");
   redirect("/admin/store?deleted=1");

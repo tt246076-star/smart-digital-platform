@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
 
 function cleanUrl(value: FormDataEntryValue | null) {
   const input = String(value || "").trim();
@@ -14,6 +15,18 @@ function cleanUrl(value: FormDataEntryValue | null) {
   } catch {
     return "";
   }
+}
+
+function readRemovedImageUrls(formData: FormData): string[] {
+  const urls: string[] = [];
+  formData.forEach((value, key) => {
+    if (key !== "removed_image_urls" && !key.endsWith("_removed")) return;
+    try {
+      const parsed = JSON.parse(String(value));
+      if (Array.isArray(parsed)) urls.push(...parsed.filter((item): item is string => typeof item === "string"));
+    } catch { /* Ignore malformed optional cleanup metadata. */ }
+  });
+  return [...new Set(urls)];
 }
 
 export async function createLandingPage(formData: FormData) {
@@ -101,6 +114,7 @@ export async function createLandingPage(formData: FormData) {
     console.error("Landing page creation failed:", error?.message);
     redirect("/pages/new?error=save");
   }
+  await cleanupLandingPageImages([readRemovedImageUrls(formData)]);
   revalidatePath("/dashboard");
   redirect("/dashboard?created=1");
 }
