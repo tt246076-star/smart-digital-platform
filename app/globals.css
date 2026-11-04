@@ -441,3 +441,129 @@ html.light-mode .site-close-button { color:#14261d !important; background:#edf5e
   .customer-dashboard > div,
   .customer-dashboard .customer-account-panel { animation:none !important;transition:none !important; }
 }
+
+
+/* Unified Bitaqati 3D identity for app surfaces only (public card renderers are excluded). */
+.admin-ember {
+  color:#e7f4ff !important;
+  background:
+    radial-gradient(ellipse at 88% 0%,rgba(0,255,240,.13),transparent 34%),
+    radial-gradient(ellipse at 4% 58%,rgba(251,191,36,.09),transparent 28%),
+    linear-gradient(145deg,#030712 0%,#07152c 52%,#081c35 100%) !important;
+}
+.admin-ember:before { background:#00d9e8 !important;opacity:.16 !important; }
+.admin-ember:after { background:#fbbf24 !important;opacity:.1 !important; }
+.admin-ember .ember-admin-hero,
+.admin-ember .ember-panel,
+.admin-ember .rounded-2xl.border.bg-white,
+.admin-ember .rounded-xl.border.bg-white {
+  color:#e7f4ff !important;
+  border-color:rgba(0,255,240,.17) !important;
+  background:linear-gradient(150deg,rgba(12,31,66,.96),rgba(5,13,26,.98)) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+.admin-ember .ember-kicker { color:#00fff0 !important; }
+.admin-ember .ember-metric {
+  border-color:rgba(0,255,240,.2);
+  background:linear-gradient(145deg,rgba(12,31,66,.98),rgba(5,13,26,.98));
+  box-shadow:0 14px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.admin-ember .ember-metric:before { background:radial-gradient(circle,rgba(0,255,240,.18),transparent 68%); }
+.admin-ember .ember-metric:hover {
+  border-color:rgba(0,255,240,.55);
+  box-shadow:0 24px 52px rgba(0,255,240,.1),0 0 0 1px rgba(0,255,240,.08);
+}
+.admin-ember .ember-metric-icon {
+  color:#03111b;
+  background:linear-gradient(145deg,#00fff0,#00a9b8 75%,#fbbf24);
+  box-shadow:0 9px 22px rgba(0,255,240,.18),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.admin-ember .ember-metric-label { color:#b8c9d9; }
+.admin-ember .ember-metric-value { color:#f8fafc; }
+.admin-ember .ember-metric-hint { color:#91a7bd; }
+.admin-ember .ember-metric-shine { background:linear-gradient(90deg,transparent,rgba(0,255,240,.26),transparent); }
+.admin-ember .text-slate-950,
+.admin-ember .text-slate-900,
+.admin-ember .text-slate-800 { color:#f1f5f9 !important; }
+.admin-ember .text-slate-700,
+.admin-ember .text-slate-600,
+.admin-ember .text-slate-500,
+.admin-ember .text-slate-400 { color:#aebdd2 !important; }
+.admin-ember .bg-white,
+.admin-ember .bg-slate-50 { background:rgba(9,25,51,.9) !important; }
+.admin-ember [class*="border-slate-"],
+.admin-ember .border,
+.admin-ember .border-t { border-color:rgba(0,255,240,.15) !important; }
+.admin-ember input,
+.admin-ember textarea,
+.admin-ember select {
+  color:#f1f5f9 !important;
+  background:rgba(3,12,27,.82) !important;
+  border-color:rgba(0,255,240,.2) !important;
+}
+.admin-ember input::placeholder,
+.admin-ember textarea::placeholder { color:#718ba6 !important; }
+.admin-ember .bg-blue-600,
+.admin-ember .bg-blue-700 { background:linear-gradient(135deg,#00d8d0,#00a9b8) !important;color:#03111b !important; }
+.admin-ember .text-blue-600,
+.admin-ember .text-blue-700,
+.admin-ember .text-blue-800 { color:#00fff0 !important; }
+.admin-ember .bg-emerald-600 { background:linear-gradient(135deg,#10b981,#047857) !important;color:white !important; }
+.admin-ember .text-emerald-700 { color:#6ee7b7 !important; }
+.admin-ember .bg-emerald-50 { background:rgba(16,185,129,.12) !important; }
+.admin-ember .text-emerald-800 { color:#86efac !important; }
+.admin-ember .bg-amber-50 { background:rgba(251,191,36,.1) !important; }
+.admin-ember .text-amber-700,
+.admin-ember .text-amber-800 { color:#fcd985 !important; }
+.admin-ember .bg-red-50 { background:rgba(239,68,68,.12) !important; }
+.admin-ember .text-red-800,
+.admin-ember .text-red-900 { color:#fca5a5 !important; }
+.admin-3d-row {
+  color:#e7f4ff;
+  border:1px solid rgba(0,255,240,.13);
+  background:linear-gradient(145deg,rgba(12,31,66,.72),rgba(5,13,26,.86));
+  box-shadow:0 10px 28px rgba(0,0,0,.16);
+  transform-style:preserve-3d;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s;
+}
+.admin-3d-row:hover {
+  transform:perspective(1000px) translateY(-4px) rotateX(1deg);
+  border-color:rgba(0,255,240,.42);
+  box-shadow:0 20px 40px rgba(0,255,240,.08);
+}
+.platform-auth {
+  position:relative;isolation:isolate;overflow:hidden;
+  color:#e7f4ff;
+  background:radial-gradient(ellipse at 85% 10%,rgba(0,255,240,.16),transparent 34%),radial-gradient(ellipse at 10% 85%,rgba(251,191,36,.1),transparent 30%),linear-gradient(145deg,#030712,#07152c 55%,#081c35);
+}
+.platform-auth:before,.platform-auth:after {
+  content:"";position:absolute;z-index:-1;width:240px;height:240px;border-radius:50%;
+  filter:blur(65px);pointer-events:none;animation:ember-drift 13s ease-in-out infinite alternate;
+}
+.platform-auth:before { top:10%;right:-110px;background:rgba(0,255,240,.32); }
+.platform-auth:after { bottom:5%;left:-110px;background:rgba(251,191,36,.2);animation-delay:-5s; }
+.platform-auth > h1 { color:#f8fafc;letter-spacing:-.035em;text-shadow:0 8px 28px rgba(0,255,240,.12); }
+.platform-auth form {
+  padding:26px;border:1px solid rgba(0,255,240,.2);border-radius:26px;
+  background:linear-gradient(150deg,rgba(12,31,66,.94),rgba(5,13,26,.96));
+  box-shadow:0 24px 65px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(18px);animation:ember-rise .7s both;
+}
+.platform-auth label { color:#dceafa; }
+.platform-auth input {
+  color:#f8fafc;background:rgba(3,12,27,.85);border-color:rgba(0,255,240,.2);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.platform-auth input:focus { border-color:#00fff0;box-shadow:0 0 0 3px rgba(0,255,240,.12);transform:translateY(-1px); }
+.platform-auth form button[type="submit"] {
+  color:#03111b;background:linear-gradient(120deg,#00fff0,#00a9b8);
+  box-shadow:0 12px 28px rgba(0,217,232,.2);
+  transition:transform .25s,box-shadow .25s,filter .25s;
+}
+.platform-auth form button[type="submit"]:hover { transform:translateY(-3px);box-shadow:0 18px 36px rgba(0,217,232,.28);filter:brightness(1.06); }
+.platform-auth > p { color:#b8c9d9; }
+.platform-auth a { color:#00fff0; }
+@media(prefers-reduced-motion:reduce) {
+ .admin-3d-row,.platform-auth:before,.platform-auth:after,.platform-auth form { animation:none!important;transition:none!important; }
+ .admin-3d-row:hover { transform:none; }
+}
