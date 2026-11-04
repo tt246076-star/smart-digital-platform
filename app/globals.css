@@ -356,3 +356,9 @@ html.light-mode .site-close-button { color:#14261d !important; background:#edf5e
 @media(max-width:900px) { .ember-metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:520px) { .ember-metrics-grid { gap:11px; } .ember-metric { min-height:158px;padding:16px;border-radius:21px; } .ember-metric-icon { width:44px;height:44px;border-radius:15px; } .ember-admin-hero { padding:20px;border-radius:23px; } }
 @media(prefers-reduced-motion:reduce) { .ember-metric,.ember-admin-hero,.ember-panel,.admin-ember:before,.admin-ember:after,.ember-metric-icon { animation:none!important;transition:none!important; } }
+
+.customer-dashboard { position:relative; }
+.customer-dashboard > div { animation:ember-rise .55s both; }
+.customer-ember-metrics .ember-metric { background:linear-gradient(145deg,#fff,rgba(255,248,242,.96)); }
+.customer-account-panel { box-shadow:0 10px 30px rgba(15,23,42,.035);animation:ember-rise .65s both; }
+@media(prefers-reduced-motion:reduce) { .customer-dashboard > div,.customer-account-panel { animation:none!important; } }
