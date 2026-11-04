@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import SharePageButton from "@/components/SharePageButton";
+import AnimatedMetric from "@/components/AnimatedMetric";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ created?: string; editError?: string; readOnly?: string; vipCreated?: string; vipError?: string; vipUpdated?: string; vipEditError?: string }> }) {
@@ -59,7 +60,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return <>
     <Header />
-    <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 sm:py-12">
+    <main dir="rtl" className="customer-dashboard min-h-screen bg-slate-50 px-4 py-8 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div><p className="text-sm font-bold text-blue-600 dark:text-blue-400">مساحة العمل الخاصة بك</p><h1 className="mt-2 text-3xl font-black text-slate-950 dark:text-white">أهلًا {profile?.display_name || "بك"} 👋</h1><p className="mt-2 text-slate-500 dark:text-slate-400">أنشئ صفحات نشاطك التجاري وصمّمها من مكان واحد.</p></div>
@@ -72,13 +73,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {params.readOnly === "1" && <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">انتهت التجربة المجانية. اشترِ منتجًا من متجرنا أو تواصل معنا عبر واتساب لتفعيل حسابك.</div>}
         {params.editError && <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">تعذر تعديل الصفحة. تأكد من تشغيل تحديث قاعدة البيانات في Supabase.</div>}
         <section className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950"><p className="font-extrabold text-blue-900 dark:text-blue-100">نوع العضوية: {planLabel}</p><p className="mt-1 text-sm text-blue-800 dark:text-blue-200">{canManagePages ? isTrial ? `التجربة تنتهي: ${new Date(accessPlan!.expires_at!).toLocaleString("ar-DZ")} · بطاقة عادية ${normalPageCount}/1 · بطاقة VIP ${vipPageCount}/1.` : pageTypeLimitError ? "تعذر تحميل حدود البطاقات. تواصل مع الإدارة." : `البطاقات العادية: ${normalPageCount}/${maxPages} · بطاقات VIP: ${canCreateVIP ? `${vipPageCount}/${maxVIPPages}` : "غير متاحة في عضويتك"}.` : "انتهت التجربة المجانية. يلزم شراء منتج وتأكيده من الإدارة لتفعيل الحساب."}</p>{!planActive && <div className="mt-4 flex flex-wrap gap-3"><Link href="/#pricing" className="rounded-xl bg-blue-700 px-4 py-3 text-sm font-extrabold text-white">تصفح المنتجات في المتجر</Link><a href="https://wa.me/213557829036?text=السلام%20عليكم،%20أريد%20شراء%20منتج%20لتفعيل%20اشتراكي%20في%20منصة%20بطاقتي." target="_blank" rel="noopener noreferrer" className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white">الشراء أو التفعيل عبر واتساب</a></div>}</section>
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">صفحات الهبوط</p><p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{pageCount}<span className="mr-1 text-sm font-bold text-slate-500 dark:text-slate-400">{isTrial ? "/ 2" : "بطاقة"}</span></p></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">الصفحات المنشورة</p><p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{pages?.filter((page) => page.is_published).length ?? 0}</p></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">زيارات الصفحات</p><p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{totalViews}</p></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">نقرات التواصل</p><p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{totalClicks}</p></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-slate-500 dark:text-slate-400">الحساب</p><p className="mt-2 truncate text-sm font-bold text-slate-950 dark:text-white" dir="ltr">{user.email || "غير متوفر"}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">اسم المستخدم: {profile?.username || "—"}</p></div>
+        <section className="customer-ember-metrics mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <AnimatedMetric value={pageCount} label="إجمالي بطاقاتي" hint={isTrial ? "الحد التجريبي: بطاقتان" : "كل صفحاتك المنشأة"} icon="cards" />
+          <AnimatedMetric value={publishedCount} label="البطاقات المنشورة" hint="متاحة للزوار" icon="published" delay={100} />
+          <AnimatedMetric value={totalViews} label="زيارات الصفحات" hint="آخر 7 أيام" icon="views" delay={200} />
+          <AnimatedMetric value={totalClicks} label="نقرات التواصل" hint="آخر 7 أيام" icon="clicks" delay={300} />
         </section>
+        <section className="customer-account-panel mt-5 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"><p className="text-xs font-bold text-slate-500 dark:text-slate-400">الحساب المسجل</p><p className="mt-1 truncate text-sm font-extrabold text-slate-950 dark:text-white" dir="ltr">{user.email || "غير متوفر"}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">اسم المستخدم: {profile?.username || "—"}</p></section>
         <section className="mt-8 space-y-5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-black text-slate-950 dark:text-white">إحصائيات بطاقتك</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">ملخص آخر 7 أيام، يتحدّث حسب الزيارات والنقرات المسجّلة</p></div><span className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-extrabold text-blue-700 dark:bg-blue-950 dark:text-blue-300">آخر 7 أيام</span></div>
           <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">

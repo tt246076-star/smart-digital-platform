@@ -7,7 +7,7 @@ export default function AuthPage({ mode, notice }: { mode: "login" | "signup"; n
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-md px-4 py-14">
+      <main className="platform-auth mx-auto min-h-[calc(100vh-72px)] max-w-md px-4 py-14">
         <h1 className="text-3xl font-extrabold">{isLogin ? "تسجيل الدخول" : "إنشاء حساب"}</h1>
         {notice && <p className="mt-4 rounded-lg bg-amber/20 p-3 text-sm font-semibold">{notice}</p>}
         <AuthForm mode={mode} />

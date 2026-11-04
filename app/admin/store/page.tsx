@@ -17,18 +17,18 @@ export default async function StoreProductsPage({ searchParams }: { searchParams
   if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return <main dir="rtl" className="min-h-screen bg-slate-50 p-6"><div className="mx-auto max-w-4xl rounded-2xl bg-white p-6"><h1 className="text-2xl font-black">إعداد المنتجات</h1><p className="mt-3">أضف SUPABASE_SERVICE_ROLE_KEY في إعدادات Vercel، ثم أعد النشر.</p></div></main>;
+  if (!url || !key) return <main dir="rtl" className="admin-ember min-h-screen p-6"><div className="ember-panel mx-auto max-w-4xl rounded-2xl p-6"><h1 className="text-2xl font-black">إعداد المنتجات</h1><p className="mt-3">أضف SUPABASE_SERVICE_ROLE_KEY في إعدادات Vercel، ثم أعد النشر.</p></div></main>;
   const admin = createSupabaseClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
   const { data, error } = await admin.from("storefront_products").select("id,name,description,price,image_url,is_active,sort_order").order("sort_order").order("created_at", { ascending: false });
   const products = (data || []) as Product[];
-  return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6">
-    <div className="mx-auto max-w-5xl">
+  return <main dir="rtl" className="admin-ember min-h-screen px-4 py-8 text-slate-100 sm:px-6">
+    <div className="admin-ember-shell mx-auto max-w-5xl">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-bold text-emerald-700">إدارة المتجر</p><h1 className="mt-1 text-3xl font-black">المنتجات والأسعار</h1><p className="mt-2 text-slate-500">المنتجات النشطة تظهر للزبائن في الصفحة الرئيسية.</p></div><div className="flex gap-2"><Link href="/admin" className="rounded-xl border bg-white px-4 py-2 font-bold">لوحة الإدارة</Link><Link href="/#pricing" className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white">عرض المتجر ↗</Link></div></div>
       {params.saved === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حفظ المنتج.</p>}
       {params.deleted === "1" && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-bold text-emerald-800">تم حذف المنتج.</p>}
       {params.error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">{params.error === "config" ? "إعدادات الإدارة غير مكتملة." : params.error === "image" ? "رابط الصورة لازم يبدأ بـ https://" : params.error === "file" ? "الصورة لازم تكون بصيغة صورة وحجمها أقل من 5 ميغابايت." : params.error === "upload" ? "تعذر رفع الصورة. نفّذ إعداد تخزين الصور في Supabase." : params.error === "fields" ? "راجع اسم المنتج والسعر والترتيب." : "تعذر حفظ البيانات. تأكد أنك نفذت ملف SQL في Supabase."}</p>}
       {error && <p className="mt-5 rounded-xl bg-red-50 p-4 font-bold text-red-800">جدول المنتجات غير جاهز. نفّذ ملف supabase/storefront_products.sql في SQL Editor داخل Supabase.</p>}
-      <section className="mt-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-7"><h2 className="text-xl font-black">إضافة منتج جديد</h2><form action={saveStoreProduct} className="mt-5 grid gap-4 sm:grid-cols-2">
+      <section className="ember-panel mt-8 rounded-2xl border p-5 shadow-sm sm:p-7"><h2 className="text-xl font-black">إضافة منتج جديد</h2><form action={saveStoreProduct} className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">اسم المنتج<input name="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border px-3 py-3" placeholder="مثال: بطاقة NFC"/></label>
         <label className="text-sm font-bold">السعر بالدينار الجزائري<input name="price" required type="number" min="0" step="1" className="mt-1.5 w-full rounded-xl border px-3 py-3" placeholder="2500"/></label>
         <label className="text-sm font-bold sm:col-span-2">صورة المنتج (اختياري)<input name="image_file" type="file" accept="image/*" className="mt-1.5 w-full rounded-xl border bg-white px-3 py-3"/><span className="mt-1 block text-xs font-normal text-slate-500">اختار صورة مباشرة من الهاتف أو الحاسوب، حتى 5 ميغابايت.</span></label>
@@ -38,7 +38,7 @@ export default async function StoreProductsPage({ searchParams }: { searchParams
         <button className="rounded-xl bg-emerald-600 px-5 py-3 font-black text-white sm:col-span-2">إضافة المنتج</button>
       </form></section>
       <section className="mt-8"><div className="mb-4 flex items-center justify-between"><h2 className="text-2xl font-black">منتجاتك ({products.length})</h2></div>
-        {products.map(product => <article key={product.id} className="mb-4 rounded-2xl border bg-white p-5 shadow-sm">
+        {products.map(product => <article key={product.id} className="admin-3d-row mb-4 rounded-2xl border p-5 shadow-sm">
           <form action={saveStoreProduct} className="grid gap-4 sm:grid-cols-2"><input type="hidden" name="id" value={product.id}/>
             <div className="sm:col-span-2 flex items-center gap-4">{product.image_url ? <img src={product.image_url} alt={product.name} className="h-24 w-24 rounded-xl border object-cover"/> : <div className="grid h-24 w-24 place-items-center rounded-xl bg-emerald-50 text-3xl">▣</div>}<div><p className="font-black">{product.name}</p><p className="mt-1 text-emerald-700 font-black">{Number(product.price).toLocaleString("ar-DZ")} دج</p><p className="mt-1 text-xs text-slate-500">{product.is_active ? "ظاهر للزبائن" : "مخفي من الموقع"}</p></div></div>
             <label className="text-sm font-bold">اسم المنتج<input name="name" required defaultValue={product.name} maxLength={120} className="mt-1.5 w-full rounded-xl border px-3 py-3"/></label>
@@ -51,7 +51,7 @@ export default async function StoreProductsPage({ searchParams }: { searchParams
           </form>
           <form action={deleteStoreProduct} className="mt-2"><input type="hidden" name="id" value={product.id}/><button className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-700" formAction={deleteStoreProduct}>حذف المنتج</button></form>
         </article>)}
-        {!products.length && !error && <div className="rounded-2xl border border-dashed bg-white p-8 text-center text-slate-500">ما زدت حتى منتج بعد. استعمل النموذج اللي فوق.</div>}
+        {!products.length && !error && <div className="ember-panel rounded-2xl border border-dashed p-8 text-center text-slate-300">ما زدت حتى منتج بعد. استعمل النموذج اللي فوق.</div>}
       </section>
     </div>
   </main>;
