@@ -4,7 +4,8 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { setUserPlan, deleteLandingPage, setUserGalleryLimit, setUserPageTypeLimits } from "./actions";
 import DeletePageForm from "./DeletePageForm";
-import AdminOrders from "./AdminOrders";\nimport AnimatedMetric from "@/components/AnimatedMetric";
+import AdminOrders from "./AdminOrders";
+import AnimatedMetric from "@/components/AnimatedMetric";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     admin.from("landing_pages").select("id, user_id, slug, business_name, created_at").order("created_at", { ascending: false }).limit(200),
     admin.from("user_gallery_limits").select("user_id, max_images, max_image_mb"),
     admin.from("store_orders").select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" }).order("created_at", { ascending: false }).limit(20),
-    admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages"),\n    admin.from("profiles").select("id", { count: "exact", head: true }),\n    admin.from("landing_pages").select("id", { count: "exact", head: true })
+    admin.from("user_page_type_limits").select("user_id,normal_max_pages,vip_max_pages"),
+    admin.from("profiles").select("id", { count: "exact", head: true }),
+    admin.from("landing_pages").select("id", { count: "exact", head: true })
   ]);
   const users = usersResult.data?.users || [];
   const plansData = plansResult.data || [];
@@ -45,7 +48,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     pagesResult.error ? `الصفحات: ${pagesResult.error.message}` : "",
     galleryLimitsResult.error ? `حدود المعرض: ${galleryLimitsResult.error.message}` : "",
     ordersResult.error ? `طلبات الزبائن: ${ordersResult.error.message}` : "",
-    pageTypeLimitsResult.error ? `حدود البطاقات: ${pageTypeLimitsResult.error.message}` : "",\n    accountCountResult.error ? `عدد الحسابات: ${accountCountResult.error.message}` : "",\n    cardCountResult.error ? `عدد البطاقات: ${cardCountResult.error.message}` : "",
+    pageTypeLimitsResult.error ? `حدود البطاقات: ${pageTypeLimitsResult.error.message}` : "",
+    accountCountResult.error ? `عدد الحسابات: ${accountCountResult.error.message}` : "",
+    cardCountResult.error ? `عدد البطاقات: ${cardCountResult.error.message}` : "",
   ].filter(Boolean);
   const countPlan = (type: string) => plansData.filter((p: any) => p.plan_type === type).length;
 
