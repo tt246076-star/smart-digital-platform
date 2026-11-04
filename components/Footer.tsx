@@ -7,10 +7,13 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 text-sm text-slate-600">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {SITE.name}. جميع الحقوق محفوظة.</p>
-          <div className="flex gap-5 font-semibold">
+          <nav aria-label="روابط الموقع" className="flex flex-wrap gap-5 font-semibold">
+            <Link href="/">إنشاء بطاقة</Link>
             <Link href="/login">تسجيل الدخول</Link>
+            <Link href="/#pricing">المنتجات</Link>
+            <Link href="/contact">اتصل بنا</Link>
             <Link href="/signup">إنشاء حساب</Link>
-          </div>
+          </nav>
         </div>
         <div className="flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-bold text-slate-800">تواصل مع {SITE.name}</p>

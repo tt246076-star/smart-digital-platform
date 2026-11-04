@@ -30,17 +30,14 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
     try { window.localStorage.setItem("bitaqati-theme", next ? "dark" : "light"); } catch {}
   }
 
-
   const links = [
-    ["/", "الرئيسية", "⌂"],
+    ["/", "إنشاء بطاقة", "▣"],
     ["/#features", "المميزات", "✧"],
     ["/#how", "كيفية الاستخدام", "?"],
-    ["/#pricing", "المنتجات والأسعار", "▣"],
+    ["/#pricing", "المنتجات", "▣"],
     ["/#gallery", "جرّب البروفايل", "♙"],
-    ["/#faq", "تواصل معنا", "☎"],
+    ["/contact", "اتصل بنا", "☎"],
   ];
-
-
 
   return <>
     <div className="site-header-controls" dir="ltr">
@@ -65,7 +62,5 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
         <p className="site-drawer-footer">بطاقتي · NFC · QR</p>
       </aside>
     </div>, document.body) : null}
-
-
   </>;
 }
