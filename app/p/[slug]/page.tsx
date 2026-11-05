@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getPublicAccessPlan } from "@/lib/server/access-plan";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 import GoogleReviewCard from "@/components/GoogleReviewCard";
 import { resolveTheme, pagePrimary } from "@/lib/theme";
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .select("user_id, business_name, headline, seo_title, seo_description, description")
     .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) return { title: "صفحة غير موجودة | بطاقاتي" };
-  const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",page.user_id).maybeSingle();
+  const plan = await getPublicAccessPlan(page.user_id);
   if (!plan || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) return { title: "صفحة غير متاحة | بطاقاتي" };
   const title = page.seo_title?.trim() || page.headline?.trim() || page.business_name;
   const description = page.seo_description?.trim() || page.description?.trim() || `تعرّف على ${page.business_name} وتواصل معنا عبر بطاقاتي.`;
@@ -59,7 +60,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     .select("id, user_id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
     .eq("slug", slug).eq("is_published", true).maybeSingle();
   if (!page) notFound();
-  const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",page.user_id).maybeSingle();
+  const plan = await getPublicAccessPlan(page.user_id);
   if (!plan || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) notFound();
   if (page.template === "vip" && plan.plan_type !== "vip" && plan.plan_type !== "trial") notFound();
 
