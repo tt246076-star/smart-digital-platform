@@ -31,7 +31,7 @@ export default function SiteHeaderControls({ isLoggedIn, isAdmin }: { isLoggedIn
   }
 
   const links = [
-    ["/", "إنشاء بطاقة", "▣"],
+    ["/", "الرئيسية", "▣"],
     ["/#features", "المميزات", "✧"],
     ["/#how", "كيفية الاستخدام", "?"],
     ["/#pricing", "المنتجات", "▣"],
