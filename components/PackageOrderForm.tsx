@@ -23,6 +23,7 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [success,setSuccess]=useState("");
+  const [attempt,setAttempt]=useState<{fingerprint:string;key:string}|null>(null);
   if(!item) return null;
 
   async function submit(e:React.FormEvent<HTMLFormElement>){
@@ -30,7 +31,11 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
     if (!item) { setError("المنتج غير متاح."); return; }
     setBusy(true);setError("");setSuccess("");
     try{
-      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,customerName:name,customerPhone:phone,customerAddress:[wilaya,municipality,address].filter(Boolean).join("، "),notes})});
+      const orderPayload={source:"homepage",packageId:item.id,customerName:name,customerPhone:phone,customerAddress:[wilaya,municipality,address].filter(Boolean).join("، "),notes};
+      const fingerprint=JSON.stringify(orderPayload);
+      const requestKey=attempt?.fingerprint===fingerprint?attempt.key:crypto.randomUUID();
+      setAttempt({fingerprint,key:requestKey});
+      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...orderPayload,idempotencyKey:requestKey})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"تعذر إرسال الطلب.");
       setSuccess("تم تسجيل طلبك بنجاح! نتواصل معك قريبًا لتأكيد العنوان والتفاصيل.");

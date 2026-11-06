@@ -3,6 +3,7 @@
 -- using the server-only service-role key; do not add an anon INSERT policy.
 create table if not exists public.store_orders (
   id uuid primary key default gen_random_uuid(),
+  idempotency_key uuid,
   page_id uuid not null references public.landing_pages(id) on delete cascade,
   customer_name text not null,
   customer_phone text not null,
@@ -16,6 +17,9 @@ create table if not exists public.store_orders (
 );
 
 alter table public.store_orders alter column page_id drop not null;
+
+create unique index if not exists store_orders_idempotency_key_uidx
+  on public.store_orders(idempotency_key);
 
 create index if not exists store_orders_page_created_idx
   on public.store_orders(page_id, created_at desc);
