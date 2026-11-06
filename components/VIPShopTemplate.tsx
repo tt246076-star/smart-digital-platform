@@ -13,6 +13,9 @@ type VIPShop = {
   animation?: boolean;
   hours?: Record<string, HoursDay>;
   phone?: string;
+  phoneName?: string;
+  phone2?: string;
+  phone2Name?: string;
   whatsapp?: string;
   instagram?: string;
   tiktok?: string;
@@ -82,7 +85,8 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
   }, [shop.hours]);
 
   const socials = [
-    { label: "الهاتف", icon: "phone", url: shop.phone ? `tel:${shop.phone}` : "", brandClass: "phone" },
+    ...(shop.phone ? [{ label: shop.phoneName || "الهاتف", icon: "phone", url: `tel:${shop.phone}`, brandClass: "phone" }] : []),
+    ...(shop.phone2 ? [{ label: shop.phone2Name || "الهاتف 2", icon: "phone", url: `tel:${shop.phone2}`, brandClass: "phone" }] : []),
     { label: "WhatsApp", icon: "whatsapp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", brandClass: "whatsapp" },
     { label: "Instagram", icon: "instagram", url: shop.instagram || "", brandClass: "instagram" },
     { label: "TikTok", icon: "tiktok", url: shop.tiktok || "", brandClass: "tiktok" },
@@ -125,7 +129,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
       })}</div>}
 
       {shop.googleLink && <a className="vip-google" href={shop.googleLink} target="_blank" rel="noreferrer">
-        <span className="vip-google-g">G</span><span className="vip-google-copy"><strong>قيّمنا على Google</strong><span className="vip-stars">★★★★★</span><small>شاركنا رأيك في تقييم Google</small></span><span className="vip-google-arrow">↗</span>
+        <span className="vip-google-g" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.1c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.8 27.8a12 12 0 0 1 0-7.6v-5.3H5.9a20 20 0 0 0 0 18.2l6.9-5.3Z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.9 14.9l6.9 5.3C14.4 15.5 18.8 12 24 12Z"/></svg></span><span className="vip-google-copy"><strong>قيّمنا على Google</strong><span className="vip-stars">★★★★★</span><small>شاركنا رأيك في تقييم Google</small></span><span className="vip-google-arrow">↗</span>
       </a>}
 
       {socials.length > 0 && <section className="vip-section"><h2>تواصل معنا</h2><div className="vip-socials">{socials.map((item) =>
@@ -169,7 +173,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
       .vip-google{position:relative;isolation:isolate;overflow:hidden;margin-top:15px;display:flex;align-items:center;gap:10px;background:#ffeb3b;color:#342c0b;border-radius:16px;padding:13px 12px;text-decoration:none;box-shadow:0 8px 24px #0002}
       .vip-google:after{content:"";position:absolute;z-index:-1;inset:-60% auto -60% -45%;width:28%;background:linear-gradient(90deg,transparent,#ffffffbd,transparent);transform:rotate(22deg);animation:vipShine 3.8s ease-in-out infinite;pointer-events:none}
       @keyframes vipShine{0%,35%{left:-45%}75%,100%{left:130%}}
-      .vip-google-g{font-size:30px;font-weight:900;font-family:Arial;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 45%,#fbbc05 45% 68%,#ea4335 68% 82%,#4285f4 82%);color:transparent;background-clip:text;flex-shrink:0}
+      .vip-google-g{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:#fff;box-shadow:0 1px 4px #0002}.vip-google-g svg{display:block;width:20px;height:20px}.vip-google-g{font-size:0;font-weight:900;font-family:Arial;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 45%,#fbbc05 45% 68%,#ea4335 68% 82%,#4285f4 82%);color:transparent;background-clip:text;flex-shrink:0}
       .vip-google-copy{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}.vip-google-copy strong{font-size:12px}.vip-stars{font-size:16px;letter-spacing:1px;color:#9b6b00}.vip-google-copy small{font-size:10px}.vip-google-arrow{font-size:18px}
       .vip-section{margin-top:23px}.vip-section h2{font-size:14px;font-weight:800;margin-bottom:13px;color:var(--vip-text)}
       .vip-socials{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px 4px}.vip-socials a{min-width:0;grid-column:span 2;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;color:var(--vip-text);font-size:10px}
