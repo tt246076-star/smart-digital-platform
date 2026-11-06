@@ -87,7 +87,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   const isRestaurant = template === "restaurant";
   const isStore = template === "store" || isRestaurant;
   const displayImage = sections.round_image_url || page.logo_url;
-  const hasContact = !!(page.phone || links.length);
+  const hasContact = !!(page.phone || (Array.isArray(sections.contact_numbers) && sections.contact_numbers.some((item:any)=>typeof item?.phone==="string" && item.phone.trim())) || links.length);
   let weeklyHours: Record<string, {open:boolean;from:string;to:string}> | null = null;
   try {
     const parsed = sections.hours ? JSON.parse(sections.hours) : null;
@@ -195,7 +195,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
             </section>
           )}
 
-          {(page.phone || page.whatsapp || profileExtraLinks.length > 0) && (
+          {(contactNumbers.length > 0 || page.whatsapp || profileExtraLinks.length > 0) && (
             <section className="px-5 pb-6 sm:px-7">
               <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-4">
                 {page.whatsapp && <a href={`https://wa.me/${page.whatsapp.replace(/\D/g, "")}`} data-track-event="contact" target="_blank" rel="noopener noreferrer" className="flex min-w-[72px] flex-col items-center gap-2 text-center text-xs font-bold">
