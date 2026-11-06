@@ -7,8 +7,8 @@ import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
 
 const input = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-amber-500";
-const fieldNames = ["phone","whatsapp","instagram","tiktok","facebook","google","map","address"] as const;
-const fieldLabels: Record<string,string> = {phone:"رقم الهاتف",whatsapp:"رقم واتساب مع رمز الدولة",instagram:"رابط إنستغرام",tiktok:"رابط تيك توك",facebook:"رابط فيسبوك",google:"رابط تقييم Google",map:"رابط Google Maps",address:"العنوان"};
+const fieldNames = ["phone","phone_name","phone2","phone2_name","whatsapp","instagram","tiktok","facebook","google","map","address"] as const;
+const fieldLabels: Record<string,string> = {phone:"رقم الهاتف الأول",phone_name:"اسم صاحب الرقم الأول (اختياري)",phone2:"رقم الهاتف الثاني (اختياري)",phone2_name:"اسم صاحب الرقم الثاني (اختياري)",whatsapp:"رقم واتساب مع رمز الدولة",instagram:"رابط إنستغرام",tiktok:"رابط تيك توك",facebook:"رابط فيسبوك",google:"رابط تقييم Google",map:"رابط Google Maps",address:"العنوان"};
 const days = [["saturday","السبت"],["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"]] as const;
 
 function readRemovedVIPImageUrls(formData: FormData): string[] {
@@ -47,7 +47,7 @@ async function updateVIPCard(formData: FormData) {
   const layout = "salon";
   const hours: Record<string,{open:boolean;from:string;to:string}> = {};
   for (const [day] of days) hours[day] = { open: formData.get(day+"_open") === "on", from: val(day+"_from",old.hours?.[day]?.from || "09:00"), to: val(day+"_to",old.hours?.[day]?.to || "18:00") };
-  const vip_card = { ...old, name, theme, layout, backgroundImage:val("backgroundImage",old.backgroundImage), animation:formData.get("animation") === "on", bio:val("bio",old.bio).slice(0,400), logo:val("logo",old.logo), coverImage:val("cover",old.coverImage), phone:val("phone",old.phone).slice(0,30), whatsapp:val("whatsapp",old.whatsapp).slice(0,30), instagram:cleanUrl(val("instagram",old.instagram)), tiktok:cleanUrl(val("tiktok",old.tiktok)), facebook:cleanUrl(val("facebook",old.facebook)), address:val("address",old.address).slice(0,200), mapUrl:cleanUrl(val("map",old.mapUrl)), googleLink:cleanUrl(val("google",old.googleLink)), gallery, hours };
+  const vip_card = { ...old, name, theme, layout, backgroundImage:val("backgroundImage",old.backgroundImage), animation:formData.get("animation") === "on", bio:val("bio",old.bio).slice(0,400), logo:val("logo",old.logo), coverImage:val("cover",old.coverImage), phone:val("phone",old.phone).slice(0,30), phoneName:val("phone_name",old.phoneName).slice(0,40), phone2:val("phone2",old.phone2).slice(0,30), phone2Name:val("phone2_name",old.phone2Name).slice(0,40), whatsapp:val("whatsapp",old.whatsapp).slice(0,30), instagram:cleanUrl(val("instagram",old.instagram)), tiktok:cleanUrl(val("tiktok",old.tiktok)), facebook:cleanUrl(val("facebook",old.facebook)), address:val("address",old.address).slice(0,200), mapUrl:cleanUrl(val("map",old.mapUrl)), googleLink:cleanUrl(val("google",old.googleLink)), gallery, hours };
   const { error } = await supabase.from("landing_pages").update({ business_name:name, description:vip_card.bio, phone:vip_card.phone, whatsapp:vip_card.whatsapp, instagram_url:vip_card.instagram, facebook_url:vip_card.facebook, tiktok_url:vip_card.tiktok, logo_url:vip_card.logo, sections:{ ...(page.sections || {}), vip_card } }).eq("id",page.id).eq("user_id",user.id);
   if (error) { console.error("VIP card update failed",error.message); redirect("/dashboard?vipEditError=1"); }
   await cleanupLandingPageImages([page.sections, readRemovedVIPImageUrls(formData)]);
