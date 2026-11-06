@@ -13,7 +13,7 @@ type PageData = {
   phone: string; whatsapp: string; logo_url: string; instagram_url: string; facebook_url: string;
   tiktok_url: string; youtube_url: string; custom_links: { label: string; url: string }[] | null;
   template: string | null; theme: string | null; seo_title: string | null; seo_description: string | null;
-  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; gallery?: string[] } | null;
+  sections: { theme_primary?: string; theme_mode?: string; address?: string; map_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; round_image_url?: string; cover_image_url?: string; gallery?: string[]; contact_numbers?: { phone: string; name?: string }[] } | null;
 };
 
 const templates = [
@@ -53,6 +53,10 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const [headline, setHeadline] = useState(page.headline || "");
   const [description, setDescription] = useState(page.description || "");
   const [phone, setPhone] = useState(page.phone || "");
+  const initialContacts = Array.isArray(page.sections?.contact_numbers) ? page.sections.contact_numbers : [];
+  const [phoneName1, setPhoneName1] = useState(initialContacts[0]?.name || "");
+  const [phone2, setPhone2] = useState(initialContacts[1]?.phone || "");
+  const [phoneName2, setPhoneName2] = useState(initialContacts[1]?.name || "");
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("desktop");
   const [seoTitle, setSeoTitle] = useState(page.seo_title || "");
   const [seoDescription, setSeoDescription] = useState(page.seo_description || "");
@@ -67,7 +71,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const [gallery, setGallery] = useState<string[]>(Array.isArray(initialSections.gallery) ? initialSections.gallery.slice(0, maxGalleryImages) : []);
   const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
   function markImageRemoved(url: string) { if (url) setRemovedImageUrls((old) => old.includes(url) ? old : [...old, url]); }
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery});
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery,contact_numbers:[{phone,name:phoneName1},{phone:phone2,name:phoneName2}]});
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
@@ -149,7 +153,8 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         <div><label className={label} htmlFor="business_name">اسم النشاط *</label><input className={field} id="business_name" name="business_name" value={business} onChange={(e) => setBusiness(e.target.value)} required maxLength={100} /></div>
         <div><label className={label} htmlFor="headline">العنوان الرئيسي</label><input className={field} id="headline" name="headline" value={headline} onChange={(e) => setHeadline(e.target.value)} maxLength={140} placeholder="مثال: اختيارات مميزة تناسبك" /></div>
         <div><label className={label} htmlFor="description">وصف النشاط</label><textarea className={field} id="description" name="description" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} /></div>
-        <div><label className={label} htmlFor="phone">رقم الهاتف</label><input className={field} id="phone" name="phone" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} /></div>
+        <div><label className={label} htmlFor="phone">رقم الهاتف الأول</label><input className={field} id="phone" name="phone" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} /><input className={field} aria-label="اسم صاحب الرقم الأول (اختياري)" placeholder="اسم صاحب الرقم (اختياري)" value={phoneName1} onChange={(e)=>setPhoneName1(e.target.value)} maxLength={40}/></div>
+        <div><label className={label} htmlFor="phone2">رقم الهاتف الثاني (اختياري)</label><input className={field} id="phone2" name="phone2" type="tel" dir="ltr" value={phone2} onChange={(e)=>setPhone2(e.target.value)} maxLength={30}/><input className={field} aria-label="اسم صاحب الرقم الثاني (اختياري)" placeholder="اسم صاحب الرقم (اختياري)" value={phoneName2} onChange={(e)=>setPhoneName2(e.target.value)} maxLength={40}/></div>
         <div><label className={label} htmlFor="whatsapp">رقم واتساب</label><input className={field} id="whatsapp" name="whatsapp" type="tel" dir="ltr" defaultValue={page.whatsapp} maxLength={30} /></div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
