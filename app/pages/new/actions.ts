@@ -53,6 +53,7 @@ export async function createLandingPage(formData: FormData) {
   const seo_description = String(formData.get("seo_description") || "").trim().slice(0, 160);
   const description = String(formData.get("description") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
+  const phone2 = String(formData.get("phone2") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const logo_url = cleanUrl(formData.get("logo_url"));
   const instagram_url = cleanUrl(formData.get("instagram_url"));
@@ -98,10 +99,11 @@ export async function createLandingPage(formData: FormData) {
     round_image_url: cleanSectionUrl(submittedSections.round_image_url),
     cover_image_url: cleanSectionUrl(submittedSections.cover_image_url),
     gallery,
+    contact_numbers: Array.isArray(submittedSections.contact_numbers) ? submittedSections.contact_numbers.slice(0,2).map((item:any)=>({phone:String(item?.phone||"").trim().slice(0,30),name:String(item?.name||"").trim().slice(0,40)})).filter((item:any)=>item.phone) : [],
   };
 
   if (!business_name || business_name.length > 100) redirect("/pages/new?error=name");
-  if (headline.length > 140 || description.length > 1000 || phone.length > 30 || whatsapp.length > 30) redirect("/pages/new?error=length");
+  if (headline.length > 140 || description.length > 1000 || phone.length > 30 || phone2.length > 30 || whatsapp.length > 30) redirect("/pages/new?error=length");
 
   const slug = `${business_name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 35) || "page"}-${crypto.randomUUID().slice(0, 8)}`;
   const { data, error } = await supabase.from("landing_pages").insert({
