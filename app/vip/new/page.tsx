@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
 import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
+import VIPCreateSubmitButton from "@/components/VIPCreateSubmitButton";
 
 function readRemovedVIPImageUrls(formData: FormData): string[] {
   const urls: string[] = [];
