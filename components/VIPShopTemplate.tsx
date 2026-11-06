@@ -85,8 +85,8 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
   }, [shop.hours]);
 
   const socials = [
-    ...(shop.phone ? [{ label: shop.phoneName || "الهاتف", icon: "phone", url: `tel:${shop.phone}`, brandClass: "phone" }] : []),
-    ...(shop.phone2 ? [{ label: shop.phone2Name || "الهاتف 2", icon: "phone", url: `tel:${shop.phone2}`, brandClass: "phone" }] : []),
+    ...(shop.phone ? [{ label: shop.phoneName || "الهاتف", detail: shop.phone, icon: "phone", url: `tel:${shop.phone}`, brandClass: "phone" }] : []),
+    ...(shop.phone2 ? [{ label: shop.phone2Name || "الهاتف 2", detail: shop.phone2, icon: "phone", url: `tel:${shop.phone2}`, brandClass: "phone" }] : []),
     { label: "WhatsApp", icon: "whatsapp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", brandClass: "whatsapp" },
     { label: "Instagram", icon: "instagram", url: shop.instagram || "", brandClass: "instagram" },
     { label: "TikTok", icon: "tiktok", url: shop.tiktok || "", brandClass: "tiktok" },
@@ -134,7 +134,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
 
       {socials.length > 0 && <section className="vip-section"><h2>تواصل معنا</h2><div className="vip-socials">{socials.map((item) =>
         <a key={item.label} href={item.url} target={item.url.startsWith("http") ? "_blank" : undefined} rel="noreferrer" aria-label={item.label}>
-          <span className={`vip-social-icon vip-brand-${item.brandClass}`}><BrandIcon brand={item.label === "الهاتف" ? "phone" : item.label} /></span><small>{item.label}</small>
+          <span className={`vip-social-icon vip-brand-${item.brandClass}`}><BrandIcon brand={item.label === "الهاتف" ? "phone" : item.label} /></span><small>{item.label}</small>{("detail" in item && item.detail) && <small dir="ltr" className="text-[10px] opacity-75">{item.detail}</small>}
         </a>)}</div></section>}
 
       {(shop.gallery || []).filter(Boolean).length > 0 && <section className="vip-section"><h2>معرض الصور</h2><div className="vip-gallery">{(shop.gallery || []).filter(Boolean).slice(0, 100).map((src, index) =>
