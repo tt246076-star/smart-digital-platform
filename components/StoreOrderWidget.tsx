@@ -15,21 +15,16 @@ export default function StoreOrderWidget({ slug, products }: { slug: string; pro
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [done, setDone] = useState(false);
-  const [attempt, setAttempt] = useState<{ fingerprint: string; key: string } | null>(null);
   const selected = products[Number(productIndex)] || products[0];
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true); setMessage("");
     try {
-      const orderPayload = { source: "store", slug, productIndex: Number(productIndex), quantity, customerName: name, customerPhone: phone, customerAddress: address, notes };
-      const fingerprint = JSON.stringify(orderPayload);
-      const requestKey = attempt?.fingerprint === fingerprint ? attempt.key : crypto.randomUUID();
-      setAttempt({ fingerprint, key: requestKey });
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...orderPayload, idempotencyKey: requestKey })
+        body: JSON.stringify({ slug, productIndex: Number(productIndex), quantity, customerName: name, customerPhone: phone, customerAddress: address, notes })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إرسال الطلب.");

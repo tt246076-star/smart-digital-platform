@@ -17,6 +17,7 @@ create table if not exists public.store_orders (
 );
 
 alter table public.store_orders alter column page_id drop not null;
+alter table public.store_orders add column if not exists idempotency_key uuid;
 
 create unique index if not exists store_orders_idempotency_key_uidx
   on public.store_orders(idempotency_key);

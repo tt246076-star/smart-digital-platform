@@ -23,10 +23,9 @@ export async function POST(request: Request) {
     const customerPhone = typeof body.customerPhone === "string" ? body.customerPhone.trim().slice(0, 30) : "";
     const customerAddress = typeof body.customerAddress === "string" ? body.customerAddress.trim().slice(0, 250) : "";
     const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 500) : "";
-    const idempotencyKey = typeof body.idempotencyKey === "string" ? body.idempotencyKey.trim() : "";
 
     const normalizedPhone = customerPhone.replace(/[\s-]/g, "");
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey) || customerName.length < 2 || !/^0[567][0-9]{8}$/.test(normalizedPhone) ||
+    if (customerName.length < 2 || !/^0[567][0-9]{8}$/.test(normalizedPhone) ||
         (source === "store" && (!slug || !Number.isInteger(productIndex) || productIndex < 0 || !Number.isInteger(quantity) || quantity < 1 || quantity > 20)) ||
         (source === "homepage" && !HOME_PACKAGES[packageId]) || (source === "catalog" && !productId)) {
       return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والمنتج والكمية." }, { status: 400 });
@@ -78,7 +77,6 @@ export async function POST(request: Request) {
     }
 
     const { data: order, error: insertError } = await admin.from("store_orders").insert({
-      idempotency_key: idempotencyKey,
       page_id: pageId,
       customer_name: customerName,
       customer_phone: normalizedPhone,
@@ -88,17 +86,6 @@ export async function POST(request: Request) {
       status: "new",
       notes: source === "homepage" ? `طلب من الصفحة الرئيسية. ${notes}`.trim() : source === "catalog" ? `طلب منتج من المتجر الرئيسي. ${notes}`.trim() : notes
     }).select("id").single();
-
-    if (insertError?.code === "23505") {
-      const { data: existingOrder, error: lookupError } = await admin
-        .from("store_orders")
-        .select("id")
-        .eq("idempotency_key", idempotencyKey)
-        .maybeSingle();
-      if (!lookupError && existingOrder) {
-        return NextResponse.json({ ok: true, orderId: existingOrder.id, duplicate: true, message: "سبق استلام هذا الطلب." }, { status: 200 });
-      }
-    }
 
     if (insertError || !order) {
       console.error("Order creation failed:", insertError?.message);
