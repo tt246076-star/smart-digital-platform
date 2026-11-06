@@ -48,6 +48,7 @@ export async function updateLandingPage(formData: FormData) {
   const seo_title = String(formData.get("seo_title") || "").trim().slice(0, 60);
   const seo_description = String(formData.get("seo_description") || "").trim().slice(0, 160);
   const phone = String(formData.get("phone") || "").trim();
+  const phone2 = String(formData.get("phone2") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const logo_url = safeUrl(formData.get("logo_url"));
   const instagram_url = safeUrl(formData.get("instagram_url"));
@@ -78,6 +79,7 @@ export async function updateLandingPage(formData: FormData) {
     round_image_url: cleanSectionUrl(sections.round_image_url),
     cover_image_url: cleanSectionUrl(sections.cover_image_url),
     gallery: Array.isArray(sections.gallery) ? sections.gallery.slice(0,maxGalleryImages).map(cleanSectionUrl).filter(Boolean) : [],
+    contact_numbers: Array.isArray(sections.contact_numbers) ? sections.contact_numbers.slice(0,2).map((item:any)=>({phone:String(item?.phone||"").trim().slice(0,30),name:String(item?.name||"").trim().slice(0,40)})).filter((item:any)=>item.phone) : [],
   };
   const requestedTemplate = String(formData.get("template") || "aurora");
   const requestedTheme = String(formData.get("theme") || "blue");
@@ -85,7 +87,7 @@ export async function updateLandingPage(formData: FormData) {
   const theme = ["white", "black", "blue", "violet", "sunset", "emerald", "ocean", "rose", "gold", "glass", "volcano", "midnight", "mint", "berry", "slate"].includes(requestedTheme) ? requestedTheme : "blue";
 
   if (!id || !business_name || business_name.length > 100) redirect(`/pages/${encodeURIComponent(id)}/edit?error=name`);
-  if (headline.length > 140 || description.length > 1000 || phone.length > 30 || whatsapp.length > 30) {
+  if (headline.length > 140 || description.length > 1000 || phone.length > 30 || phone2.length > 30 || whatsapp.length > 30) {
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=length`);
   }
 
