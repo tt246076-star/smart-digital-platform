@@ -3,22 +3,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Order = {
-  id: string; page_id: string; customer_name: string; customer_phone: string; customer_address: string;
-  items: Array<{name?:string;price?:string;quantity?:number}>; total_amount: number | null;
-  status: "new" | "confirmed" | "shipped" | "completed" | "cancelled"; notes: string; created_at: string;
-  landing_pages?: { business_name?: string; slug?: string } | Array<{ business_name?: string; slug?: string }> | null;
+  id: string;
+  source: "homepage" | "catalog";
+  product_id: string | null;
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  items: Array<{ name?: string; price?: string; quantity?: number; image_url?: string }>;
+  total_amount: number | null;
+  status: "new" | "confirmed" | "shipped" | "completed" | "cancelled";
+  notes: string;
+  created_at: string;
 };
-const statusLabels: Record<Order["status"],string> = {new:"طلب جديد",confirmed:"تم التأكيد",shipped:"تم الإرسال",completed:"مكتمل",cancelled:"ملغي"};
-const statusStyles: Record<Order["status"],string> = {new:"bg-amber-100 text-amber-800",confirmed:"bg-blue-100 text-blue-800",shipped:"bg-violet-100 text-violet-800",completed:"bg-emerald-100 text-emerald-800",cancelled:"bg-slate-100 text-slate-600"};
+
+const statusLabels: Record<Order["status"], string> = { new: "طلب جديد", confirmed: "تم التأكيد", shipped: "تم الإرسال", completed: "مكتمل", cancelled: "ملغي" };
+const statusStyles: Record<Order["status"], string> = { new: "bg-amber-100 text-amber-800", confirmed: "bg-blue-100 text-blue-800", shipped: "bg-violet-100 text-violet-800", completed: "bg-emerald-100 text-emerald-800", cancelled: "bg-slate-100 text-slate-600" };
 
 export default function AdminOrders({ initialOrders, initialTotal }: { initialOrders: Order[]; initialTotal: number }) {
-  const [orders,setOrders] = useState(initialOrders);
-  const [page,setPage] = useState(1);
-  const [total,setTotal] = useState(initialTotal);
-  const [loading,setLoading] = useState(false);
-  const [error,setError] = useState("");
-  const [notice,setNotice] = useState("");
-  const knownIds = useRef(new Set(initialOrders.map(o=>o.id)));
+  const [orders, setOrders] = useState(initialOrders);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(initialTotal);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const knownIds = useRef(new Set(initialOrders.map(o => o.id)));
   const firstPoll = useRef(true);
 
   const refresh = useCallback(async (quiet = false) => {
@@ -33,15 +41,20 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
         if (newOrders.length) {
           setNotice(`وصل ${newOrders.length} طلب جديد!`);
           if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-            new Notification("طلب جديد على بطاقتي", { body: newOrders.map(o=>o.customer_name).join("، ") });
+            new Notification("طلب جديد على بطاقتي", { body: newOrders.map(o => o.customer_name).join("، ") });
           }
         }
       }
       firstPoll.current = false;
-      fresh.forEach(o=>knownIds.current.add(o.id));
-      setOrders(fresh); setTotal(data.total ?? fresh.length); setError("");
-    } catch (e) { setError(e instanceof Error ? e.message : "تعذر تحميل الطلبات"); }
-    finally { if (!quiet) setLoading(false); }
+      fresh.forEach(o => knownIds.current.add(o.id));
+      setOrders(fresh);
+      setTotal(data.total ?? fresh.length);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تحميل الطلبات");
+    } finally {
+      if (!quiet) setLoading(false);
+    }
   }, [page]);
 
   useEffect(() => {
@@ -53,17 +66,20 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
   async function changeStatus(orderId: string, status: Order["status"]) {
     setError("");
     try {
-      const response = await fetch("/api/admin/orders", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({orderId,status}) });
+      const response = await fetch("/api/admin/orders", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId, status }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر تحديث حالة الطلب");
-      setOrders(old=>old.map(o=>o.id===orderId?{...o,status}:o));
+      setOrders(old => old.map(o => o.id === orderId ? { ...o, status } : o));
       setNotice("تم تحديث حالة الطلب.");
-    } catch(e) { setError(e instanceof Error ? e.message : "تعذر تحديث الطلب"); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تحديث الطلب");
+    }
   }
 
   async function deleteOrder(orderId: string) {
     if (!window.confirm("متأكد تحب تحذف هذا الطلب نهائيًا؟")) return;
-    setError(""); setNotice("");
+    setError("");
+    setNotice("");
     try {
       const response = await fetch("/api/admin/orders", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId }) });
       const data = await response.json();
@@ -72,37 +88,69 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
       setTotal(old => Math.max(0, old - 1));
       knownIds.current.delete(orderId);
       setNotice("تم حذف الطلب.");
-    } catch (e) { setError(e instanceof Error ? e.message : "تعذر حذف الطلب."); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر حذف الطلب.");
+    }
   }
 
   async function enableNotifications() {
-    if (!("Notification" in window)) { setNotice("المتصفح لا يدعم إشعارات النظام؛ الطلبات ستظهر هنا تلقائيًا."); return; }
+    if (!("Notification" in window)) {
+      setNotice("المتصفح لا يدعم إشعارات النظام؛ الطلبات ستظهر هنا تلقائيًا.");
+      return;
+    }
     const permission = await Notification.requestPermission();
     setNotice(permission === "granted" ? "تم تفعيل إشعارات الطلبات على هذا الجهاز." : "الإشعارات غير مفعّلة؛ ستظل الطلبات تظهر في اللوحة كل 15 ثانية.");
   }
 
-  const newCount = orders.filter(o=>o.status==="new").length;
+  const newCount = orders.filter(o => o.status === "new").length;
   return <section className="mt-8 rounded-3xl border border-emerald-200 bg-white p-4 shadow-sm sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><div className="flex items-center gap-2"><h2 className="text-2xl font-black">طلبات الزبائن</h2>{newCount>0&&<span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white">{newCount} جديد</span>}</div><p className="mt-1 text-sm text-slate-500">تتحدّث القائمة تلقائيًا كل 15 ثانية.</p></div>
-      <div className="flex flex-wrap gap-2"><button onClick={enableNotifications} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-800">تفعيل الإشعارات</button><button onClick={()=>void refresh()} disabled={loading} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{loading?"جاري التحديث...":"تحديث الطلبات ↻"}</button></div>
+      <div>
+        <div className="flex items-center gap-2"><h2 className="text-2xl font-black">طلبات المنصة</h2>{newCount > 0 && <span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black text-white">{newCount} جديد</span>}</div>
+        <p className="mt-1 text-sm text-slate-500">طلبات البطاقات والمنتجات من واجهة بطاقتي فقط. تتحدّث القائمة كل 15 ثانية.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={enableNotifications} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-800">تفعيل الإشعارات</button>
+        <button onClick={() => void refresh()} disabled={loading} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{loading ? "جاري التحديث..." : "تحديث الطلبات ↻"}</button>
+      </div>
     </div>
     <div className="mt-3 flex items-center justify-between text-sm text-slate-600"><span>إجمالي الطلبات: {total}</span><span>الصفحة {page} / {Math.max(1, Math.ceil(total / 20))}</span></div>
-    {notice&&<p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{notice}</p>}
-    {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
+    {notice && <p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{notice}</p>}
+    {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
     <div className="mt-5 space-y-3">
-      {orders.map(order=>{
-        const page = Array.isArray(order.landing_pages) ? order.landing_pages[0] : order.landing_pages;
+      {orders.map(order => {
         const items = Array.isArray(order.items) ? order.items : [];
         return <article key={order.id} className="rounded-2xl border border-slate-200 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-black text-slate-900">{order.customer_name}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-black ${statusStyles[order.status]||statusStyles.new}`}>{statusLabels[order.status]||order.status}</span></div><p className="mt-1 text-xs text-slate-500">{page?.business_name||"متجر"} · {new Date(order.created_at).toLocaleString("ar-DZ")}</p></div><div className="flex gap-2"><a href={`tel:${order.customer_phone}`} className="rounded-xl bg-emerald-600 px-4 py-2 font-black text-white">اتصال بالزبون</a><button type="button" onClick={()=>void deleteOrder(order.id)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 font-bold text-red-700">حذف الطلب</button></div></div>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-black text-slate-900">{order.customer_name}</h3>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-black ${statusStyles[order.status] || statusStyles.new}`}>{statusLabels[order.status] || order.status}</span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{order.source === "homepage" ? "طلب بطاقة من الواجهة" : "طلب منتج من كتالوج بطاقتي"}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{new Date(order.created_at).toLocaleString("ar-DZ")}</p>
+            </div>
+            <div className="flex gap-2">
+              <a href={`tel:${order.customer_phone}`} className="rounded-xl bg-emerald-600 px-4 py-2 font-black text-white">اتصال بالزبون</a>
+              <button type="button" onClick={() => void deleteOrder(order.id)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 font-bold text-red-700">حذف الطلب</button>
+            </div>
+          </div>
           <p className="mt-3 text-sm font-bold text-slate-700" dir="ltr">{order.customer_phone}</p>
-          {order.customer_address&&<p className="mt-1 text-sm text-slate-600">العنوان: {order.customer_address}</p>}
-          <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm">{items.map((item,i)=><p key={i} className="font-bold text-slate-800">{item.name||"منتج"} × {item.quantity||1}{item.price? ` — ${item.price} دج` : ""}</p>)}{order.total_amount!==null&&order.total_amount!==undefined&&<p className="mt-2 font-black text-emerald-700">المجموع التقديري: {Number(order.total_amount).toLocaleString("ar-DZ")} دج</p>}{order.notes&&<p className="mt-2 leading-6 text-slate-500">ملاحظة: {order.notes}</p>}</div>
-          <div className="mt-3 flex flex-wrap items-center gap-2"><label className="text-xs font-bold text-slate-500" htmlFor={`status-${order.id}`}>حالة الطلب</label><select id={`status-${order.id}`} value={order.status} onChange={e=>void changeStatus(order.id,e.target.value as Order["status"])} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">{Object.entries(statusLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><a href={`/p/${page?.slug||""}`} target="_blank" rel="noreferrer" className="text-sm font-bold text-blue-700">فتح صفحة المتجر ↗</a></div>
+          {order.customer_address && <p className="mt-1 text-sm text-slate-600">العنوان: {order.customer_address}</p>}
+          <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm">
+            {items.map((item, i) => <p key={i} className="font-bold text-slate-800">{item.name || "منتج"} × {item.quantity || 1}{item.price ? ` — ${item.price} دج` : ""}</p>)}
+            {order.total_amount !== null && order.total_amount !== undefined && <p className="mt-2 font-black text-emerald-700">المجموع: {Number(order.total_amount).toLocaleString("ar-DZ")} دج</p>}
+            {order.notes && <p className="mt-2 leading-6 text-slate-500">ملاحظة: {order.notes}</p>}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="text-xs font-bold text-slate-500" htmlFor={`status-${order.id}`}>حالة الطلب</label>
+            <select id={`status-${order.id}`} value={order.status} onChange={e => void changeStatus(order.id, e.target.value as Order["status"])} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
+              {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
         </article>;
       })}
-      {!orders.length&&<div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center"><span className="text-3xl">🛍️</span><h3 className="mt-3 font-black text-slate-800">ما كاين حتى طلب جديد لحد الآن</h3><p className="mt-1 text-sm leading-6 text-slate-500">كي يطلب زبون منتج من صفحة متجر، الطلب يبان هنا تلقائيًا.</p></div>}
+      {!orders.length && <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center"><span className="text-3xl">📦</span><h3 className="mt-3 font-black text-slate-800">ما كاين حتى طلب من واجهة المنصة لحد الآن</h3><p className="mt-1 text-sm leading-6 text-slate-500">أي طلب بطاقة أو منتج من موقع بطاقتي يظهر هنا فقط.</p></div>}
     </div>
     <div className="mt-5 flex justify-center gap-2">
       <button type="button" disabled={page <= 1 || loading} onClick={() => setPage(value => Math.max(1, value - 1))} className="rounded-lg border px-4 py-2 text-sm font-bold disabled:opacity-40">السابق</button>

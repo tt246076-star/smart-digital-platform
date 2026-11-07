@@ -23,12 +23,12 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const page = Math.max(1, Math.min(100000, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
     const pageSize = 20;
-    const { data, error, count } = await result.client.from("store_orders")
-      .select("id,page_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at,landing_pages(business_name,slug)", { count: "exact" })
+    const { data, error, count } = await result.client.from("platform_orders")
+      .select("id,source,product_id,customer_name,customer_phone,customer_address,items,total_amount,status,notes,created_at", { count: "exact" })
       .order("created_at", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
     if (error) {
-      console.error("Admin orders read failed:", error.message);
-      return NextResponse.json({ error: "تعذر تحميل الطلبات. تأكد من إعداد جدول store_orders في Supabase." }, { status: 503 });
+      console.error("Platform orders read failed:", error.message);
+      return NextResponse.json({ error: "تعذر تحميل طلبات المنصة." }, { status: 503 });
     }
     return NextResponse.json({ orders: data || [], total: count || 0, page, pageSize }, { headers: { "Cache-Control": "no-store" } });
   } catch {
@@ -46,9 +46,9 @@ export async function PATCH(request: Request) {
     if (!orderId || !["new", "confirmed", "shipped", "completed", "cancelled"].includes(status)) {
       return NextResponse.json({ error: "بيانات تحديث الطلب غير صالحة." }, { status: 400 });
     }
-    const { error } = await result.client.from("store_orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
+    const { error } = await result.client.from("platform_orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
     if (error) {
-      console.error("Admin order update failed:", error.message);
+      console.error("Platform order update failed:", error.message);
       return NextResponse.json({ error: "تعذر تحديث حالة الطلب." }, { status: 503 });
     }
     return NextResponse.json({ ok: true });
@@ -57,7 +57,6 @@ export async function PATCH(request: Request) {
   }
 }
 
-
 export async function DELETE(request: Request) {
   try {
     const result = await getAdminClient();
@@ -65,9 +64,9 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     const orderId = typeof body.orderId === "string" ? body.orderId : "";
     if (!orderId) return NextResponse.json({ error: "رقم الطلب غير صالح." }, { status: 400 });
-    const { error } = await result.client.from("store_orders").delete().eq("id", orderId);
+    const { error } = await result.client.from("platform_orders").delete().eq("id", orderId);
     if (error) {
-      console.error("Admin order delete failed:", error.message);
+      console.error("Platform order delete failed:", error.message);
       return NextResponse.json({ error: "تعذر حذف الطلب." }, { status: 503 });
     }
     return NextResponse.json({ ok: true });

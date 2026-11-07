@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const ORDER_PACKAGES = [
   { id:"desk-card", name:"بطاقة مكتب", description:"بطاقة تعريف ذكية مناسبة للمكتب أو مكان الاستقبال.", price:2000, oldPrice:3000, icon:"▣" },
@@ -14,6 +14,7 @@ const wilayas = ["01 - أدرار","02 - الشلف","03 - الأغواط","04 -
 export default function PackageOrderForm({ packageId }: { packageId: string }) {
   const item = ORDER_PACKAGES.find(p=>p.id===packageId);
   const [open,setOpen]=useState(false);
+  const idempotencyKey = useRef<string | null>(null);
   const [name,setName]=useState("");
   const [phone,setPhone]=useState("");
   const [wilaya,setWilaya]=useState("");
@@ -30,7 +31,7 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
     if (!item) { setError("المنتج غير متاح."); return; }
     setBusy(true);setError("");setSuccess("");
     try{
-      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,customerName:name,customerPhone:phone,customerAddress:[wilaya,municipality,address].filter(Boolean).join("، "),notes})});
+      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,idempotencyKey:idempotencyKey.current ?? (idempotencyKey.current = crypto.randomUUID()),customerName:name,customerPhone:phone,customerAddress:[wilaya,municipality,address].filter(Boolean).join("، "),notes})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"تعذر إرسال الطلب.");
       setSuccess("تم تسجيل طلبك بنجاح! نتواصل معك قريبًا لتأكيد العنوان والتفاصيل.");
