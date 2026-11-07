@@ -1,4 +1,6 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import sentryPackage from "@sentry/nextjs";
+
+const { withSentryConfig } = sentryPackage;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {};
