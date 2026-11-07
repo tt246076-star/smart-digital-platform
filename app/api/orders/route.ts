@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     const { data: withinLimit, error: rateLimitError } = await admin.rpc("consume_order_rate_limit", {
       p_client_ip: clientIp,
-      p_limit: 10,
+      p_limit: 2,
       p_window_seconds: 600,
     });
     if (rateLimitError || typeof withinLimit !== "boolean") {
