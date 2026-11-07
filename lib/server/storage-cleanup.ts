@@ -121,7 +121,7 @@ export async function cleanupStoreProductImages(values: unknown[]) {
 export async function cleanupPendingLandingPageImage(url: string, userId: string): Promise<boolean> {
   if (!userId) return false;
   const path = getStorageObjectPath(url, "landing-logos");
-  if (!path || !path.startsWith(`pending/${userId}/`)) return false;
+  if (!path || !path.startsWith(`new/${userId}/`)) return false;
   return cleanupUnreferencedStorageObjects("landing-logos", [url]);
 }
 
@@ -164,7 +164,7 @@ export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: bool
     return true;
   }
 
-  for (const folder of ["pending", "new"]) {
+  for (const folder of ["new"]) {
     if (!(await scanFolder(folder))) return { ok: false, candidates: 0 };
   }
   if (!candidates.size) return { ok: true, candidates: 0 };
