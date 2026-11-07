@@ -40,9 +40,20 @@ function collectStorageObjectPaths(value: unknown, bucket: StorageBucket, output
 async function getReferencedObjectPaths(admin: any, bucket: StorageBucket, excludedPageId?: string): Promise<Set<string> | null> {
   const referenced = new Set<string>();
   const pageSize = 500;
+  // Scan every known public-data location that can retain a Storage URL.
+  // Keep this list aligned with the schema when new image-bearing fields are added.
+  const commonSources = [
+    { table: "landing_pages", columns: "id,logo_url,sections,custom_links" },
+    { table: "store_orders", columns: "items" },
+    { table: "platform_orders", columns: "items" },
+    { table: "profiles", columns: "avatar_url" },
+    { table: "delivery_shipments", columns: "latest_payload,office_map_url" },
+    { table: "delivery_shipment_events", columns: "payload" },
+    { table: "links", columns: "url" },
+  ];
   const sources = bucket === "landing-logos"
-    ? [{ table: "landing_pages", columns: "id,logo_url,sections" }, { table: "store_orders", columns: "items" }]
-    : [{ table: "storefront_products", columns: "image_url" }, { table: "store_orders", columns: "items" }];
+    ? commonSources
+    : [...commonSources, { table: "storefront_products", columns: "image_url" }];
 
   for (const source of sources) {
     for (let offset = 0; ; offset += pageSize) {
