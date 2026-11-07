@@ -114,3 +114,61 @@ export async function cleanupLandingPageImagesForDeletion(pageId: string, values
 export async function cleanupStoreProductImages(values: unknown[]) {
   await cleanupUnreferencedStorageObjects("store-products", values);
 }
+
+
+// Delete a just-uploaded image only from the authenticated user's pending area.
+// The reference scan remains the final authority: referenced files are never removed.
+export async function cleanupPendingLandingPageImage(url: string, userId: string): Promise<boolean> {
+  if (!userId) return false;
+  const path = getStorageObjectPath(url, "landing-logos");
+  if (!path || !path.startsWith(`pending/${userId}/`)) return false;
+  return cleanupUnreferencedStorageObjects("landing-logos", [url]);
+}
+
+// Remove uncommitted uploads after a 24-hour grace period. Only pending uploads
+// and the legacy "new" upload folder are considered; all database references are
+// scanned before any Storage API deletion is attempted.
+export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: boolean; candidates: number }> {
+  const admin = createStorageAdminClient();
+  if (!admin) return { ok: false, candidates: 0 };
+
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const candidates = new Set<string>();
+  const bucket = admin.storage.from("landing-logos");
+
+  async function scanFolder(folder: string, depth = 0): Promise<boolean> {
+    if (depth > 5) return false;
+    const limit = 100;
+    for (let offset = 0; ; offset += limit) {
+      const { data, error } = await bucket.list(folder, {
+        limit,
+        offset,
+        sortBy: { column: "created_at", order: "asc" },
+      });
+      if (error || !Array.isArray(data)) {
+        console.error("Stale image listing failed:", error?.message || folder);
+        return false;
+      }
+      for (const item of data) {
+        if (item.id === null) {
+          if (!(await scanFolder(`${folder}/${item.name}`, depth + 1))) return false;
+          continue;
+        }
+        const createdAt = item.created_at ? new Date(item.created_at).getTime() : NaN;
+        if (!Number.isFinite(createdAt) || createdAt >= cutoff) continue;
+        const path = `${folder}/${item.name}`;
+        candidates.add(bucket.getPublicUrl(path).data.publicUrl);
+      }
+      if (data.length < limit) break;
+    }
+    return true;
+  }
+
+  for (const folder of ["pending", "new"]) {
+    if (!(await scanFolder(folder))) return { ok: false, candidates: 0 };
+  }
+  if (!candidates.size) return { ok: true, candidates: 0 };
+
+  const success = await cleanupUnreferencedStorageObjects("landing-logos", [...candidates]);
+  return { ok: success, candidates: candidates.size };
+}
