@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
+import { cleanupLandingPageImages, cleanupPendingLandingPageImage } from "@/lib/server/storage-cleanup";
 
 function safeUrl(value: FormDataEntryValue | null) {
   const input = String(value || "").trim();
@@ -106,4 +106,13 @@ export async function updateLandingPage(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath(`/p/${data.slug}`);
   redirect(`/p/${data.slug}?updated=1`);
+}
+
+
+export async function deletePendingLandingImage(url: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user || typeof url !== "string" || url.length > 2048) return { ok: false };
+  const ok = await cleanupPendingLandingPageImage(url, user.id);
+  return { ok };
 }
