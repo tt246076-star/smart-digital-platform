@@ -2,7 +2,7 @@
 // Vercel redeploy trigger: editor syntax fix
 
 import { useState } from "react";
-import { updateLandingPage } from "./actions";
+import { updateLandingPage, deletePendingLandingImage } from "./actions";
 import { createLandingPage } from "../../new/actions";
 import SubmitButton from "../../new/SubmitButton";
 import { createClient } from "@/lib/supabase/client";
@@ -78,6 +78,28 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
 
+  async function removeImage(url: string, clear: () => void) {
+    if (!url) return;
+    if (url.includes("/storage/v1/object/public/landing-logos/pending/")) {
+      setUploading(true);
+      setUploadError("");
+      try {
+        const result = await deletePendingLandingImage(url);
+        if (!result.ok) {
+          setUploadError("تعذر حذف الصورة الآن. حاول مرة أخرى؛ لن تُحذف أي صورة مستعملة.");
+          return;
+        }
+      } catch {
+        setUploadError("تعذر حذف الصورة الآن. حاول مرة أخرى؛ لن تُحذف أي صورة مستعملة.");
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+    markImageRemoved(url);
+    clear();
+  }
+
   async function uploadImage(file: File | undefined, target: "logo" | "round" | "cover" | "gallery") {
     if (!file) return;
     setUploadError("");
@@ -90,7 +112,9 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
       const previousUrl = target === "logo" ? logo : target === "round" ? roundImageUrl : target === "cover" ? coverImageUrl : "";
       const targetName = target;
-      const path = `${page.id}/${targetName}-${Date.now()}.${ext}`;
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Authentication required");
+      const path = `pending/${user.id}/${page.id}/${targetName}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("landing-logos").getPublicUrl(path);
@@ -175,19 +199,19 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
           <label className={label} htmlFor="round_image_upload">صورة دائرية للمحل أو صاحب النشاط</label>
           <input id="round_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "round")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
-          {roundImageUrl && <div className="mt-3 flex items-center gap-3"><img src={roundImageUrl} alt="معاينة الصورة الدائرية" className="h-16 w-16 rounded-full border object-cover" /><button type="button" onClick={()=>{markImageRemoved(roundImageUrl);setRoundImageUrl("");}} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+          {roundImageUrl && <div className="mt-3 flex items-center gap-3"><img src={roundImageUrl} alt="معاينة الصورة الدائرية" className="h-16 w-16 rounded-full border object-cover" /><button type="button" onClick={()=>void removeImage(roundImageUrl,()=>setRoundImageUrl(""))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
         </div>
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
           <label className={label} htmlFor="cover_image_upload">صورة الغلاف أو الصورة المربعة</label>
           <input id="cover_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "cover")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
-          {coverImageUrl && <div className="mt-3 space-y-2"><img src={coverImageUrl} alt="معاينة صورة الغلاف" className="max-h-40 w-full rounded-xl border object-cover" /><button type="button" onClick={()=>{markImageRemoved(coverImageUrl);setCoverImageUrl("");}} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+          {coverImageUrl && <div className="mt-3 space-y-2"><img src={coverImageUrl} alt="معاينة صورة الغلاف" className="max-h-40 w-full rounded-xl border object-cover" /><button type="button" onClick={()=>void removeImage(coverImageUrl,()=>setCoverImageUrl(""))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
         <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى للصورة الواحدة {maxGalleryImageMb} MB.</p>
         <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");}} />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>{markImageRemoved(url);setGallery(old=>old.filter((_,i)=>i!==index));}} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>void removeImage(url,()=>setGallery(old=>old.filter(item=>item!==url)))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">6. الظهور في Google (SEO)</h2>
@@ -201,7 +225,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
           <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadImage(e.target.files?.[0], "logo")} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
           {uploading && <p className="mt-2 text-sm font-bold text-violet-700">جاري رفع الصورة...</p>}
           {uploadError && <p role="alert" className="mt-2 text-sm font-bold text-red-600">{uploadError}</p>}
-          {logo && <div className="mt-3 flex items-center gap-3"><img src={logo} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => { markImageRemoved(logo); setLogo(""); }} className="text-sm font-bold text-red-600">حذف الشعار</button></div>}
+          {logo && <div className="mt-3 flex items-center gap-3"><img src={logo} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => void removeImage(logo, () => setLogo(""))} className="text-sm font-bold text-red-600">حذف الشعار</button></div>}
         </div>
         <div><label className={label} htmlFor="instagram_url">Instagram</label><input className={field} id="instagram_url" name="instagram_url" type="url" defaultValue={page.instagram_url} placeholder="https://instagram.com/..." /></div>
         <div><label className={label} htmlFor="facebook_url">Facebook</label><input className={field} id="facebook_url" name="facebook_url" type="url" defaultValue={page.facebook_url} placeholder="https://facebook.com/..." /></div>
