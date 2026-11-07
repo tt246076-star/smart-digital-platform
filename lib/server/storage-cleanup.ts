@@ -76,8 +76,8 @@ async function cleanupUnreferencedStorageObjects(bucket: StorageBucket, values: 
     const referenced = await getReferencedObjectPaths(admin, bucket, excludedPageId);
     if (!referenced) return false;
     const unused = [...candidates].filter((path) => !referenced.has(path));
-    for (let index = 0; index < unused.length; index += 100) {
-      const batch = unused.slice(index, index + 100);
+    for (let index = 0; index < unused.length; index += 1000) {
+      const batch = unused.slice(index, index + 1000);
       const { error } = await admin.storage.from(bucket).remove(batch);
       if (error) {
         console.error(`Storage cleanup failed for ${bucket}:`, error.message);
