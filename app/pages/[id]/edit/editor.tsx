@@ -5,6 +5,7 @@ import { useState } from "react";
 import { updateLandingPage, deletePendingLandingImage } from "./actions";
 import { createLandingPage } from "../../new/actions";
 import SubmitButton from "../../new/SubmitButton";
+import FormPendingButton from "@/components/FormPendingButton";
 import { createClient } from "@/lib/supabase/client";
 import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
@@ -300,7 +301,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         </div>
       </details>
       </aside></div>
-      {isCreating ? <SubmitButton uploading={uploading} /> : <button disabled={uploading} type="submit" className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50">حفظ التعديلات ونشر الصفحة ✨</button>}
+      {isCreating ? <SubmitButton uploading={uploading} /> : <FormPendingButton uploading={uploading} uploadingText="انتظر حتى يكتمل رفع الصور..." pendingText="جارٍ حفظ التعديلات، لا تضغط مرة أخرى..." className="w-full rounded-xl bg-gradient-to-l from-violet-600 to-blue-600 px-5 py-4 font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60">حفظ التعديلات ونشر الصفحة ✨</FormPendingButton>}
     </form>
   );
 }
