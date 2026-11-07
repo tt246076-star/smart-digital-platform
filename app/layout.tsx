@@ -39,9 +39,15 @@ export const metadata: Metadata = {
       "صفحة رقمية لنشاطك تجمع المعلومات والمنتجات وطرق التواصل في رابط واحد.",
   },
   icons: {
-    icon: "/brand/bitakaty-icon.svg",
-    shortcut: "/brand/bitakaty-icon.svg",
-    apple: "/brand/bitakaty-icon.svg",
+    icon: [
+      {
+        url: "/brand/bitakaty-icon.png",
+        type: "image/png",
+        sizes: "192x192",
+      },
+    ],
+    shortcut: "/brand/bitakaty-icon.png",
+    apple: "/brand/bitakaty-icon.png",
   },
 };
 
