@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
+import { cleanupLandingPageImagesForDeletion } from "@/lib/server/storage-cleanup";
 
 export async function setUserPlan(formData: FormData) {
   const sessionClient = await createClient();
@@ -54,14 +54,22 @@ export async function deleteLandingPage(formData: FormData) {
   if (!url || !serviceKey) redirect("/admin?error=1");
 
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const { data: pageToDelete, error: lookupError } = await admin.from("landing_pages").select("logo_url,sections").eq("id", pageId).maybeSingle();
-  if (lookupError) redirect("/admin?error=1");
-  const { error } = await admin.from("landing_pages").delete().eq("id", pageId);
-  if (error) {
-    console.error("Admin page deletion failed:", error.message);
+  const { data: pageToDelete, error: lookupError } = await admin.from("landing_pages").select("id,logo_url,sections").eq("id", pageId).maybeSingle();
+  if (lookupError || !pageToDelete) {
+    if (lookupError) console.error("Admin page lookup before deletion failed:", lookupError.message);
     redirect("/admin?error=1");
   }
-  await cleanupLandingPageImages([pageToDelete]);
+
+  // Remove only page-owned images. Shared images stay in Storage.
+  // If the reference scan or Storage removal fails, keep the page record intact.
+  const imagesDeleted = await cleanupLandingPageImagesForDeletion(pageId, [pageToDelete]);
+  if (!imagesDeleted) redirect("/admin/pages?error=images");
+
+  const { data: deletedPage, error } = await admin.from("landing_pages").delete().eq("id", pageId).select("id").maybeSingle();
+  if (error || !deletedPage) {
+    console.error("Admin page deletion failed:", error?.message || "No page row was deleted.");
+    redirect("/admin/pages?error=1");
+  }
   revalidatePath("/admin");
   revalidatePath("/dashboard");
   redirect("/admin?deleted=1");
