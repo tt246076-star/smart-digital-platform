@@ -115,7 +115,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Authentication required");
       const path = `new/${user.id}/${page.id}/${targetName}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: true, contentType: file.type });
+      const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("landing-logos").getPublicUrl(path);
       if (previousUrl && previousUrl !== data.publicUrl) markImageRemoved(previousUrl);
