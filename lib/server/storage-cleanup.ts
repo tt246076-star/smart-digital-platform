@@ -116,7 +116,7 @@ export async function cleanupStoreProductImages(values: unknown[]) {
 }
 
 
-// Delete a just-uploaded image only from the authenticated user's pending area.
+// Delete a just-uploaded image only from the authenticated user's scoped new/ area.
 // The reference scan remains the final authority: referenced files are never removed.
 export async function cleanupPendingLandingPageImage(url: string, userId: string): Promise<boolean> {
   if (!userId) return false;
@@ -125,8 +125,8 @@ export async function cleanupPendingLandingPageImage(url: string, userId: string
   return cleanupUnreferencedStorageObjects("landing-logos", [url]);
 }
 
-// Remove uncommitted uploads after a 24-hour grace period. Only pending uploads
-// and the legacy "new" upload folder are considered; all database references are
+// Remove uncommitted uploads after a 24-hour grace period. Only objects under
+// "new/" are considered; all database references are
 // scanned before any Storage API deletion is attempted.
 export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: boolean; candidates: number }> {
   const admin = createStorageAdminClient();
