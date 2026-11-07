@@ -12,6 +12,8 @@ export default function Footer() {
             <Link href="/login">تسجيل الدخول</Link>
             <Link href="/#pricing">المنتجات</Link>
             <Link href="/contact">اتصل بنا</Link>
+            <Link href="/privacy-policy">سياسة الخصوصية</Link>
+            <Link href="/terms-of-use">شروط الاستخدام</Link>
             <Link href="/signup">إنشاء حساب</Link>
           </nav>
         </div>
