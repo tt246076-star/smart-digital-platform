@@ -80,7 +80,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
 
   async function removeImage(url: string, clear: () => void) {
     if (!url) return;
-    if (url.includes("/storage/v1/object/public/landing-logos/pending/")) {
+    if (url.includes("/storage/v1/object/public/landing-logos/new/")) {
       setUploading(true);
       setUploadError("");
       try {
@@ -114,7 +114,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       const targetName = target;
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Authentication required");
-      const path = `pending/${user.id}/${page.id}/${targetName}-${Date.now()}.${ext}`;
+      const path = `new/${user.id}/${page.id}/${targetName}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("landing-logos").getPublicUrl(path);
