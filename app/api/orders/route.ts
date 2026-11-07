@@ -12,6 +12,44 @@ const HOME_PACKAGES: Record<string, { name: string; price: number }> = {
 
 export async function POST(request: Request) {
   try {
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (Number.isFinite(contentLength) && contentLength > 16_384) {
+      return NextResponse.json({ error: "حجم الطلب كبير جدًا." }, { status: 413 });
+    }
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+      return NextResponse.json({ error: "الطلبات غير مفعّلة حاليًا. حاول لاحقًا." }, { status: 503 });
+    }
+    const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+
+    const forwardedIp =
+      request.headers.get("x-vercel-forwarded-for") ||
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "";
+    const clientIp = forwardedIp.split(",")[0].trim() || (process.env.NODE_ENV === "production" ? "" : "127.0.0.1");
+    if (!clientIp || clientIp.length > 64) {
+      return NextResponse.json({ error: "تعذر التحقق من مصدر الطلب. حاول لاحقًا." }, { status: 503 });
+    }
+
+    const { data: withinLimit, error: rateLimitError } = await admin.rpc("consume_order_rate_limit", {
+      p_client_ip: clientIp,
+      p_limit: 2,
+      p_window_seconds: 600,
+    });
+    if (rateLimitError || typeof withinLimit !== "boolean") {
+      console.error("Platform order rate limit check failed:", rateLimitError?.message || "Invalid RPC response");
+      return NextResponse.json({ error: "خدمة الطلبات مشغولة حاليًا. حاول لاحقًا." }, { status: 503 });
+    }
+    if (!withinLimit) {
+      return NextResponse.json(
+        { error: "وصلت إلى الحد المؤقت للطلبات. حاول بعد بضع دقائق." },
+        { status: 429, headers: { "Retry-After": "600", "Cache-Control": "no-store" } }
+      );
+    }
+
     const body = await request.json();
     const source = body.source === "homepage" || body.source === "catalog" ? body.source : "";
     const productId = typeof body.productId === "string" ? body.productId.trim() : "";
@@ -29,13 +67,6 @@ export async function POST(request: Request) {
         (source === "catalog" && !productId)) {
       return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والمنتج والطلب." }, { status: 400 });
     }
-
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !serviceKey) {
-      return NextResponse.json({ error: "الطلبات غير مفعّلة حاليًا. حاول لاحقًا." }, { status: 503 });
-    }
-    const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     let itemName = "";
     let priceText = "";
