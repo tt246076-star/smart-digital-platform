@@ -37,16 +37,18 @@ function collectStorageObjectPaths(value: unknown, bucket: StorageBucket, output
   }
 }
 
-async function getReferencedObjectPaths(admin: any, bucket: StorageBucket): Promise<Set<string> | null> {
+async function getReferencedObjectPaths(admin: any, bucket: StorageBucket, excludedPageId?: string): Promise<Set<string> | null> {
   const referenced = new Set<string>();
   const pageSize = 500;
   const sources = bucket === "landing-logos"
-    ? [{ table: "landing_pages", columns: "logo_url,sections" }, { table: "store_orders", columns: "items" }]
+    ? [{ table: "landing_pages", columns: "id,logo_url,sections" }, { table: "store_orders", columns: "items" }]
     : [{ table: "storefront_products", columns: "image_url" }, { table: "store_orders", columns: "items" }];
 
   for (const source of sources) {
     for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await admin.from(source.table).select(source.columns).order("id").range(offset, offset + pageSize - 1);
+      let query = admin.from(source.table).select(source.columns).order("id").range(offset, offset + pageSize - 1);
+      if (source.table === "landing_pages" && excludedPageId) query = query.neq("id", excludedPageId);
+      const { data, error } = await query;
       if (error || !Array.isArray(data)) {
         console.error("Storage cleanup reference scan failed:", error?.message || source.table);
         return null;
@@ -58,32 +60,44 @@ async function getReferencedObjectPaths(admin: any, bucket: StorageBucket): Prom
   return referenced;
 }
 
-async function cleanupUnreferencedStorageObjects(bucket: StorageBucket, values: unknown[]) {
+async function cleanupUnreferencedStorageObjects(bucket: StorageBucket, values: unknown[], excludedPageId?: string): Promise<boolean> {
   try {
     const admin = createStorageAdminClient();
     if (!admin) {
       console.warn("Storage cleanup skipped: server storage credentials are not configured.");
-      return;
+      return false;
     }
     const candidates = new Set<string>();
     for (const value of values) collectStorageObjectPaths(value, bucket, candidates);
-    if (!candidates.size) return;
+    if (!candidates.size) return true;
+
     // Never delete files unless every relevant reference table was scanned successfully.
-    const referenced = await getReferencedObjectPaths(admin, bucket);
-    if (!referenced) return;
+    // For an admin page deletion, exclude only that page while checking all other references.
+    const referenced = await getReferencedObjectPaths(admin, bucket, excludedPageId);
+    if (!referenced) return false;
     const unused = [...candidates].filter((path) => !referenced.has(path));
     for (let index = 0; index < unused.length; index += 100) {
-      const { error } = await admin.storage.from(bucket).remove(unused.slice(index, index + 100));
-      if (error) console.error(`Storage cleanup failed for ${bucket}:`, error.message);
+      const batch = unused.slice(index, index + 100);
+      const { error } = await admin.storage.from(bucket).remove(batch);
+      if (error) {
+        console.error(`Storage cleanup failed for ${bucket}:`, error.message);
+        return false;
+      }
     }
+    return true;
   } catch (error) {
-    // Cleanup is best-effort and must not turn a successful save/delete into a failed request.
     console.error(`Storage cleanup failed for ${bucket}:`, error);
+    return false;
   }
 }
 
 export async function cleanupLandingPageImages(values: unknown[]) {
   await cleanupUnreferencedStorageObjects("landing-logos", values);
+}
+
+export async function cleanupLandingPageImagesForDeletion(pageId: string, values: unknown[]): Promise<boolean> {
+  if (!pageId) return false;
+  return cleanupUnreferencedStorageObjects("landing-logos", values, pageId);
 }
 
 export async function cleanupStoreProductImages(values: unknown[]) {
