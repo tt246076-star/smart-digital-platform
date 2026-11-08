@@ -125,20 +125,25 @@ export async function cleanupPendingLandingPageImage(url: string, userId: string
   return cleanupUnreferencedStorageObjects("landing-logos", [url]);
 }
 
-// Remove uncommitted uploads after a 24-hour grace period. Only objects under
-// "new/" are considered; all database references are
-// scanned before any Storage API deletion is attempted.
-export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: boolean; candidates: number }> {
-  const admin = createStorageAdminClient();
-  if (!admin) return { ok: false, candidates: 0 };
-
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+// Remove stale, unreferenced images from both public image buckets after a
+// 24-hour grace period. Listing and reference scans must all succeed before
+// the first object is deleted.
+async function listStaleStorageObjects(
+  admin: any,
+  bucketName: StorageBucket,
+  cutoff: number,
+): Promise<Set<string> | null> {
+  const bucket = admin.storage.from(bucketName);
   const candidates = new Set<string>();
-  const bucket = admin.storage.from("landing-logos");
+  const limit = 100;
 
   async function scanFolder(folder: string, depth = 0): Promise<boolean> {
-    if (depth > 5) return false;
-    const limit = 100;
+    // Abort rather than silently skip unusually deep paths.
+    if (depth > 10) {
+      console.error("Storage cleanup listing exceeded maximum folder depth:", bucketName, folder);
+      return false;
+    }
+
     for (let offset = 0; ; offset += limit) {
       const { data, error } = await bucket.list(folder, {
         limit,
@@ -146,29 +151,75 @@ export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: bool
         sortBy: { column: "created_at", order: "asc" },
       });
       if (error || !Array.isArray(data)) {
-        console.error("Stale image listing failed:", error?.message || folder);
+        console.error("Storage cleanup listing failed:", bucketName, error?.message || folder);
         return false;
       }
+
       for (const item of data) {
         if (item.id === null) {
-          if (!(await scanFolder(`${folder}/${item.name}`, depth + 1))) return false;
+          const child = folder ? `${folder}/${item.name}` : item.name;
+          if (!(await scanFolder(child, depth + 1))) return false;
           continue;
         }
+
         const createdAt = item.created_at ? new Date(item.created_at).getTime() : NaN;
+        // Unknown timestamps are deliberately retained.
         if (!Number.isFinite(createdAt) || createdAt >= cutoff) continue;
-        const path = `${folder}/${item.name}`;
+
+        const path = folder ? `${folder}/${item.name}` : item.name;
         candidates.add(bucket.getPublicUrl(path).data.publicUrl);
       }
+
       if (data.length < limit) break;
     }
     return true;
   }
 
-  for (const folder of ["new"]) {
-    if (!(await scanFolder(folder))) return { ok: false, candidates: 0 };
-  }
-  if (!candidates.size) return { ok: true, candidates: 0 };
+  if (!(await scanFolder(""))) return null;
+  return candidates;
+}
 
-  const success = await cleanupUnreferencedStorageObjects("landing-logos", [...candidates]);
-  return { ok: success, candidates: candidates.size };
+export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: boolean; candidates: number }> {
+  const admin = createStorageAdminClient();
+  if (!admin) return { ok: false, candidates: 0 };
+
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const buckets: StorageBucket[] = ["landing-logos", "store-products"];
+  const candidatesByBucket = new Map<StorageBucket, Set<string>>();
+
+  // Complete every Storage listing first. A listing error aborts all deletion.
+  for (const bucket of buckets) {
+    const candidates = await listStaleStorageObjects(admin, bucket, cutoff);
+    if (!candidates) return { ok: false, candidates: 0 };
+    candidatesByBucket.set(bucket, candidates);
+  }
+
+  // Complete every database reference scan before deleting from either bucket.
+  const referencedByBucket = new Map<StorageBucket, Set<string>>();
+  for (const bucket of buckets) {
+    const referenced = await getReferencedObjectPaths(admin, bucket);
+    if (!referenced) return { ok: false, candidates: 0 };
+    referencedByBucket.set(bucket, referenced);
+  }
+
+  const candidateCount = [...candidatesByBucket.values()].reduce((sum, set) => sum + set.size, 0);
+
+  // Only after all listings and all reference scans succeeded may deletion begin.
+  for (const bucket of buckets) {
+    const candidates = candidatesByBucket.get(bucket)!;
+    const referenced = referencedByBucket.get(bucket)!;
+    const paths = [...candidates]
+      .map((url) => getStorageObjectPath(url, bucket))
+      .filter((path): path is string => Boolean(path && !referenced.has(path)));
+
+    for (let index = 0; index < paths.length; index += 1000) {
+      const { error } = await admin.storage.from(bucket).remove(paths.slice(index, index + 1000));
+      if (error) {
+        console.error(`Storage cleanup failed for ${bucket}:`, error.message);
+        return { ok: false, candidates: candidateCount };
+      }
+    }
+  }
+
+  return { ok: true, candidates: candidateCount };
 }
