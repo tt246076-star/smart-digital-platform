@@ -126,7 +126,7 @@ export async function cleanupPendingLandingPageImage(url: string, userId: string
 }
 
 // Remove stale, unreferenced images from both public image buckets after a
-// 24-hour grace period. Listing and reference scans must all succeed before
+// 1-hour grace period. Listing and reference scans must all succeed before
 // the first object is deleted.
 async function listStaleStorageObjects(
   admin: any,
@@ -183,7 +183,7 @@ export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: bool
   const admin = createStorageAdminClient();
   if (!admin) return { ok: false, candidates: 0 };
 
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - 60 * 60 * 1000;
   const buckets: StorageBucket[] = ["landing-logos", "store-products"];
   const candidatesByBucket = new Map<StorageBucket, Set<string>>();
 
