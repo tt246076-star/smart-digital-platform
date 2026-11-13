@@ -122,7 +122,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
   }
 
   return <main className={`salon-root ${animate ? "salon-animated" : "salon-static"}`} style={{ "--salon-bg": palette.bg, "--salon-bg2": palette.bg2, "--salon-accent": palette.accent, "--salon-ink": palette.ink, "--salon-glass": palette.glass, backgroundImage: `linear-gradient(160deg,${palette.bg},${palette.bg2})` } as React.CSSProperties}>
-    <div className="salon-backdrop" aria-hidden="true" style={{ backgroundImage: `linear-gradient(155deg,${palette.bg}55,${palette.accent}70,${palette.bg2}b8),linear-gradient(180deg,#15101a35,#15101a9c),url("${cover}")` }} />
+    <div className="salon-backdrop" aria-hidden="true"><img className="salon-backdrop-image" src={cover} alt="" fetchPriority="high" loading="eager" decoding="async" /><div className="salon-backdrop-overlay" /></div>
     <div className="salon-aurora" aria-hidden="true"><i /><i /><i /></div>
     <div className="salon-wrap">
       <div className="salon-shell">
@@ -163,7 +163,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
     </a>
     <style jsx>{`
       .salon-root{position:relative;isolation:isolate;min-height:100vh;padding:90px 20px 106px;overflow-x:clip;font-family:"Tajawal",Arial,sans-serif;color:var(--salon-ink);background-size:cover;background-position:center;transition:background .4s}
-      .salon-backdrop{position:fixed;inset:-5%;z-index:-2;background-position:center;background-size:cover;filter:blur(8px);transform:scale(1.08);pointer-events:none}
+      .salon-backdrop{position:fixed;inset:-5%;z-index:-2;filter:blur(8px);transform:scale(1.08);pointer-events:none}.salon-backdrop-image{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center}.salon-backdrop-overlay{position:absolute;inset:0;background:linear-gradient(155deg,var(--salon-bg)55,var(--salon-accent)70,var(--salon-bg2)b8),linear-gradient(180deg,#15101a35,#15101a9c)}
       .salon-aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.salon-aurora i{position:absolute;width:50vmax;height:50vmax;border-radius:50%;filter:blur(90px);opacity:.5;background:radial-gradient(circle,var(--salon-accent),transparent 70%);animation:salonDrift 22s ease-in-out infinite alternate}.salon-aurora i:nth-child(1){top:-30vmax;left:-20vmax}.salon-aurora i:nth-child(2){right:-24vmax;bottom:-30vmax;animation-delay:-8s}.salon-aurora i:nth-child(3){left:45%;top:42%;width:32vmax;height:32vmax;opacity:.22;animation-delay:-14s}
       @keyframes salonDrift{to{transform:translate3d(5vw,-3vh,0) scale(1.16)}}
       .salon-wrap{position:relative;z-index:1;width:min(410px,100%);margin:0 auto}.salon-shell{position:relative;width:100%;margin:24px auto 0}
