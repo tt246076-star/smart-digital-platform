@@ -156,8 +156,9 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
     <style jsx>{`
       .vip-root{min-height:100vh;background:var(--vip-bg);color:var(--vip-text);position:relative;isolation:isolate;padding:44px 20px 92px;overflow-x:clip;overflow-y:visible;font-family:Arial,sans-serif}
       .vip-backdrop{position:fixed;inset:-4%;z-index:-2;filter:blur(25px);transform:scale(1.1);opacity:1;overflow:hidden}.vip-backdrop-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:center}.vip-backdrop-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(#0009,#000b)}.vip-grain{position:absolute;inset:0;z-index:2;pointer-events:none}
-      .vip-pan{animation:vipPan 36s ease-in-out infinite alternate}
-      @keyframes vipPan{from{background-position:42% 45%;transform:scale(1.08)}to{background-position:60% 55%;transform:scale(1.18)}}
+      .vip-pan{animation:vipPan 36s ease-in-out infinite alternate}.vip-pan .vip-backdrop-image{animation:vipImagePan 36s ease-in-out infinite alternate}
+      @keyframes vipPan{from{transform:scale(1.08)}to{transform:scale(1.18)}}
+      @keyframes vipImagePan{from{object-position:42% 45%}to{object-position:60% 55%}}
       .vip-grain span{position:absolute;width:7px;height:7px;border-radius:50%;background:#C9A86A;opacity:.45;animation:vipGlow 3.2s ease-in-out infinite}
       .vip-grain span:nth-child(1){top:12%;left:12%}.vip-grain span:nth-child(2){top:38%;right:9%;width:4px;height:4px;animation-delay:.8s}.vip-grain span:nth-child(3){bottom:14%;left:32%;animation-delay:1.5s}
       .vip-card-shell{position:relative;width:100%;max-width:360px;margin:20px auto 0;isolation:isolate}.vip-card{position:relative;width:100%;max-width:360px;box-sizing:border-box;margin:20px auto 0;padding:76px 18px 22px;border:1px solid color-mix(in srgb,var(--vip-accent) 65%,transparent);border-radius:32px;background:color-mix(in srgb,var(--vip-card) 96%,transparent);color:var(--vip-text);box-shadow:0 28px 90px #0008;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
