@@ -89,7 +89,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       setUploading(true);
       setUploadError("");
       try {
-        const result = await deletePendingLandingImage(url);
+        const result = await deletePendingLandingImage(value);
         if (!result.ok) {
           setUploadError("تعذر حذف الصورة الآن. حاول مرة أخرى؛ لن تُحذف أي صورة مستعملة.");
           return;
@@ -101,7 +101,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         setUploading(false);
       }
     }
-    markImageRemoved(url);
+    markImageRemoved(value);
     clear();
   }
 
@@ -116,7 +116,6 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       const supabase = createClient();
       const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
       const previousValue = target === "logo" ? logoValue : target === "round" ? roundImageValue : target === "cover" ? coverImageValue : "";
-      const targetName = target;
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Authentication required");
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
@@ -137,7 +136,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         setGalleryValues(old => old.length < maxGalleryImages ? [...old, imageRef] : old);
       }
     } catch {
-      setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
+      setUploadError("ما قدرناش نرفع الصورة. تأكد أن حاوية الرفع الخاص موجودة ومسموح برفع الصور في Supabase.");
     } finally { setUploading(false); }
   }
 
