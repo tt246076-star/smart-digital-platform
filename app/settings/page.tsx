@@ -37,8 +37,19 @@ export default function SettingsPage() {
     if (password.length < 8) { setMessage("كلمة السر لازم تكون 8 أحرف على الأقل."); return; }
     setBusy(true); setMessage("");
     const { error } = await supabase.auth.updateUser({ password });
-    setMessage(error ? error.message : "تم تغيير كلمة السر.");
-    setPassword(""); setBusy(false);
+    if (error) {
+      setMessage("تعذر تغيير كلمة السر. تحقق من البيانات وحاول مجددًا.");
+      setBusy(false);
+      return;
+    }
+    const { error: sessionsError } = await supabase.auth.signOut({ scope: "others" });
+    setMessage(
+      sessionsError
+        ? "تم تغيير كلمة السر، لكن تعذر إنهاء الجلسات الأخرى. سجّل الخروج من الأجهزة الأخرى يدويًا."
+        : "تم تغيير كلمة السر وإنهاء الجلسات الأخرى."
+    );
+    setPassword("");
+    setBusy(false);
   }
 
   async function setupMfa() {
