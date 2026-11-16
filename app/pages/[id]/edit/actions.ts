@@ -4,12 +4,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImages, cleanupPendingLandingPageImage } from "@/lib/server/storage-cleanup";
+import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/server/landing-image-staging";
 
 function safeUrl(value: FormDataEntryValue | null) {
   const input = String(value || "").trim();
   if (!input) return "";
   try {
     const url = new URL(input);
+    if (input.startsWith("staging://")) return input;
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
   } catch {
     return "";
@@ -60,7 +62,7 @@ export async function updateLandingPage(formData: FormData) {
   const custom_links = customLabel && customUrl ? [{ label: customLabel, url: customUrl }] : [];
   let sections: Record<string, any> = {};
   try { const raw = JSON.parse(String(formData.get("sections") || "{}")); if (raw && typeof raw === "object" && !Array.isArray(raw)) sections = raw; } catch { sections = {}; }
-  const cleanSectionUrl = (v: unknown) => { try { const u = new URL(String(v || "")); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
+  const cleanSectionUrl = (v: unknown) => { try { const raw = String(v || ""); if (raw.startsWith("staging://")) return raw; const u = new URL(raw); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
   sections = {
     address: String(sections.address || "").trim().slice(0, 200),
     map_url: cleanSectionUrl(sections.map_url),
@@ -91,13 +93,22 @@ export async function updateLandingPage(formData: FormData) {
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=length`);
   }
 
+  let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
+  try {
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, id);
+  } catch (promotionError) {
+    console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
+    redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);
+  }
+
   const { data, error } = await supabase.from("landing_pages").update({
-    business_name, headline, description, seo_title, seo_description, phone, whatsapp, logo_url,
-    instagram_url, facebook_url, tiktok_url, youtube_url, custom_links,
-    template, theme, sections, updated_at: new Date().toISOString(),
+    business_name, headline, description, seo_title, seo_description, phone, whatsapp,
+    logo_url: promoted.value.logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links,
+    template, theme, sections: promoted.value.sections, updated_at: new Date().toISOString(),
   }).eq("id", id).eq("user_id", user.id).select("slug").single();
 
   if (error || !data) {
+    await removePromotedLandingImages(promoted.uploadedPaths);
     console.error("Landing page update failed:", error?.message);
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);
   }
