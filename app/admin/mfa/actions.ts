@@ -163,7 +163,7 @@ export async function startAdminTotpEnrollment(): Promise<
     factorType: "totp",
     friendlyName: "Bitaqati Admin",
   });
-  if (error || !data?.id || !data.totp?.qr_code || !data.totp?.secret) {
+  if (error || !data || data.type !== "totp" || !data.id || !data.totp.qr_code || !data.totp.secret) {
     return { ok: false, message: "تعذر بدء إعداد تطبيق المصادقة. حاول مجددًا." };
   }
 
