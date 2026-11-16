@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-type StorageBucket = "landing-logos" | "store-products";
+type StorageBucket = "landing-logos" | "store-products" | "landing-logos-staging";
 
 function createStorageAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -51,6 +51,7 @@ async function getReferencedObjectPaths(admin: any, bucket: StorageBucket, exclu
     { table: "delivery_shipment_events", columns: "payload" },
     { table: "links", columns: "url" },
   ];
+  if (bucket === "landing-logos-staging") return referenced; // Staging paths are never stored in database rows.
   const sources = bucket === "landing-logos"
     ? commonSources
     : [...commonSources, { table: "storefront_products", columns: "image_url" }];
@@ -120,6 +121,21 @@ export async function cleanupStoreProductImages(values: unknown[]) {
 // The reference scan remains the final authority: referenced files are never removed.
 export async function cleanupPendingLandingPageImage(url: string, userId: string): Promise<boolean> {
   if (!userId) return false;
+
+  if (url.startsWith("staging://")) {
+    const path = url.slice("staging://".length);
+    const parts = path.split("/");
+    if (parts.length !== 2 || parts[0] !== userId || !parts[1] || parts.some((part) => part === "." || part === "..")) return false;
+    const admin = createStorageAdminClient();
+    if (!admin) return false;
+    const { error } = await admin.storage.from("landing-logos-staging").remove([path]);
+    if (error) {
+      console.error("Private staging image removal failed:", error.message);
+      return false;
+    }
+    return true;
+  }
+
   const path = getStorageObjectPath(url, "landing-logos");
   if (!path || !path.startsWith(`new/${userId}/`)) return false;
   return cleanupUnreferencedStorageObjects("landing-logos", [url]);
@@ -184,7 +200,7 @@ export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: bool
   if (!admin) return { ok: false, candidates: 0 };
 
   const cutoff = Date.now() - 60 * 60 * 1000;
-  const buckets: StorageBucket[] = ["landing-logos", "store-products"];
+  const buckets: StorageBucket[] = ["landing-logos", "store-products", "landing-logos-staging"];
   const candidatesByBucket = new Map<StorageBucket, Set<string>>();
 
   // Complete every Storage listing first. A listing error aborts all deletion.
