@@ -141,9 +141,9 @@ export async function cleanupPendingLandingPageImage(url: string, userId: string
   return cleanupUnreferencedStorageObjects("landing-logos", [url]);
 }
 
-// Remove stale, unreferenced images from both public image buckets after a
-// 1-hour grace period. Listing and reference scans must all succeed before
-// the first object is deleted.
+// Remove stale, unreferenced images after a 1-hour grace period. This scans
+// public image buckets and the private staging bucket without creating public URLs.
+// Listing and reference scans must all succeed before the first object is deleted.
 async function listStaleStorageObjects(
   admin: any,
   bucketName: StorageBucket,
@@ -183,7 +183,7 @@ async function listStaleStorageObjects(
         if (!Number.isFinite(createdAt) || createdAt >= cutoff) continue;
 
         const path = folder ? `${folder}/${item.name}` : item.name;
-        candidates.add(bucket.getPublicUrl(path).data.publicUrl);
+        candidates.add(path);
       }
 
       if (data.length < limit) break;
@@ -224,9 +224,7 @@ export async function cleanupStalePendingLandingPageImages(): Promise<{ ok: bool
   for (const bucket of buckets) {
     const candidates = candidatesByBucket.get(bucket)!;
     const referenced = referencedByBucket.get(bucket)!;
-    const paths = [...candidates]
-      .map((url) => getStorageObjectPath(url, bucket))
-      .filter((path): path is string => Boolean(path && !referenced.has(path)));
+    const paths = [...candidates].filter((path) => !referenced.has(path));
 
     for (let index = 0; index < paths.length; index += 1000) {
       const { error } = await admin.storage.from(bucket).remove(paths.slice(index, index + 1000));
