@@ -4,12 +4,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
+import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/server/landing-image-staging";
 
 function cleanUrl(value: FormDataEntryValue | null) {
   const input = String(value || "").trim();
   if (!input) return "";
   try {
     const url = new URL(input);
+    if (input.startsWith("staging://")) return input;
     if (url.protocol !== "https:" && url.protocol !== "http:") return "";
     return url.toString();
   } catch {
@@ -71,7 +73,7 @@ export async function createLandingPage(formData: FormData) {
   const theme = allowedThemes.includes(requestedTheme) ? requestedTheme : "violet";
 
   const cleanSectionUrl = (value: unknown) => {
-    try { const url = new URL(String(value || "")); return ["https:","http:"].includes(url.protocol) ? url.toString() : ""; }
+    try { const raw = String(value || ""); if (raw.startsWith("staging://")) return raw; const url = new URL(raw); return ["https:","http:"].includes(url.protocol) ? url.toString() : ""; }
     catch { return ""; }
   };
   let submittedSections: Record<string, any> = {};
@@ -106,13 +108,24 @@ export async function createLandingPage(formData: FormData) {
   if (headline.length > 140 || description.length > 1000 || phone.length > 30 || phone2.length > 30 || whatsapp.length > 30) redirect("/pages/new?error=length");
 
   const slug = `${business_name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 35) || "page"}-${crypto.randomUUID().slice(0, 8)}`;
+  const pageId = crypto.randomUUID();
+  let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
+  try {
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, pageId);
+  } catch (promotionError) {
+    console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
+    redirect("/pages/new?error=save");
+  }
+
   const { data, error } = await supabase.from("landing_pages").insert({
-    user_id: user.id, slug, business_name, headline, description, seo_title, seo_description, phone, whatsapp, logo_url,
+    id: pageId,
+    user_id: user.id, slug, business_name, headline, description, seo_title, seo_description, phone, whatsapp, logo_url: promoted.value.logo_url,
     instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, template, theme,
-    sections, is_published: true,
+    sections: promoted.value.sections, is_published: true,
   }).select("id").single();
 
   if (error || !data) {
+    await removePromotedLandingImages(promoted.uploadedPaths);
     console.error("Landing page creation failed:", error?.message);
     redirect("/pages/new?error=save");
   }
