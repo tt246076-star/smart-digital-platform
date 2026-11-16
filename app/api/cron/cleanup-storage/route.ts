@@ -14,5 +14,5 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, message: "Storage cleanup aborted safely." }, { status: 500 });
   }
 
-  return Response.json({ ok: true, candidates_checked: result.candidates, grace_period_hours: 24 });
+  return Response.json({ ok: true, candidates_checked: result.candidates, grace_period_hours: 1 });
 }
