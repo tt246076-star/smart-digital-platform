@@ -53,10 +53,30 @@ export default function SettingsPage() {
   }
 
   async function setupMfa() {
-    setBusy(true); setMessage("");
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "بطاقاتي" });
+    setBusy(true);
+    setMessage("");
+    setMfa(null);
+
+    // Supabase requires friendly names to be unique per user. Never reuse
+    // the legacy "بطاقاتي" name, which may already exist on this account.
+    const friendlyName = `Bitaqati Authenticator ${crypto.randomUUID()}`;
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName,
+    });
+
+    if (error) {
+      setMessage(
+        error.code === "mfa_factor_name_conflict"
+          ? "اسم تطبيق المصادقة مستخدم مسبقًا. أعد المحاولة لإنشاء اسم جديد."
+          : "تعذر بدء إعداد المصادقة الثنائية. حاول مجددًا."
+      );
+      setBusy(false);
+      return;
+    }
+
     setMfa(data || null);
-    setMessage(error ? error.message : "امسح رمز QR بتطبيق مصادقة، ثم أدخل الرمز للتحقق.");
+    setMessage("امسح رمز QR بتطبيق مصادقة، ثم أدخل الرمز للتحقق.");
     setBusy(false);
   }
 
