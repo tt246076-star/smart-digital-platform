@@ -48,6 +48,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const [template, setTemplate] = useState(page.template || "profile");
   const [theme, setTheme] = useState(() => normalizeThemeId(page.theme || "blue"));
   const [logo, setLogo] = useState(page.logo_url || "");
+  const [logoValue, setLogoValue] = useState(page.logo_url || "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [business, setBusiness] = useState(page.business_name);
@@ -68,20 +69,23 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
   const [primary, setPrimary] = useState<string>(pagePrimary(initialSections as any) || "");
   const [mode, setMode] = useState<"" | "light" | "dark">(initialSections.theme_mode === "light" || initialSections.theme_mode === "dark" ? initialSections.theme_mode : "");
   const [roundImageUrl, setRoundImageUrl] = useState(initialSections.round_image_url || "");
+  const [roundImageValue, setRoundImageValue] = useState(initialSections.round_image_url || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialSections.cover_image_url || "");
+  const [coverImageValue, setCoverImageValue] = useState(initialSections.cover_image_url || "");
   const [gallery, setGallery] = useState<string[]>(Array.isArray(initialSections.gallery) ? initialSections.gallery.slice(0, maxGalleryImages) : []);
+  const [galleryValues, setGalleryValues] = useState<string[]>(Array.isArray(initialSections.gallery) ? initialSections.gallery.slice(0, maxGalleryImages) : []);
   const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
   function markImageRemoved(url: string) { if (url) setRemovedImageUrls((old) => old.includes(url) ? old : [...old, url]); }
-  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageUrl,cover_image_url:coverImageUrl,gallery,contact_numbers:[{phone,name:phoneName1},{phone:phone2,name:phoneName2}]});
+  const sectionsJson = JSON.stringify({address,map_url:mapUrl,hours:JSON.stringify(hours),theme_primary:primary,theme_mode:mode,round_image_url:roundImageValue,cover_image_url:coverImageValue,gallery:galleryValues,contact_numbers:[{phone,name:phoneName1},{phone:phone2,name:phoneName2}]});
   const activeDef = THEMES.find((item) => item.id === theme) || THEMES[0];
   const resolved = resolveTheme(theme, primary || undefined, mode || undefined);
   const vars = themeVars(resolved);
   const todayKey = weekDays[new Date().getDay()][0];
   const todayHours = hours[todayKey];
 
-  async function removeImage(url: string, clear: () => void) {
-    if (!url) return;
-    if (url.includes("/storage/v1/object/public/landing-logos/new/")) {
+  async function removeImage(url: string, value: string, clear: () => void) {
+    if (!url || !value) return;
+    if (value.startsWith("staging://") || value.includes("/storage/v1/object/public/landing-logos/new/")) {
       setUploading(true);
       setUploadError("");
       try {
@@ -111,19 +115,27 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
     try {
       const supabase = createClient();
       const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-      const previousUrl = target === "logo" ? logo : target === "round" ? roundImageUrl : target === "cover" ? coverImageUrl : "";
+      const previousValue = target === "logo" ? logoValue : target === "round" ? roundImageValue : target === "cover" ? coverImageValue : "";
       const targetName = target;
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Authentication required");
-      const path = `new/${user.id}/${page.id}/${targetName}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("landing-logos").upload(path, file, { upsert: false, contentType: file.type });
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("landing-logos-staging").upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
-      const { data } = supabase.storage.from("landing-logos").getPublicUrl(path);
-      if (previousUrl && previousUrl !== data.publicUrl) markImageRemoved(previousUrl);
-      if (target === "logo") setLogo(data.publicUrl);
-      else if (target === "round") setRoundImageUrl(data.publicUrl);
-      else if (target === "cover") setCoverImageUrl(data.publicUrl);
-      else if (target === "gallery") setGallery(old => old.length < maxGalleryImages ? [...old, data.publicUrl] : old);
+      const { data: signed, error: signError } = await supabase.storage.from("landing-logos-staging").createSignedUrl(path, 60 * 60);
+      if (signError || !signed?.signedUrl) {
+        await supabase.storage.from("landing-logos-staging").remove([path]);
+        throw signError || new Error("Could not preview staged image");
+      }
+      const imageRef = `staging://${path}`;
+      if (previousValue && previousValue !== imageRef) markImageRemoved(previousValue);
+      if (target === "logo") { setLogo(signed.signedUrl); setLogoValue(imageRef); }
+      else if (target === "round") { setRoundImageUrl(signed.signedUrl); setRoundImageValue(imageRef); }
+      else if (target === "cover") { setCoverImageUrl(signed.signedUrl); setCoverImageValue(imageRef); }
+      else if (target === "gallery") {
+        setGallery(old => old.length < maxGalleryImages ? [...old, signed.signedUrl] : old);
+        setGalleryValues(old => old.length < maxGalleryImages ? [...old, imageRef] : old);
+      }
     } catch {
       setUploadError("ما قدرناش نرفع الصورة. تأكد أن Bucket landing-logos موجود ومسموح برفع الصور في Supabase.");
     } finally { setUploading(false); }
@@ -134,7 +146,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       {!isCreating && <input type="hidden" name="id" value={page.id} />}
       <input type="hidden" name="template" value={template} />
       <input type="hidden" name="theme" value={theme} />
-      <input type="hidden" name="logo_url" value={logo} />
+      <input type="hidden" name="logo_url" value={logoValue} />
       <input type="hidden" name="sections" value={sectionsJson} />
       <input type="hidden" name="removed_image_urls" value={JSON.stringify(removedImageUrls)} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]"><div className="min-w-0 space-y-8">
@@ -200,19 +212,19 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
           <label className={label} htmlFor="round_image_upload">صورة دائرية للمحل أو صاحب النشاط</label>
           <input id="round_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "round")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
-          {roundImageUrl && <div className="mt-3 flex items-center gap-3"><img src={roundImageUrl} alt="معاينة الصورة الدائرية" className="h-16 w-16 rounded-full border object-cover" /><button type="button" onClick={()=>void removeImage(roundImageUrl,()=>setRoundImageUrl(""))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+          {roundImageUrl && <div className="mt-3 flex items-center gap-3"><img src={roundImageUrl} alt="معاينة الصورة الدائرية" className="h-16 w-16 rounded-full border object-cover" /><button type="button" onClick={()=>void removeImage(roundImageUrl,roundImageValue,()=>{setRoundImageUrl("");setRoundImageValue("");})} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
         </div>
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-3">
           <label className={label} htmlFor="cover_image_upload">صورة الغلاف أو الصورة المربعة</label>
           <input id="cover_image_upload" type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0], "cover")} className="mt-3 block w-full text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
-          {coverImageUrl && <div className="mt-3 space-y-2"><img src={coverImageUrl} alt="معاينة صورة الغلاف" className="max-h-40 w-full rounded-xl border object-cover" /><button type="button" onClick={()=>void removeImage(coverImageUrl,()=>setCoverImageUrl(""))} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
+          {coverImageUrl && <div className="mt-3 space-y-2"><img src={coverImageUrl} alt="معاينة صورة الغلاف" className="max-h-40 w-full rounded-xl border object-cover" /><button type="button" onClick={()=>void removeImage(coverImageUrl,coverImageValue,()=>{setCoverImageUrl("");setCoverImageValue("");})} className="text-sm font-bold text-red-600">حذف الصورة</button></div>}
         </div>
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
         <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى للصورة الواحدة {maxGalleryImageMb} MB.</p>
         <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");}} />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>void removeImage(url,()=>setGallery(old=>old.filter(item=>item!==url)))} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>void removeImage(url,galleryValues[index],()=>{setGallery(old=>old.filter(item=>item!==url));setGalleryValues(old=>old.filter((_,i)=>i!==index));})} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">6. الظهور في Google (SEO)</h2>
@@ -226,7 +238,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
           <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadImage(e.target.files?.[0], "logo")} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
           {uploading && <p className="mt-2 text-sm font-bold text-violet-700">جاري رفع الصورة...</p>}
           {uploadError && <p role="alert" className="mt-2 text-sm font-bold text-red-600">{uploadError}</p>}
-          {logo && <div className="mt-3 flex items-center gap-3"><img src={logo} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => void removeImage(logo, () => setLogo(""))} className="text-sm font-bold text-red-600">حذف الشعار</button></div>}
+          {logo && <div className="mt-3 flex items-center gap-3"><img src={logo} alt="معاينة الشعار" className="h-16 w-16 rounded-xl border object-cover" /><button type="button" onClick={() => void removeImage(logo, logoValue, () => { setLogo(""); setLogoValue(""); })} className="text-sm font-bold text-red-600">حذف الشعار</button></div>}
         </div>
         <div><label className={label} htmlFor="instagram_url">Instagram</label><input className={field} id="instagram_url" name="instagram_url" type="url" defaultValue={page.instagram_url} placeholder="https://instagram.com/..." /></div>
         <div><label className={label} htmlFor="facebook_url">Facebook</label><input className={field} id="facebook_url" name="facebook_url" type="url" defaultValue={page.facebook_url} placeholder="https://facebook.com/..." /></div>
