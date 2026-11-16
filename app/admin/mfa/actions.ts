@@ -159,12 +159,29 @@ export async function startAdminTotpEnrollment(): Promise<
     return { ok: false, message: "أثبت هويتك بالرمز الحالي أو برمز استرداد قبل إضافة تطبيق جديد." };
   }
 
+  // Supabase requires a unique friendly name for each factor belonging to a user.
+  // Use a random suffix so an already verified factor or an interrupted setup
+  // cannot block the next enrollment attempt.
+  const friendlyName = `Bitaqati Admin ${randomBytes(6).toString("hex").toUpperCase()}`;
   const { data, error } = await ctx.supabase.auth.mfa.enroll({
     factorType: "totp",
-    friendlyName: "Bitaqati Admin",
+    friendlyName,
   });
-  if (error || !data || data.type !== "totp" || !data.id || !data.totp.qr_code || !data.totp.secret) {
-    return { ok: false, message: "تعذر بدء إعداد تطبيق المصادقة. حاول مجددًا." };
+
+  if (error) {
+    console.error("Admin MFA enrollment failed:", error.code || "unknown", error.message);
+    return {
+      ok: false,
+      message: error.code === "mfa_factor_name_conflict"
+        ? "اسم تطبيق المصادقة مستخدم مسبقًا. اضغط إعداد التطبيق مرة أخرى."
+        : "تعذر بدء إعداد تطبيق المصادقة. حاول مجددًا.",
+    };
+  }
+
+  // Narrow the discriminated union before accessing TOTP-only fields.
+  if (!data || data.type !== "totp" || !data.id || !data.totp.qr_code || !data.totp.secret) {
+    console.error("Admin MFA enrollment returned an unexpected factor type.");
+    return { ok: false, message: "لم نتمكن من تجهيز رمز تطبيق المصادقة. حاول مجددًا." };
   }
 
   return {
