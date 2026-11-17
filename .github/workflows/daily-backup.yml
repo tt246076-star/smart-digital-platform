@@ -1,0 +1,212 @@
+name: Daily encrypted off-site backup
+
+on:
+  schedule:
+    # 04:00 UTC = 05:00 in Algeria (UTC+1)
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bitaqati-daily-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Back up database, Storage, and repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out the full Git history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install backup tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y age postgresql-client
+          npx --yes supabase@latest --version
+          aws --version
+
+      - name: Create, encrypt, upload, and verify backup
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_S3_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_ACCESS_KEY_ID }}
+          SUPABASE_S3_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SECRET_ACCESS_KEY }}
+          AGE_RECIPIENT: ${{ secrets.AGE_RECIPIENT }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          required_vars=(
+            SUPABASE_DB_URL SUPABASE_S3_ACCESS_KEY_ID SUPABASE_S3_SECRET_ACCESS_KEY
+            AGE_RECIPIENT R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY
+          )
+          for name in "${required_vars[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required GitHub secret is missing: $name"
+              exit 1
+            fi
+          done
+
+          timestamp="$(date -u +%Y-%m-%dT%H%M%SZ)"
+          backup_root="$RUNNER_TEMP/bitaqati-backup"
+          backup_dir="$backup_root/payload"
+          verify_dir="$RUNNER_TEMP/bitaqati-verify"
+          archive="$RUNNER_TEMP/bitaqati-$timestamp.tar.gz"
+          encrypted="$archive.age"
+          r2_endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          supabase_s3_endpoint="https://esetgqfftbgoavyihfiv.storage.supabase.co/storage/v1/s3"
+          supabase_s3_region="eu-central-1"
+
+          cleanup() {
+            rm -rf "$backup_root" "$verify_dir" "$archive" "$encrypted" "$encrypted.sha256"
+          }
+          trap cleanup EXIT
+
+          mkdir -p "$backup_dir/db" "$backup_dir/storage" "$verify_dir"
+
+          echo "Dumping Supabase roles, schema, and data..."
+          npx --yes supabase@latest db dump --remote="$SUPABASE_DB_URL" -f "$backup_dir/db/roles.sql" --role-only
+          npx --yes supabase@latest db dump --remote="$SUPABASE_DB_URL" -f "$backup_dir/db/schema.sql"
+          npx --yes supabase@latest db dump --remote="$SUPABASE_DB_URL" -f "$backup_dir/db/data.sql" --use-copy --data-only -x "storage.buckets_vectors" -x "storage.vector_indexes"
+
+          echo "Saving Supabase migration history..."
+          npx --yes supabase@latest db dump --remote="$SUPABASE_DB_URL" -f "$backup_dir/db/history_schema.sql" --schema supabase_migrations
+          npx --yes supabase@latest db dump --remote="$SUPABASE_DB_URL" -f "$backup_dir/db/history_data.sql" --use-copy --data-only --schema supabase_migrations
+
+          for file in roles.sql schema.sql data.sql history_schema.sql history_data.sql; do
+            if [[ ! -s "$backup_dir/db/$file" ]]; then
+              echo "::error::Database backup file is missing or empty: $file"
+              exit 1
+            fi
+          done
+
+          echo "Exporting Storage bucket settings and database inventory..."
+          psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc "
+            select coalesce(
+              json_agg(
+                json_build_object(
+                  'id', id,
+                  'name', name,
+                  'public', public,
+                  'file_size_limit', file_size_limit,
+                  'allowed_mime_types', allowed_mime_types
+                ) order by id
+              ),
+              '[]'::json
+            )::text
+            from storage.buckets;
+          " > "$backup_dir/storage-buckets.json"
+
+          auth_user_count="$(psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from auth.users;')"
+          database_size="$(psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc "select pg_size_pretty(pg_database_size(current_database()));")"
+          postgres_version="$(psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'show server_version;')"
+          git_commit="$(git rev-parse HEAD)"
+
+          echo "Downloading every Supabase Storage bucket..."
+          export AWS_ACCESS_KEY_ID="$SUPABASE_S3_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$SUPABASE_S3_SECRET_ACCESS_KEY"
+          export AWS_DEFAULT_REGION="$supabase_s3_region"
+          export AWS_PAGER=""
+
+          mapfile -t buckets < <(
+            aws --endpoint-url "$supabase_s3_endpoint" --region "$supabase_s3_region" \
+              s3api list-buckets --query 'Buckets[].Name' --output text | tr '\t' '\n'
+          )
+
+          if [[ ${#buckets[@]} -eq 0 ]]; then
+            echo "::error::No Storage buckets were returned; refusing to create an incomplete backup."
+            exit 1
+          fi
+
+          {
+            echo "backup_timestamp_utc=$timestamp"
+            echo "source_project_ref=esetgqfftbgoavyihfiv"
+            echo "postgres_version=$postgres_version"
+            echo "database_size=$database_size"
+            echo "auth_user_count=$auth_user_count"
+            echo "repository_commit=$git_commit"
+            echo "storage_buckets=${buckets[*]}"
+          } > "$backup_dir/manifest.txt"
+
+          for bucket in "${buckets[@]}"; do
+            if [[ ! "$bucket" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
+              echo "::error::Unexpected Storage bucket name; refusing unsafe path: $bucket"
+              exit 1
+            fi
+            mkdir -p "$backup_dir/storage/$bucket"
+            aws --endpoint-url "$supabase_s3_endpoint" --region "$supabase_s3_region" \
+              s3 sync "s3://$bucket/" "$backup_dir/storage/$bucket/" \
+              --no-progress --only-show-errors
+
+            file_count="$(find "$backup_dir/storage/$bucket" -type f | wc -l | tr -d ' ')"
+            echo "storage_object_count.$bucket=$file_count" >> "$backup_dir/manifest.txt"
+          done
+
+          (
+            cd "$backup_dir/storage"
+            find . -type f -print0 | sort -z | xargs -0 -r sha256sum
+          ) > "$backup_dir/storage.sha256"
+
+          echo "Bundling the full repository history..."
+          git bundle create "$backup_dir/repository.bundle" --all
+          git bundle verify "$backup_dir/repository.bundle"
+
+          echo "Creating and encrypting the archive..."
+          tar -C "$backup_root" -czf "$archive" payload
+          age -r "$AGE_RECIPIENT" -o "$encrypted" "$archive"
+          sha256sum "$encrypted" > "$encrypted.sha256"
+
+          archive_name="$(basename "$encrypted")"
+          object_prefix="daily/$timestamp"
+          archive_key="$object_prefix/$archive_name"
+          checksum_key="$object_prefix/$archive_name.sha256"
+
+          echo "Uploading encrypted archive to Cloudflare R2..."
+          AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+          AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+          AWS_DEFAULT_REGION="auto" AWS_PAGER="" \
+            aws --endpoint-url "$r2_endpoint" --region auto s3 cp \
+              "$encrypted" "s3://$R2_BUCKET/$archive_key" --no-progress
+
+          AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+          AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+          AWS_DEFAULT_REGION="auto" AWS_PAGER="" \
+            aws --endpoint-url "$r2_endpoint" --region auto s3 cp \
+              "$encrypted.sha256" "s3://$R2_BUCKET/$checksum_key" --no-progress
+
+          echo "Downloading the encrypted object again and checking its SHA-256..."
+          AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+          AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+          AWS_DEFAULT_REGION="auto" AWS_PAGER="" \
+            aws --endpoint-url "$r2_endpoint" --region auto s3 cp \
+              "s3://$R2_BUCKET/$archive_key" "$verify_dir/$archive_name" --no-progress
+
+          cmp --silent "$encrypted" "$verify_dir/$archive_name"
+          echo "Backup archive successfully uploaded and verified."
+
+          {
+            echo "### Bitaqati encrypted backup"
+            echo "- Date (UTC): $timestamp"
+            echo "- Database size: $database_size"
+            echo "- Auth users: $auth_user_count"
+            echo "- Storage buckets: ${buckets[*]}"
+            echo "- Encrypted archive: `$archive_key`"
+            echo "- Upload verification: SHA-256 byte-for-byte match"
+          } >> "$GITHUB_STEP_SUMMARY"
