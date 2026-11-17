@@ -31,7 +31,7 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
     if (!item) { setError("المنتج غير متاح."); return; }
     setBusy(true);setError("");setSuccess("");
     try{
-      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,idempotencyKey:idempotencyKey.current ?? (idempotencyKey.current = crypto.randomUUID()),customerName:name,customerPhone:phone,customerAddress:[wilaya,municipality,address].filter(Boolean).join("، "),notes})});
+      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,idempotencyKey:idempotencyKey.current ?? (idempotencyKey.current = crypto.randomUUID()),customerName:name,customerPhone:phone,customerWilaya:wilaya.slice(0,2),customerMunicipality:municipality,customerAddress:address,notes})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"تعذر إرسال الطلب.");
       setSuccess("تم تسجيل طلبك بنجاح! نتواصل معك قريبًا لتأكيد العنوان والتفاصيل.");
