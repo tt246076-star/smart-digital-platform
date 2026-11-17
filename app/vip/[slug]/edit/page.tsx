@@ -7,23 +7,12 @@ import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/s
 import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
 import FormPendingButton from "@/components/FormPendingButton";
+import { isValidVipFormData } from "@/lib/server/input-validation";
 
 const input = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-amber-500";
 const fieldNames = ["phone","phone_name","phone2","phone2_name","whatsapp","instagram","tiktok","facebook","google","map","address"] as const;
 const fieldLabels: Record<string,string> = {phone:"رقم الهاتف الأول",phone_name:"اسم صاحب الرقم الأول (اختياري)",phone2:"رقم الهاتف الثاني (اختياري)",phone2_name:"اسم صاحب الرقم الثاني (اختياري)",whatsapp:"رقم واتساب مع رمز الدولة",instagram:"رابط إنستغرام",tiktok:"رابط تيك توك",facebook:"رابط فيسبوك",google:"رابط تقييم Google",map:"رابط Google Maps",address:"العنوان"};
 const days = [["saturday","السبت"],["sunday","الأحد"],["monday","الإثنين"],["tuesday","الثلاثاء"],["wednesday","الأربعاء"],["thursday","الخميس"],["friday","الجمعة"]] as const;
-
-function readRemovedVIPImageUrls(formData: FormData): string[] {
-  const urls: string[] = [];
-  formData.forEach((value, key) => {
-    if (!key.endsWith("_removed")) return;
-    try {
-      const parsed = JSON.parse(String(value));
-      if (Array.isArray(parsed)) urls.push(...parsed.filter((item): item is string => typeof item === "string"));
-    } catch { /* Ignore malformed optional cleanup metadata. */ }
-  });
-  return [...new Set(urls)];
-}
 
 async function updateVIPCard(formData: FormData) {
   "use server";
@@ -36,6 +25,7 @@ async function updateVIPCard(formData: FormData) {
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
   const maxGalleryImageMb = Math.max(0.1, Math.min(20, galleryLimit?.max_image_mb ?? 2));
+  if (!isValidVipFormData(formData, maxGalleryImages, true)) redirect("/dashboard?vipEditError=1");
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at,max_pages,advanced_features").eq("user_id",user.id).maybeSingle();
   if (!plan || !["trial","vip"].includes(plan.plan_type) || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) redirect("/dashboard?vipError=plan");
   const old = page.sections?.vip_card || {};
@@ -69,7 +59,7 @@ async function updateVIPCard(formData: FormData) {
     console.error("VIP card update failed",error.message);
     redirect("/dashboard?vipEditError=1");
   }
-  await cleanupLandingPageImages([page.sections, readRemovedVIPImageUrls(formData)]);
+  await cleanupLandingPageImages([page.sections]);
   redirect("/dashboard?vipUpdated=1");
 }
 
