@@ -7,7 +7,7 @@ import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/s
 import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
 import FormPendingButton from "@/components/FormPendingButton";
-import { isValidVipFormData } from "@/lib/server/input-validation";
+import { isValidSlug, isValidVipFormData } from "@/lib/server/input-validation";
 
 const input = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-amber-500";
 const fieldNames = ["phone","phone_name","phone2","phone2_name","whatsapp","instagram","tiktok","facebook","google","map","address"] as const;
@@ -20,6 +20,7 @@ async function updateVIPCard(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const slug = String(formData.get("slug") || "");
+  if (!isValidSlug(slug)) redirect("/dashboard?vipEditError=1");
   const { data: page } = await supabase.from("landing_pages").select("id,sections").eq("slug",slug).eq("user_id",user.id).eq("template","vip").maybeSingle();
   if (!page) redirect("/dashboard?vipEditError=1");
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
@@ -65,6 +66,7 @@ async function updateVIPCard(formData: FormData) {
 
 export default async function EditVIPPage({params}:{params:Promise<{slug:string}>}) {
  const {slug} = await params;
+ if (!isValidSlug(slug)) redirect("/dashboard");
  const supabase = await createClient();
  const {data:{user}} = await supabase.auth.getUser();
  if (!user) redirect("/login");
