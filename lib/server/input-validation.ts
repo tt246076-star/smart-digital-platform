@@ -417,3 +417,22 @@ export function isValidSlug(value: unknown): value is string {
 export function hasNoQueryParams(request: Request): boolean {
   return [...new URL(request.url).searchParams.keys()].length === 0;
 }
+
+export function readJsonPassword(
+  value: unknown,
+  minLength = 1,
+  maxLength = 1024,
+): string | null {
+  if (
+    typeof value !== "string" ||
+    value.length < minLength ||
+    value.length > maxLength ||
+    value.includes("\\u0000")
+  ) return null;
+  return value;
+}
+
+export function isValidEmail(value: string): boolean {
+  return value.length <= 254 &&
+    /^[^\\s@]+@[^\\s@.]+(?:\\.[^\\s@.]+)+$/.test(value);
+}
