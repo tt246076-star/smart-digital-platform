@@ -6,7 +6,7 @@ import { updateLandingPage, deletePendingLandingImage } from "./actions";
 import { createLandingPage } from "../../new/actions";
 import SubmitButton from "../../new/SubmitButton";
 import FormPendingButton from "@/components/FormPendingButton";
-import { createClient } from "@/lib/supabase/client";
+import { uploadStagedLandingImage } from "@/lib/client/staged-landing-images";
 import { THEMES, normalizeThemeId, resolveTheme, themeVars, pagePrimary } from "@/lib/theme";
 
 type PageData = {
@@ -113,26 +113,15 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
     if (target === "gallery" && gallery.length >= maxGalleryImages) { setUploadError("وصلت للحد الأقصى لصور المعرض في حسابك."); return; }
     setUploading(true);
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
       const previousValue = target === "logo" ? logoValue : target === "round" ? roundImageValue : target === "cover" ? coverImageValue : "";
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Authentication required");
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("landing-logos-staging").upload(path, file, { upsert: false, contentType: file.type });
-      if (error) throw error;
-      const { data: signed, error: signError } = await supabase.storage.from("landing-logos-staging").createSignedUrl(path, 60 * 60);
-      if (signError || !signed?.signedUrl) {
-        await supabase.storage.from("landing-logos-staging").remove([path]);
-        throw signError || new Error("Could not preview staged image");
-      }
-      const imageRef = `staging://${path}`;
+      const staged = await uploadStagedLandingImage(file);
+      const imageRef = staged.value;
       if (previousValue && previousValue !== imageRef) markImageRemoved(previousValue);
-      if (target === "logo") { setLogo(signed.signedUrl); setLogoValue(imageRef); }
-      else if (target === "round") { setRoundImageUrl(signed.signedUrl); setRoundImageValue(imageRef); }
-      else if (target === "cover") { setCoverImageUrl(signed.signedUrl); setCoverImageValue(imageRef); }
+      if (target === "logo") { setLogo(staged.previewUrl); setLogoValue(imageRef); }
+      else if (target === "round") { setRoundImageUrl(staged.previewUrl); setRoundImageValue(imageRef); }
+      else if (target === "cover") { setCoverImageUrl(staged.previewUrl); setCoverImageValue(imageRef); }
       else if (target === "gallery") {
-        setGallery(old => old.length < maxGalleryImages ? [...old, signed.signedUrl] : old);
+        setGallery(old => old.length < maxGalleryImages ? [...old, staged.previewUrl] : old);
         setGalleryValues(old => old.length < maxGalleryImages ? [...old, imageRef] : old);
       }
     } catch {

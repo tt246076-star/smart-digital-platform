@@ -1,6 +1,10 @@
 export const SUPABASE_AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 export const SUPABASE_PKCE_COOKIE_MAX_AGE = 10 * 60;
 
+export function isSupabaseAuthCookie(name: string) {
+  return /^sb-[a-z0-9-]+-auth-token(?:\.\d+|-code-verifier)?$/.test(name);
+}
+
 export const SUPABASE_AUTH_COOKIE_BASE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",

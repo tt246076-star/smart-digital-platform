@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-
+import { loadSettingsProfile, startSettingsTotpEnrollment, verifySettingsTotp } from "./actions";
 import { csrfHeaders } from "@/lib/client/csrf";
+
 export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -12,15 +12,21 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [mfa, setMfa] = useState<any>(null);
-  const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setEmail(data.user.email || "");
-        setName(String(data.user.user_metadata?.display_name || ""));
+    let active = true;
+    loadSettingsProfile().then((result) => {
+      if (!active) return;
+      if (result.ok) {
+        setEmail(result.email);
+        setName(result.name);
+      } else {
+        setMessage(result.message);
       }
+    }).catch(() => {
+      if (active) setMessage("تعذر تحميل إعدادات الحساب. حدّث الصفحة وحاول مجددًا.");
     });
+    return () => { active = false; };
   }, []);
 
   async function saveProfile() {
@@ -47,8 +53,7 @@ export default function SettingsPage() {
       setMessage("كلمة السر لازم تكون بين 8 و256 حرفًا.");
       return;
     }
-    setBusy(true);
-    setMessage("");
+    setBusy(true); setMessage("");
     try {
       const response = await fetch("/api/auth/password", {
         method: "PATCH",
@@ -72,49 +77,44 @@ export default function SettingsPage() {
   }
 
   async function setupMfa() {
-    setBusy(true);
-    setMessage("");
-    setMfa(null);
-
-    // Supabase requires friendly names to be unique per user. Never reuse
-    // the legacy "بطاقاتي" name, which may already exist on this account.
-    const friendlyName = `Bitaqati Authenticator ${crypto.randomUUID()}`;
-    const { data, error } = await supabase.auth.mfa.enroll({
-      factorType: "totp",
-      friendlyName,
-    });
-
-    if (error) {
-      setMessage(
-        error.code === "mfa_factor_name_conflict"
-          ? "اسم تطبيق المصادقة مستخدم مسبقًا. أعد المحاولة لإنشاء اسم جديد."
-          : "تعذر بدء إعداد المصادقة الثنائية. حاول مجددًا."
-      );
+    setBusy(true); setMessage(""); setMfa(null);
+    try {
+      const result = await startSettingsTotpEnrollment();
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      setMfa(result.mfa);
+      setMessage("امسح رمز QR بتطبيق مصادقة، ثم أدخل الرمز للتحقق.");
+    } catch {
+      setMessage("تعذر بدء إعداد المصادقة الثنائية. حاول مجددًا.");
+    } finally {
       setBusy(false);
-      return;
     }
-
-    setMfa(data || null);
-    setMessage("امسح رمز QR بتطبيق مصادقة، ثم أدخل الرمز للتحقق.");
-    setBusy(false);
   }
 
   async function verifyMfa() {
     if (!mfa?.id) return;
     setBusy(true);
-    if (typeof mfa.id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(mfa.id)) {
-      setMessage("عامل المصادقة غير صالح. أعد إعداد المصادقة الثنائية.");
+    try {
+      if (typeof mfa.id !== "string") {
+        setMessage("عامل المصادقة غير صالح. أعد إعداد المصادقة الثنائية.");
+        return;
+      }
+      const code = window.prompt("أدخل رمز التحقق من تطبيق المصادقة");
+      if (!code) return;
+      if (!/^[0-9]{6,8}$/.test(code.trim())) {
+        setMessage("أدخل رمز تحقق صحيحًا من 6 إلى 8 أرقام.");
+        return;
+      }
+      const result = await verifySettingsTotp(mfa.id, code.trim());
+      setMessage(result.ok ? "تم تفعيل المصادقة الثنائية." : result.message);
+      if (result.ok) setMfa(null);
+    } catch {
+      setMessage("تعذر التحقق من الرمز. حاول مجددًا.");
+    } finally {
       setBusy(false);
-      return;
     }
-    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: mfa.id });
-    if (challengeError || !challenge) { setMessage("تعذر بدء التحقق. حاول مجددًا."); setBusy(false); return; }
-    const code = window.prompt("أدخل رمز التحقق من تطبيق المصادقة");
-    if (!code) { setBusy(false); return; }
-    if (!/^[0-9]{6,8}$/.test(code.trim())) { setMessage("أدخل رمز تحقق صحيحًا من 6 إلى 8 أرقام."); setBusy(false); return; }
-    const { error } = await supabase.auth.mfa.verify({ factorId: mfa.id, challengeId: challenge.id, code: code.trim() });
-    setMessage(error ? "رمز التحقق غير صحيح أو انتهت صلاحيته." : "تم تفعيل المصادقة الثنائية.");
-    setBusy(false);
   }
 
   return <main dir="rtl" className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -141,7 +141,7 @@ export default function SettingsPage() {
         <h2 className="text-xl font-extrabold">المصادقة الثنائية (2FA)</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">اربط تطبيق مصادقة بحسابك. تأكد من إعداد MFA في مشروع Supabase.</p>
         <button onClick={setupMfa} disabled={busy} className="mt-4 rounded-xl border px-5 py-3 font-bold disabled:opacity-50">إعداد المصادقة الثنائية</button>
-        {mfa?.totp?.qr_code && <div className="mt-4"><img alt="رمز QR للمصادقة الثنائية" src={mfa.totp.qr_code} className="max-w-xs" /><p className="mt-2 break-all text-xs" dir="ltr">{mfa.totp.secret}</p><button onClick={verifyMfa} className="mt-3 rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white">تحقق وفعّل</button></div>}
+        {mfa?.totp?.qr_code && <div className="mt-4"><img alt="رمز QR للمصادقة الثنائية" src={mfa.totp.qr_code} className="max-w-xs" /><p className="mt-2 break-all text-xs" dir="ltr">{mfa.totp.secret}</p><button onClick={verifyMfa} disabled={busy} className="mt-3 rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white">تحقق وفعّل</button></div>}
       </section>
     </div>
   </main>;

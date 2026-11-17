@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifyCsrfRequest } from "@/lib/csrf";
 import {
   getSupabaseCookieOptions,
+  isSupabaseAuthCookie,
   SUPABASE_AUTH_COOKIE_OPTIONS,
 } from "@/lib/supabase/cookie-options";
 import {
@@ -21,13 +22,10 @@ function isAdminMfaPage(path: string) {
   return path === "/admin/mfa" || path.startsWith("/admin/mfa/");
 }
 
-function isSupabaseAuthCookie(name: string) {
-  return /^sb-[a-z0-9-]+-auth-token(?:\.\d+|-code-verifier)?$/.test(name);
-}
-
 // Re-issue legacy session cookies with the hardened attributes, preserving
 // any newer value or deletion written by Supabase during this request.
 function hardenSupabaseCookies(response: NextResponse, request: NextRequest) {
+  response.headers.set("Cache-Control", "private, no-store, max-age=0");
   const responseCookies = response.cookies.getAll();
   for (const incoming of request.cookies.getAll()) {
     if (!isSupabaseAuthCookie(incoming.name)) continue;
