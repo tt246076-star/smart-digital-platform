@@ -125,8 +125,9 @@ jobs:
           # Refuse to overwrite a non-empty test database.
           auth_before="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from auth.users;')"
           objects_before="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from storage.objects;')"
-          if [[ "$auth_before" != "0" || "$objects_before" != "0" ]]; then
-            echo "::error::The target test project is not empty. Use a fresh, isolated Supabase test project."
+          app_table_exists="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc "select to_regclass('public.landing_pages') is not null;")"
+          if [[ "$auth_before" != "0" || "$objects_before" != "0" || "$app_table_exists" == "t" ]]; then
+            echo "::error::The target is not a fresh, empty test project. Use a new isolated project."
             exit 1
           fi
 
@@ -151,6 +152,7 @@ jobs:
         shell: bash
         env:
           SUPABASE_TEST_PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          SUPABASE_TEST_DB_URL: ${{ secrets.SUPABASE_TEST_DB_URL }}
           SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
           SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
           SUPABASE_TEST_S3_ACCESS_KEY_ID: ${{ secrets.SUPABASE_TEST_S3_ACCESS_KEY_ID }}
