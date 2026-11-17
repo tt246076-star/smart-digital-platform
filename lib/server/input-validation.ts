@@ -368,7 +368,7 @@ export function isValidVipFormData(
     map === null || address === null
   ) return false;
   if (editing && !/^[a-z0-9][a-z0-9-]{0,119}$/i.test(slug)) return false;
-  if (theme && !["gold", "silver", "emerald", "ruby", "lavender", "pink", "dark"].includes(theme)) return false;
+  if (theme && !["gold", "silver", "emerald", "ruby", "lavender", "pink", "dark", "ocean", "sunset", "mint", "royal", "noir", "copper", "ice"].includes(theme)) return false;
   if (layout && !["classic", "salon"].includes(layout)) return false;
   if (![phone, phone2, whatsapp].every(isValidPhone)) return false;
   if (![logo, cover, background, instagram, tiktok, facebook, google, map].every((value) => isValidWebUrl(value, true))) return false;
