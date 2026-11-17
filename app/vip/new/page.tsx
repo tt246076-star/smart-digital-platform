@@ -6,6 +6,7 @@ import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
 import VIPCreateSubmitButton from "@/components/VIPCreateSubmitButton";
 import { isValidVipFormData } from "@/lib/server/input-validation";
+import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/server/landing-image-staging";
 
 async function createVIPCard(formData: FormData) {
   "use server";
@@ -14,7 +15,7 @@ async function createVIPCard(formData: FormData) {
   if (!user) redirect("/login");
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
-  const maxGalleryImageMb = Math.max(0.1, Math.min(5, galleryLimit?.max_image_mb ?? 2));
+  const maxGalleryImageMb = Math.max(0.1, Math.min(20, Number(galleryLimit?.max_image_mb ?? 2)));
   if (!isValidVipFormData(formData, maxGalleryImages, false)) redirect("/vip/new?error=fields");
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",user.id).maybeSingle();
   const active = !!plan && (!plan.expires_at || new Date(plan.expires_at).getTime() > Date.now());
@@ -41,8 +42,21 @@ async function createVIPCard(formData: FormData) {
   const layout = ["classic","salon"].includes(requestedLayout) ? requestedLayout : "classic";
   const vip_card = { name, theme, layout, backgroundImage:cleanUrl(formData.get("backgroundImage")), animation:formData.get("animation") === "on", logo:cleanUrl(formData.get("logo")), bio:String(formData.get("bio")||"").trim().slice(0,400), coverImage:cleanUrl(formData.get("cover")), phone:String(formData.get("phone")||"").trim().slice(0,30), phoneName:String(formData.get("phone_name")||"").trim().slice(0,40), phone2:String(formData.get("phone2")||"").trim().slice(0,30), phone2Name:String(formData.get("phone2_name")||"").trim().slice(0,40), whatsapp:String(formData.get("whatsapp")||"").trim().slice(0,30), instagram:cleanUrl(formData.get("instagram")), tiktok:cleanUrl(formData.get("tiktok")), facebook:cleanUrl(formData.get("facebook")), address:String(formData.get("address")||"").trim().slice(0,200), mapUrl:cleanUrl(formData.get("map")), googleLink:cleanUrl(formData.get("google")), gallery, hours };
   const slug = (name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||"vip-shop")+"-vip-"+crypto.randomUUID().slice(0,8);
-  const { error } = await supabase.from("landing_pages").insert({ user_id:user.id,slug,business_name:name,headline:"بطاقة VIP",description:vip_card.bio,phone:vip_card.phone,whatsapp:vip_card.whatsapp,instagram_url:vip_card.instagram,facebook_url:vip_card.facebook,tiktok_url:vip_card.tiktok,logo_url:vip_card.logo,template:"vip",theme:"gold",sections:{vip_card},is_published:true });
-  if (error) { console.error("VIP card creation failed",error.message); redirect("/vip/new?error=save"); }
+  const pageId = crypto.randomUUID();
+  let promoted: { value: { vip_card: typeof vip_card }; uploadedPaths: string[] };
+  try {
+    promoted = await promoteStagedLandingImages({ vip_card }, user.id, pageId, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
+  } catch (promotionError) {
+    console.error("VIP image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
+    redirect("/vip/new?error=upload");
+  }
+  const finalVipCard = promoted.value.vip_card;
+  const { error } = await supabase.from("landing_pages").insert({ id:pageId,user_id:user.id,slug,business_name:name,headline:"بطاقة VIP",description:finalVipCard.bio,phone:finalVipCard.phone,whatsapp:finalVipCard.whatsapp,instagram_url:finalVipCard.instagram,facebook_url:finalVipCard.facebook,tiktok_url:finalVipCard.tiktok,logo_url:finalVipCard.logo,template:"vip",theme:"gold",sections:{vip_card:finalVipCard},is_published:true });
+  if (error) {
+    await removePromotedLandingImages(promoted.uploadedPaths);
+    console.error("VIP card creation failed",error.message);
+    redirect("/vip/new?error=save");
+  }
   redirect("/dashboard?vipCreated=1");
 }
 const input = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100";

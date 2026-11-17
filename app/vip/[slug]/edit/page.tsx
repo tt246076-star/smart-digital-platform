@@ -25,7 +25,7 @@ async function updateVIPCard(formData: FormData) {
   if (!page) redirect("/dashboard?vipEditError=1");
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
-  const maxGalleryImageMb = Math.max(0.1, Math.min(5, galleryLimit?.max_image_mb ?? 2));
+  const maxGalleryImageMb = Math.max(0.1, Math.min(20, Number(galleryLimit?.max_image_mb ?? 2)));
   if (!isValidVipFormData(formData, maxGalleryImages, true)) redirect("/dashboard?vipEditError=1");
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at,max_pages,advanced_features").eq("user_id",user.id).maybeSingle();
   if (!plan || !["trial","vip"].includes(plan.plan_type) || (plan.expires_at && new Date(plan.expires_at).getTime() <= Date.now())) redirect("/dashboard?vipError=plan");
@@ -43,7 +43,7 @@ async function updateVIPCard(formData: FormData) {
   const vip_card = { ...old, name, theme, layout, backgroundImage:val("backgroundImage",old.backgroundImage), animation:formData.get("animation") === "on", bio:val("bio",old.bio).slice(0,400), logo:val("logo",old.logo), coverImage:val("cover",old.coverImage), phone:val("phone",old.phone).slice(0,30), phoneName:val("phone_name",old.phoneName).slice(0,40), phone2:val("phone2",old.phone2).slice(0,30), phone2Name:val("phone2_name",old.phone2Name).slice(0,40), whatsapp:val("whatsapp",old.whatsapp).slice(0,30), instagram:cleanUrl(val("instagram",old.instagram)), tiktok:cleanUrl(val("tiktok",old.tiktok)), facebook:cleanUrl(val("facebook",old.facebook)), address:val("address",old.address).slice(0,200), mapUrl:cleanUrl(val("map",old.mapUrl)), googleLink:cleanUrl(val("google",old.googleLink)), gallery, hours };
   let promoted: { value: { vip_card: typeof vip_card }; uploadedPaths: string[] } | null = null;
   try {
-    promoted = await promoteStagedLandingImages({ vip_card }, user.id, page.id);
+    promoted = await promoteStagedLandingImages({ vip_card }, user.id, page.id, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
   } catch (promotionError) {
     console.error("VIP image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
     redirect("/dashboard?vipEditError=1");

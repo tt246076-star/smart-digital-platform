@@ -5,7 +5,7 @@ import {cleanupPendingLandingPageImage} from "@/lib/server/storage-cleanup";
 import {detectSupportedImage} from "@/lib/server/upload-validation";
 import {hasOnlyKeys,hasNoQueryParams,isValidUuid,readBoundedJson,readJsonText} from "@/lib/server/input-validation";
 export const dynamic="force-dynamic";
-const BUCKET="landing-logos-staging",MAX_FILE_BYTES=5*1024*1024;
+const BUCKET="landing-logos-staging",MAX_FILE_BYTES=20*1024*1024;
 function reply(body:Record<string,unknown>,status=200){return NextResponse.json(body,{status,headers:{"Cache-Control":"no-store, max-age=0","X-Content-Type-Options":"nosniff"}});}
 function isOwnedStagingPath(path:string,userId:string){if(!isValidUuid(userId)||path.length>160||!path.startsWith(userId+"/"))return false;return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.[a-z0-9]{2,8}$/i.test(path.slice(userId.length+1));}
 export async function POST(request:Request){
@@ -16,7 +16,7 @@ export async function POST(request:Request){
  if(authError||!user)return reply({error:"سجّل الدخول أولًا."},401);
  if(action==="create"){
   if(!hasOnlyKeys(body,["action","size"]))return reply({error:"بيانات رفع الصورة غير صالحة."},400);
-  const size=body.size;if(typeof size!=="number"||!Number.isSafeInteger(size)||size<1||size>MAX_FILE_BYTES)return reply({error:"حجم الصورة غير صالح أو يتجاوز 5 ميغابايت."},400);
+  const size=body.size;if(typeof size!=="number"||!Number.isSafeInteger(size)||size<1||size>MAX_FILE_BYTES)return reply({error:"حجم الصورة غير صالح أو يتجاوز 20 ميغابايت."},400);
   // Temporary neutral extension; final extension comes only from server-side signature detection.
   const path=user.id+"/"+randomUUID()+".tmp";
   const {data,error}=await supabase.storage.from(BUCKET).createSignedUploadUrl(path,{upsert:false});

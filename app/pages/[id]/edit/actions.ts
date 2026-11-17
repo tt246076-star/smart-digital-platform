@@ -13,8 +13,9 @@ export async function updateLandingPage(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const { data: accessPlan } = await supabase.from("user_access_plans").select("plan_type, expires_at").eq("user_id", user.id).maybeSingle();
-  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
+  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id", user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
+  const maxGalleryImageMb = Math.max(0.1, Math.min(20, Number(galleryLimit?.normal_max_image_mb ?? 2)));
   const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
   if (!planActive) redirect("/dashboard?readOnly=1");
 
@@ -34,7 +35,7 @@ export async function updateLandingPage(formData: FormData) {
 
   let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
   try {
-    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, id);
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, id, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
   } catch (promotionError) {
     console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);

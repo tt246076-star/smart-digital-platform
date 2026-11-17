@@ -1,7 +1,7 @@
 "use client";
 import {csrfHeaders} from "@/lib/client/csrf";
 import {createStagingUploadClient} from "@/lib/supabase/storage-client";
-const BUCKET="landing-logos-staging",STAGING_PREFIX="staging://",MAX_FILE_BYTES=5*1024*1024;
+const BUCKET="landing-logos-staging",STAGING_PREFIX="staging://",MAX_FILE_BYTES=20*1024*1024;
 const ALLOWED_MIME_TYPES=["image/jpeg","image/png","image/webp","image/gif"];
 type ApiResult={path?:string;token?:string;signedUrl?:string;error?:string};
 async function callStagingApi(payload:Record<string,unknown>):Promise<ApiResult>{
@@ -11,7 +11,7 @@ async function callStagingApi(payload:Record<string,unknown>):Promise<ApiResult>
  return result as ApiResult;
 }
 export async function uploadStagedLandingImage(file:File):Promise<{value:string;previewUrl:string}>{
- if(!file||!ALLOWED_MIME_TYPES.includes(file.type)||file.size<1||file.size>MAX_FILE_BYTES)throw new Error("اختار صورة JPG أو PNG أو WebP أو GIF أو AVIF بحجم لا يتجاوز 5 ميغابايت.");
+ if(!file||!ALLOWED_MIME_TYPES.includes(file.type)||file.size<1||file.size>MAX_FILE_BYTES)throw new Error("اختار صورة JPG أو PNG أو WebP أو GIF أو AVIF بحجم لا يتجاوز 20 ميغابايت.");
  const created=await callStagingApi({action:"create",size:file.size});
  if(typeof created.path!=="string"||typeof created.token!=="string")throw new Error("تعذر تجهيز رابط رفع آمن.");
  const storage=createStagingUploadClient(),{error}=await storage.storage.from(BUCKET).uploadToSignedUrl(created.path,created.token,file,{contentType:file.type});

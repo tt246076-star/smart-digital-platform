@@ -19,8 +19,9 @@ export async function createLandingPage(formData: FormData) {
   const { count: currentPages, error: countError } = await supabase.from("landing_pages")
     .select("id", { count: "exact", head: true }).eq("user_id", user.id).neq("template", "vip");
   const { data: pageTypeLimit, error: pageTypeLimitError } = await supabase.from("user_page_type_limits").select("normal_max_pages").eq("user_id", user.id).maybeSingle();
-  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images").eq("user_id", user.id).maybeSingle();
+  const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("normal_max_images,normal_max_image_mb").eq("user_id", user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.normal_max_images ?? 2));
+  const maxGalleryImageMb = Math.max(0.1, Math.min(20, Number(galleryLimit?.normal_max_image_mb ?? 2)));
   const maxNormalPages = accessPlan.plan_type === "trial" ? 1 : pageTypeLimit?.normal_max_pages ?? 1;
   if (countError || pageTypeLimitError || (currentPages ?? 0) >= maxNormalPages) redirect("/pages/new?error=limit");
 
@@ -37,7 +38,7 @@ export async function createLandingPage(formData: FormData) {
   const pageId = crypto.randomUUID();
   let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
   try {
-    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, pageId);
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, pageId, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
   } catch (promotionError) {
     console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
     redirect("/pages/new?error=save");

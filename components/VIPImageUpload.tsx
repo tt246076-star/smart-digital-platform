@@ -27,7 +27,7 @@ export default function VIPImageUpload({ name, label, initialValue = "", maxFile
     if (!file) return;
     setError("");
     if (!allowedTypes.includes(file.type)) { setError("اختار صورة JPG أو PNG أو WebP أو GIF فقط."); return; }
-    if (file.size > Math.min(maxFileSizeMB, 5) * 1024 * 1024) { setError(`حجم الصورة لازم ما يفوتش ${Math.min(maxFileSizeMB, 5)} MB.`); return; }
+    if (file.size > Math.min(maxFileSizeMB, 20) * 1024 * 1024) { setError(`حجم الصورة لازم ما يفوتش ${Math.min(maxFileSizeMB, 20)} MB.`); return; }
     setUploading(true);
     try {
       const staged = await uploadStagedLandingImage(file);

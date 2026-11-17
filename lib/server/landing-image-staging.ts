@@ -7,6 +7,27 @@ const STAGING_PREFIX = "staging://";
 const STAGING_BUCKET = "landing-logos-staging";
 const PUBLIC_BUCKET = "landing-logos";
 
+const MAX_GALLERY_IMAGE_BYTES = 20 * 1024 * 1024;
+const REGULAR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const VIP_LOGO_MAX_BYTES = 0.5 * 1024 * 1024;
+const VIP_COVER_MAX_BYTES = 1 * 1024 * 1024;
+const VIP_BACKGROUND_MAX_BYTES = 2 * 1024 * 1024;
+
+function maxBytesForImagePath(path: string[], galleryMaxBytes: number): number {
+  if (path[0] === "vip_card") {
+    if (path[1] === "gallery") return galleryMaxBytes;
+    if (path[1] === "logo") return VIP_LOGO_MAX_BYTES;
+    if (path[1] === "coverImage") return VIP_COVER_MAX_BYTES;
+    if (path[1] === "backgroundImage") return VIP_BACKGROUND_MAX_BYTES;
+  }
+  if (path[0] === "sections") {
+    if (path[1] === "gallery") return galleryMaxBytes;
+    if (path[1] === "round_image_url" || path[1] === "cover_image_url") return REGULAR_IMAGE_MAX_BYTES;
+  }
+  if (path[0] === "logo_url") return REGULAR_IMAGE_MAX_BYTES;
+  return REGULAR_IMAGE_MAX_BYTES;
+}
+
 function createStorageAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -57,15 +78,19 @@ export async function promoteStagedLandingImages<T>(
   input: T,
   userId: string,
   pageId: string,
+  options: { galleryMaxBytes: number },
 ): Promise<{ value: T; uploadedPaths: string[] }> {
   if (!userId || !/^[0-9a-f-]{36}$/i.test(pageId)) {
     throw new Error("Invalid owner or page identifier.");
   }
 
+  const galleryMaxBytes = Number.isFinite(options?.galleryMaxBytes)
+    ? Math.max(1, Math.min(MAX_GALLERY_IMAGE_BYTES, Math.floor(options.galleryMaxBytes)))
+    : 2 * 1024 * 1024;
   const admin = createStorageAdminClient();
   const uploadedPaths: string[] = [];
 
-  async function visit(value: unknown): Promise<unknown> {
+  async function visit(value: unknown, path: string[] = []): Promise<unknown> {
     if (isStagedLandingImage(value)) {
       const stagingPath = getStagingPath(value, userId);
       const { data: file, error: downloadError } = await admin.storage
@@ -77,7 +102,8 @@ export async function promoteStagedLandingImages<T>(
 
       const buffer = await file.arrayBuffer();
       const detected = detectSupportedImage(new Uint8Array(buffer));
-      if (!detected || buffer.byteLength < 1 || buffer.byteLength > 5 * 1024 * 1024) throw new Error("Rejected unsupported or oversized staged image.");
+      const maxBytes = maxBytesForImagePath(path, galleryMaxBytes);
+      if (!detected || buffer.byteLength < 1 || buffer.byteLength > maxBytes) throw new Error("Rejected unsupported or oversized staged image.");
       const destination = `${pageId}/${crypto.randomUUID()}.${detected.extension}`;
       const { error: uploadError } = await admin.storage.from(PUBLIC_BUCKET).upload(
         destination, new Blob([buffer], { type: detected.mime }),
@@ -94,10 +120,10 @@ export async function promoteStagedLandingImages<T>(
       return admin.storage.from(PUBLIC_BUCKET).getPublicUrl(destination).data.publicUrl;
     }
 
-    if (Array.isArray(value)) return Promise.all(value.map(visit));
+    if (Array.isArray(value)) return Promise.all(value.map((item, index) => visit(item, [...path, String(index)])));
     if (value && typeof value === "object") {
       const entries = await Promise.all(
-        Object.entries(value as Record<string, unknown>).map(async ([key, item]) => [key, await visit(item)] as const),
+        Object.entries(value as Record<string, unknown>).map(async ([key, item]) => [key, await visit(item, [...path, key])] as const),
       );
       return Object.fromEntries(entries);
     }
