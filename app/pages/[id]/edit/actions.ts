@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImages, cleanupPendingLandingPageImage } from "@/lib/server/storage-cleanup";
 import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/server/landing-image-staging";
-import { isValidUuid, readFormText, validateLandingPageFormData } from "@/lib/server/input-validation";
+import { isValidUuid, isValidWebUrl, readFormText, validateLandingPageFormData } from "@/lib/server/input-validation";
 
 export async function updateLandingPage(formData: FormData) {
   const supabase = await createClient();
@@ -62,7 +62,7 @@ export async function updateLandingPage(formData: FormData) {
 export async function deletePendingLandingImage(url: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user || typeof url !== "string" || url.length > 2048) return { ok: false };
+  if (error || !user || typeof url !== "string" || url.length > 2048 || !isValidWebUrl(url, true)) return { ok: false };
   const ok = await cleanupPendingLandingPageImage(url, user.id);
   return { ok };
 }
