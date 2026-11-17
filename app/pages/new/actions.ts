@@ -38,7 +38,7 @@ export async function createLandingPage(formData: FormData) {
   const pageId = crypto.randomUUID();
   let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
   try {
-    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, pageId, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, pageId, { maxImageBytes: maxGalleryImageMb * 1024 * 1024 });
   } catch (promotionError) {
     console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
     redirect("/pages/new?error=save");

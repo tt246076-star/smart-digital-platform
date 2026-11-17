@@ -7,25 +7,11 @@ const STAGING_PREFIX = "staging://";
 const STAGING_BUCKET = "landing-logos-staging";
 const PUBLIC_BUCKET = "landing-logos";
 
-const MAX_GALLERY_IMAGE_BYTES = 20 * 1024 * 1024;
-const REGULAR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const VIP_LOGO_MAX_BYTES = 0.5 * 1024 * 1024;
-const VIP_COVER_MAX_BYTES = 1 * 1024 * 1024;
-const VIP_BACKGROUND_MAX_BYTES = 2 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 
-function maxBytesForImagePath(path: string[], galleryMaxBytes: number): number {
-  if (path[0] === "vip_card") {
-    if (path[1] === "gallery") return galleryMaxBytes;
-    if (path[1] === "logo") return VIP_LOGO_MAX_BYTES;
-    if (path[1] === "coverImage") return VIP_COVER_MAX_BYTES;
-    if (path[1] === "backgroundImage") return VIP_BACKGROUND_MAX_BYTES;
-  }
-  if (path[0] === "sections") {
-    if (path[1] === "gallery") return galleryMaxBytes;
-    if (path[1] === "round_image_url" || path[1] === "cover_image_url") return REGULAR_IMAGE_MAX_BYTES;
-  }
-  if (path[0] === "logo_url") return REGULAR_IMAGE_MAX_BYTES;
-  return REGULAR_IMAGE_MAX_BYTES;
+/** Every customer-owned card image follows the size configured for that user's card type. */
+function maxBytesForImagePath(_path: string[], maxImageBytes: number): number {
+  return maxImageBytes;
 }
 
 function createStorageAdminClient() {
@@ -78,14 +64,14 @@ export async function promoteStagedLandingImages<T>(
   input: T,
   userId: string,
   pageId: string,
-  options: { galleryMaxBytes: number },
+  options: { maxImageBytes: number },
 ): Promise<{ value: T; uploadedPaths: string[] }> {
   if (!userId || !/^[0-9a-f-]{36}$/i.test(pageId)) {
     throw new Error("Invalid owner or page identifier.");
   }
 
-  const galleryMaxBytes = Number.isFinite(options?.galleryMaxBytes)
-    ? Math.max(1, Math.min(MAX_GALLERY_IMAGE_BYTES, Math.floor(options.galleryMaxBytes)))
+  const maxImageBytes = Number.isFinite(options?.maxImageBytes)
+    ? Math.max(1, Math.min(MAX_IMAGE_BYTES, Math.floor(options.maxImageBytes)))
     : 2 * 1024 * 1024;
   const admin = createStorageAdminClient();
   const uploadedPaths: string[] = [];
@@ -102,7 +88,7 @@ export async function promoteStagedLandingImages<T>(
 
       const buffer = await file.arrayBuffer();
       const detected = detectSupportedImage(new Uint8Array(buffer));
-      const maxBytes = maxBytesForImagePath(path, galleryMaxBytes);
+      const maxBytes = maxBytesForImagePath(path, maxImageBytes);
       if (!detected || buffer.byteLength < 1 || buffer.byteLength > maxBytes) throw new Error("Rejected unsupported or oversized staged image.");
       const destination = `${pageId}/${crypto.randomUUID()}.${detected.extension}`;
       const { error: uploadError } = await admin.storage.from(PUBLIC_BUCKET).upload(

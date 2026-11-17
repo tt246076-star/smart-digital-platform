@@ -26,6 +26,7 @@ type VIPCustomizerProps = {
   animationOn?: boolean;
   currentLayout?: string;
   showSubmit?: boolean;
+  maxFileSizeMB?: number;
 };
 
 export default function VIPCustomizer({
@@ -33,6 +34,7 @@ export default function VIPCustomizer({
   currentBackground = "",
   animationOn = true,
   showSubmit = true,
+  maxFileSizeMB = 2,
 }: VIPCustomizerProps) {
   const [theme, setTheme] = useState(themes.some((item) => item.id === currentTheme) ? currentTheme : "gold");
   const layout = "salon";
@@ -72,7 +74,7 @@ export default function VIPCustomizer({
       </div>
 
       <div className="mt-5 rounded-xl border border-white bg-white p-3">
-        <VIPImageUpload name="backgroundImage" label="صورة الخلفية المضببة" initialValue={currentBackground} />
+        <VIPImageUpload name="backgroundImage" label="صورة الخلفية المضببة" initialValue={currentBackground} maxFileSizeMB={maxFileSizeMB} />
         <p className="mt-2 text-xs leading-5 text-slate-500">إذا لم ترفع خلفية منفصلة، ستُستخدم صورة غلاف المحل تلقائيًا. الخلفية تظهر خلف البطاقة مع طمس وتعتيم.</p>
       </div>
 

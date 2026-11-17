@@ -109,7 +109,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
     if (!file) return;
     setUploadError("");
     if (!file.type.startsWith("image/")) { setUploadError("اختار ملف صورة فقط."); return; }
-    if (file.size > (target === "gallery" ? maxGalleryImageMb : 5) * 1024 * 1024) { setUploadError("حجم الصورة يتجاوز الحد المسموح."); return; }
+    if (file.size > maxGalleryImageMb * 1024 * 1024) { setUploadError(`حجم الصورة يتجاوز حد الإدارة (${maxGalleryImageMb} MB).`); return; }
     if (target === "gallery" && gallery.length >= maxGalleryImages) { setUploadError("وصلت للحد الأقصى لصور المعرض في حسابك."); return; }
     setUploading(true);
     try {
@@ -210,7 +210,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       </section>
       <section className="space-y-4 rounded-2xl border border-slate-200 p-4">
         <h2 className="text-lg font-black text-slate-950">5. معرض الصور</h2>
-        <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى للصورة الواحدة {maxGalleryImageMb} MB.</p>
+        <p className="text-sm text-slate-500">ارفع حتى {maxGalleryImages} صورة. الحد الأقصى لكل صورة في البطاقة (الشعار والصورة الشخصية والغلاف والمعرض): {maxGalleryImageMb} MB.</p>
         <input className={field} type="file" accept="image/*" multiple disabled={gallery.length >= maxGalleryImages || uploading} onChange={async e=>{const files=Array.from(e.target.files||[]).slice(0,Math.max(0,maxGalleryImages-gallery.length));for(const file of files) await uploadImage(file,"gallery");}} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{gallery.map((url,index)=><div key={url} className="rounded-xl border bg-slate-50 p-2"><img src={url} alt={`صورة المعرض ${index+1}`} className="aspect-square w-full rounded-lg object-cover"/><button type="button" onClick={()=>void removeImage(url,galleryValues[index],()=>{setGallery(old=>old.filter(item=>item!==url));setGalleryValues(old=>old.filter((_,i)=>i!==index));})} className="mt-2 text-xs font-bold text-red-600">حذف الصورة</button></div>)}</div>
       </section>
@@ -222,7 +222,7 @@ export default function LandingPageEditor({ page, maxGalleryImages = 2, maxGalle
       <section className="space-y-4">
         <h2 className="text-lg font-black text-slate-950">7. الشعار وروابط التواصل</h2>
         <div className="rounded-2xl border border-dashed border-slate-300 p-4">
-          <label className={label} htmlFor="logo_upload">رفع شعار من الهاتف (حتى 5MB)</label>
+          <label className={label} htmlFor="logo_upload">رفع شعار من الهاتف (حتى {maxGalleryImageMb} MB)</label>
           <input id="logo_upload" type="file" accept="image/*" onChange={(e) => uploadImage(e.target.files?.[0], "logo")} className="mt-3 block w-full text-sm text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-bold file:text-violet-800" />
           {uploading && <p className="mt-2 text-sm font-bold text-violet-700">جاري رفع الصورة...</p>}
           {uploadError && <p role="alert" className="mt-2 text-sm font-bold text-red-600">{uploadError}</p>}

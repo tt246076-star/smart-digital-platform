@@ -35,7 +35,7 @@ export async function updateLandingPage(formData: FormData) {
 
   let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
   try {
-    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, id, { galleryMaxBytes: maxGalleryImageMb * 1024 * 1024 });
+    promoted = await promoteStagedLandingImages({ logo_url, sections }, user.id, id, { maxImageBytes: maxGalleryImageMb * 1024 * 1024 });
   } catch (promotionError) {
     console.error("Landing image promotion failed:", promotionError instanceof Error ? promotionError.message : "unknown");
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);
