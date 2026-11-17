@@ -42,22 +42,32 @@ export default function SettingsPage() {
   }
 
   async function changePassword() {
-    if (password.length < 8 || password.length > 256) { setMessage("كلمة السر لازم تكون بين 8 و256 حرفًا."); return; }
-    setBusy(true); setMessage("");
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) {
-      setMessage("تعذر تغيير كلمة السر. تحقق من البيانات وحاول مجددًا.");
-      setBusy(false);
+    if (password.length < 8 || password.length > 256) {
+      setMessage("كلمة السر لازم تكون بين 8 و256 حرفًا.");
       return;
     }
-    const { error: sessionsError } = await supabase.auth.signOut({ scope: "others" });
-    setMessage(
-      sessionsError
-        ? "تم تغيير كلمة السر، لكن تعذر إنهاء الجلسات الأخرى. سجّل الخروج من الأجهزة الأخرى يدويًا."
-        : "تم تغيير كلمة السر وإنهاء الجلسات الأخرى."
-    );
-    setPassword("");
-    setBusy(false);
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/auth/password", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setMessage(result?.error || "تعذر تغيير كلمة السر. تحقق من البيانات وحاول مجددًا.");
+      } else {
+        setMessage(result?.sessionsEnded
+          ? "تم تغيير كلمة السر وإنهاء الجلسات الأخرى."
+          : "تم تغيير كلمة السر، لكن تعذر إنهاء الجلسات الأخرى. سجّل الخروج من الأجهزة الأخرى يدويًا.");
+        setPassword("");
+      }
+    } catch {
+      setMessage("تعذر الاتصال بالخدمة. حاول مجددًا.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function setupMfa() {
@@ -123,7 +133,7 @@ export default function SettingsPage() {
       <section className="mt-5 rounded-2xl border bg-white p-6">
         <h2 className="text-xl font-extrabold">تغيير كلمة السر</h2>
         <label className="mt-4 block text-sm font-bold">كلمة السر الجديدة</label>
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-2 w-full rounded-xl border p-3" minLength={8} autoComplete="new-password" />
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-2 w-full rounded-xl border p-3" minLength={8} autoComplete="new-password" maxLength={256} />
         <button onClick={changePassword} disabled={busy} className="mt-4 rounded-xl bg-blue-600 px-5 py-3 font-bold text-white disabled:opacity-50">تحديث كلمة السر</button>
       </section>
       <section className="mt-5 rounded-2xl border bg-white p-6">
