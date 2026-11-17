@@ -91,7 +91,7 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(list) {
+      setAll(list, headers) {
         list.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         list.forEach(({ name, value, options }) => {
@@ -99,6 +99,9 @@ export async function middleware(request: NextRequest) {
             ...options,
             ...getSupabaseCookieOptions(name, value),
           });
+        });
+        Object.entries(headers).forEach(([name, value]) => {
+          response.headers.set(name, value);
         });
       },
     },
