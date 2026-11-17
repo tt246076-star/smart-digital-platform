@@ -10,7 +10,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; gallerysaved?: string; pagesaved?: string; error?: string; usersPage?: string }> }) {
   const params = await searchParams;
-  const usersPage = Math.max(1, Math.min(100000, Number.parseInt(params.usersPage || "1", 10) || 1));
+  const rawUsersPage = params.usersPage || "1";
+  const parsedUsersPage = /^\d{1,6}$/.test(rawUsersPage) ? Number(rawUsersPage) : 1;
+  const usersPage = Number.isSafeInteger(parsedUsersPage) && parsedUsersPage > 0
+    ? Math.min(100000, parsedUsersPage)
+    : 1;
   const usersPerPage = 20;
   const sessionClient = await createClient();
   const { data: { user } } = await sessionClient.auth.getUser();
