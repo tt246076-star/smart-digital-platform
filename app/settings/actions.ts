@@ -75,7 +75,7 @@ export async function verifySettingsTotp(factorId: string, code: string): Promis
     const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
     if (factorError) return { ok: false, message: "تعذر قراءة عوامل المصادقة. حاول مجددًا." };
 
-    const factor = (factors?.totp || []).find((item) => item.id === factorId);
+    const factor = (factors?.all || []).find((item) => item.id === factorId && item.factor_type === "totp");
     if (!factor || factor.status !== "unverified") {
       return { ok: false, message: "عامل المصادقة غير صالح. أعد إعداد المصادقة الثنائية." };
     }

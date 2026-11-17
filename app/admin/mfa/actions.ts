@@ -208,7 +208,7 @@ export async function verifyAdminTotp(
   const { data: factors, error: factorError } = await ctx.supabase.auth.mfa.listFactors();
   if (factorError) return { ok: false, message: "تعذر قراءة عوامل المصادقة." };
 
-  const factor = (factors?.totp || []).find((item) => item.id === factorId);
+  const factor = (factors?.all || []).find((item) => item.id === factorId && item.factor_type === "totp");
   if (!factor || (mode === "setup" && factor.status !== "unverified") || (mode === "login" && factor.status !== "verified")) {
     return { ok: false, message: "عامل المصادقة غير صالح. أعد تحميل الصفحة." };
   }
