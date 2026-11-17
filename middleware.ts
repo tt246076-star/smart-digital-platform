@@ -3,6 +3,10 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyCsrfRequest } from "@/lib/csrf";
 import {
+  getSupabaseCookieOptions,
+  SUPABASE_AUTH_COOKIE_OPTIONS,
+} from "@/lib/supabase/cookie-options";
+import {
   ADMIN_MFA_COOKIE,
   getSessionIdFromAccessToken,
   signAdminMfaSession,
@@ -15,6 +19,28 @@ function isAdminRequest(path: string) {
 
 function isAdminMfaPage(path: string) {
   return path === "/admin/mfa" || path.startsWith("/admin/mfa/");
+}
+
+function isSupabaseAuthCookie(name: string) {
+  return /^sb-[a-z0-9-]+-auth-token(?:\.\d+|-code-verifier)?$/.test(name);
+}
+
+// Re-issue legacy session cookies with the hardened attributes, preserving
+// any newer value or deletion written by Supabase during this request.
+function hardenSupabaseCookies(response: NextResponse, request: NextRequest) {
+  const responseCookies = response.cookies.getAll();
+  for (const incoming of request.cookies.getAll()) {
+    if (!isSupabaseAuthCookie(incoming.name)) continue;
+    const pending = responseCookies.find((cookie) => cookie.name === incoming.name);
+    if (pending?.value === "") continue;
+    response.cookies.set(
+      incoming.name,
+      pending?.value ?? incoming.value,
+      pending?.value
+        ? getSupabaseCookieOptions(incoming.name, pending.value)
+        : getSupabaseCookieOptions(incoming.name, incoming.value)
+    );
+  }
 }
 
 function adminAuthFailure(request: NextRequest, status: number, message: string) {
@@ -62,6 +88,7 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
+    cookieOptions: SUPABASE_AUTH_COOKIE_OPTIONS,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -69,7 +96,12 @@ export async function middleware(request: NextRequest) {
       setAll(list) {
         list.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        list.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        list.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, {
+            ...options,
+            ...getSupabaseCookieOptions(name, value),
+          });
+        });
       },
     },
   });
@@ -90,7 +122,10 @@ export async function middleware(request: NextRequest) {
     }
 
     // This is the only admin route available before the second factor is verified.
-    if (isAdminMfaPage(path)) return response;
+    if (isAdminMfaPage(path)) {
+      hardenSupabaseCookies(response, request);
+      return response;
+    }
 
     const { data: { session } } = await supabase.auth.getSession();
     const sessionId = getSessionIdFromAccessToken(session?.access_token);
@@ -164,6 +199,7 @@ export async function middleware(request: NextRequest) {
       path: "/",
       maxAge: 12 * 60 * 60,
     });
+    hardenSupabaseCookies(response, request);
     return response;
   }
 
@@ -172,8 +208,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   if (user && (path === "/login" || path === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const redirected = NextResponse.redirect(new URL("/dashboard", request.url));
+    hardenSupabaseCookies(redirected, request);
+    return redirected;
   }
+  if (user) hardenSupabaseCookies(response, request);
   return response;
 }
 
@@ -185,5 +224,9 @@ export const config = {
     "/admin/:path*",
     "/api/:path*",
     "/auth/signout",
+    "/settings/:path*",
+    "/pages/:path*",
+    "/vip/new",
+    "/vip/:slug/edit",
   ],
 };
