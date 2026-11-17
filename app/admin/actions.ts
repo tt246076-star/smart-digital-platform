@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImagesForDeletion } from "@/lib/server/storage-cleanup";
+import { hasOnlyFormFields, isValidUuid, parseFormNumber, readFormText } from "@/lib/server/input-validation";
 
 export async function setUserPlan(formData: FormData) {
   const sessionClient = await createClient();
@@ -13,9 +14,10 @@ export async function setUserPlan(formData: FormData) {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!adminEmail || user.email?.toLowerCase() !== adminEmail) redirect("/dashboard");
 
-  const userId = String(formData.get("user_id") || "");
-  const planType = String(formData.get("plan_type") || "");
-  if (!userId || !["trial", "customer", "vip"].includes(planType)) redirect("/admin?error=1");
+  if (!hasOnlyFormFields(formData, ["user_id", "plan_type"])) redirect("/admin?error=1");
+  const userId = readFormText(formData, "user_id", 36, true) || "";
+  const planType = readFormText(formData, "plan_type", 16, true) || "";
+  if (!isValidUuid(userId) || !["trial", "customer", "vip"].includes(planType)) redirect("/admin?error=1");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -47,8 +49,9 @@ export async function deleteLandingPage(formData: FormData) {
   if (!adminEmail) redirect("/admin?error=config");
   if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
 
-  const pageId = String(formData.get("page_id") || "");
-  if (!pageId) redirect("/admin?error=1");
+  if (!hasOnlyFormFields(formData, ["page_id"])) redirect("/admin?error=1");
+  const pageId = readFormText(formData, "page_id", 36, true) || "";
+  if (!isValidUuid(pageId)) redirect("/admin?error=1");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) redirect("/admin?error=1");
@@ -83,11 +86,14 @@ export async function setUserGalleryLimit(formData: FormData) {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!adminEmail) redirect("/admin?error=config");
   if (user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
-  const userId = String(formData.get("user_id") || "");
-  const galleryType = String(formData.get("gallery_type") || "");
-  const maxImages = Number(formData.get("max_images"));
-  const maxImageMb = Number(formData.get("max_image_mb"));
-  if (!userId || !["normal","vip"].includes(galleryType) || !Number.isInteger(maxImages) || maxImages < 0 || maxImages > 100 || !Number.isFinite(maxImageMb) || maxImageMb < 0.1 || maxImageMb > 20) redirect("/admin?error=gallery_limit");
+  if (!hasOnlyFormFields(formData, ["user_id", "gallery_type", "max_images", "max_image_mb"])) redirect("/admin?error=gallery_limit");
+  const userId = readFormText(formData, "user_id", 36, true) || "";
+  const galleryType = readFormText(formData, "gallery_type", 10, true) || "";
+  const maxImagesRaw = readFormText(formData, "max_images", 3, true) || "";
+  const maxImageMbRaw = readFormText(formData, "max_image_mb", 5, true) || "";
+  const maxImages = parseFormNumber(maxImagesRaw, { integer: true, min: 0, max: 100 });
+  const maxImageMb = parseFormNumber(maxImageMbRaw, { min: 0.1, max: 20 });
+  if (!isValidUuid(userId) || !["normal","vip"].includes(galleryType) || maxImages === null || maxImageMb === null) redirect("/admin?error=gallery_limit");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) redirect("/admin?error=1");
@@ -109,11 +115,13 @@ export async function setUserPageTypeLimits(formData: FormData) {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (!adminEmail || user.email?.trim().toLowerCase() !== adminEmail) redirect("/dashboard");
 
-  const userId = String(formData.get("user_id") || "");
-  const normalMaxPages = Number(formData.get("normal_max_pages"));
-  const vipMaxPages = Number(formData.get("vip_max_pages"));
-  if (!userId || !Number.isInteger(normalMaxPages) || normalMaxPages < 0 || normalMaxPages > 100 ||
-      !Number.isInteger(vipMaxPages) || vipMaxPages < 0 || vipMaxPages > 100) redirect("/admin?error=page_limits");
+  if (!hasOnlyFormFields(formData, ["user_id", "normal_max_pages", "vip_max_pages"])) redirect("/admin?error=page_limits");
+  const userId = readFormText(formData, "user_id", 36, true) || "";
+  const normalMaxRaw = readFormText(formData, "normal_max_pages", 3, true) || "";
+  const vipMaxRaw = readFormText(formData, "vip_max_pages", 3, true) || "";
+  const normalMaxPages = parseFormNumber(normalMaxRaw, { integer: true, min: 0, max: 100 });
+  const vipMaxPages = parseFormNumber(vipMaxRaw, { integer: true, min: 0, max: 100 });
+  if (!isValidUuid(userId) || normalMaxPages === null || vipMaxPages === null) redirect("/admin?error=page_limits");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
