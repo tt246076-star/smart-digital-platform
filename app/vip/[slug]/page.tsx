@@ -3,9 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getPublicAccessPlan } from "@/lib/server/access-plan";
 import VIPShopTemplate from "@/components/VIPShopTemplate";
 import VIPSalonTemplate from "@/components/VIPSalonTemplate";
+import { isValidSlug } from "@/lib/server/input-validation";
 
 export default async function PublicVIPPage({params}:{params:Promise<{slug:string}>}) {
   const {slug} = await params;
+  if (!isValidSlug(slug)) notFound();
   const supabase = await createClient();
   const {data:page} = await supabase.from("landing_pages").select("slug,user_id,sections,is_published").eq("slug",slug).eq("is_published",true).maybeSingle();
   const sections = page?.sections && typeof page.sections === "object" ? page.sections as Record<string,any> : {};
