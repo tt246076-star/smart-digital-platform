@@ -34,6 +34,24 @@ async function getAdminContext(): Promise<AdminContext | null> {
   return { supabase, user, sessionId };
 }
 
+const ADMIN_DEVICE_COOKIE = "bitaqati-admin-device";
+
+async function recordAdminAuthenticationContext(adminUserId: string) {
+  const store = await cookies();
+  let deviceId = store.get(ADMIN_DEVICE_COOKIE)?.value || "";
+  if (!/^[a-f0-9]{64}$/.test(deviceId)) {
+    deviceId = randomBytes(32).toString("hex");
+    store.set(ADMIN_DEVICE_COOKIE, deviceId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 365 * 24 * 60 * 60,
+    });
+  }
+  await recordAdminSignInAlert(adminUserId, await headers(), deviceId);
+}
+
 async function getCurrentProof(ctx: AdminContext) {
   const store = await cookies();
   return verifyAdminMfaSession(
@@ -248,7 +266,7 @@ export async function verifyAdminTotp(
   const cookieSet = await setAdminMfaCookie(updatedContext, "totp");
   if (!cookieSet) return { ok: false, message: "تعذر إنشاء جلسة إدارية آمنة." };
   if (mode === "login") {
-    await recordAdminSignInAlert(ctx.user.id, await headers());
+    await recordAdminAuthenticationContext(ctx.user.id);
   }
 
   if (mode === "setup") {
@@ -321,7 +339,7 @@ export async function redeemAdminRecoveryCode(code: string): Promise<{ ok: boole
 
   const cookieSet = await setAdminMfaCookie(ctx, "backup");
   if (!cookieSet) return { ok: false, message: "تم قبول الرمز، لكن تعذر إنشاء جلسة الاسترداد. سجّل الدخول مجددًا." };
-  await recordAdminSignInAlert(ctx.user.id, await headers());
+  await recordAdminAuthenticationContext(ctx.user.id);
 
   return {
     ok: true,
