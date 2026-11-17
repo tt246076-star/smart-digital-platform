@@ -4,6 +4,7 @@ import { getPublicAccessPlan } from "@/lib/server/access-plan";
 import LandingPageAnalytics from "@/components/LandingPageAnalytics";
 import GoogleReviewCard from "@/components/GoogleReviewCard";
 import { resolveTheme, pagePrimary } from "@/lib/theme";
+import { isValidSlug } from "@/lib/server/input-validation";
 
 
 function readableSurface(hex: string, whiteRatio = 0.9) {
@@ -41,6 +42,7 @@ function BrandMark({ kind, circle = false }: { kind: string; circle?: boolean })
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (!isValidSlug(slug)) return { title: "صفحة غير موجودة | بطاقاتي" };
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
     .select("user_id, business_name, headline, seo_title, seo_description, description")
@@ -55,6 +57,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PublicLandingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (!isValidSlug(slug)) notFound();
   const supabase = await createClient();
   const { data: page } = await supabase.from("landing_pages")
     .select("id, user_id, business_name, headline, description, phone, whatsapp, logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_links, is_published, template, theme, seo_title, seo_description, sections")
