@@ -56,5 +56,8 @@ After the Production deployment is ready and the variables are configured:
   or payment processor fraud.
 
 The database stores only throttling counters, the admin's last country code,
-and a SHA-256 hash of a coarse browser/OS/device class. Repeated notices are
-aggregated and reported as a suppressed count.
+and a SHA-256 hash of a random browser-profile identifier. The raw device cookie
+is HttpOnly and is never written to the database or included in a notification.
+The alert labels the browser/OS/device class for context; it does not claim to
+identify a physical hardware serial number. Repeated notices are aggregated
+and reported as a suppressed count.

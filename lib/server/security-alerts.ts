@@ -61,8 +61,14 @@ export async function sendSecurityAlert(
       signal: AbortSignal.timeout(7000),
       cache: "no-store",
     });
-    if (!response.ok) {
-      console.error("Security alert delivery failed (Telegram returned a non-success status).");
+    const telegramResult: unknown = await response.json().catch(() => null);
+    if (
+      !response.ok ||
+      !telegramResult ||
+      typeof telegramResult !== "object" ||
+      (telegramResult as { ok?: unknown }).ok !== true
+    ) {
+      console.error("Security alert delivery failed (Telegram returned a non-success response).");
       return { sent: false, reason: "telegram" };
     }
     return { sent: true };
