@@ -92,6 +92,7 @@ function getDeviceLabel(userAgent: string): string {
 export async function recordAdminSignInAlert(
   adminUserId: string,
   requestHeaders: HeaderReader,
+  deviceId: string,
 ): Promise<void> {
   const admin = createServiceClient();
   if (!admin) return;
@@ -100,7 +101,7 @@ export async function recordAdminSignInAlert(
   // Persist only a one-way fingerprint of a normalized device class, never the
   // raw User-Agent string or the visitor's IP address.
   const deviceClass = getDeviceLabel(userAgent);
-  const deviceHash = createHash("sha256").update(deviceClass, "utf8").digest("hex");
+  const deviceHash = createHash("sha256").update(deviceId, "utf8").digest("hex");
   const countryHeader = requestHeaders.get("x-vercel-ip-country")?.trim().toUpperCase() || "";
   const country = /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : null;
 
