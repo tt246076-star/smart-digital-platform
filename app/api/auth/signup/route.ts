@@ -20,15 +20,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "تحقق من الاسم والبريد الإلكتروني وكلمة المرور." }, { status: 400 });
   }
 
-  const genericSignupMessage = "تعذر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.";
+  const genericSignupMessage = "إذا كانت البيانات صالحة، ستصلك رسالة تأكيد إلى بريدك الإلكتروني.";
+  const genericSignupResponse = (hasSession = false) =>
+    NextResponse.json(
+      { ok: true, hasSession, message: genericSignupMessage },
+      { status: 200, headers: { "Cache-Control": "no-store" } }
+    );
   const limit = await manageAuthAttemptLimit(request, email, "signup", "attempt");
   if (limit.status === "unavailable") {
-    return NextResponse.json({ error: genericSignupMessage }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    return genericSignupResponse();
   }
   if (limit.status === "blocked") {
     return NextResponse.json(
-      { error: genericSignupMessage },
-      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds), "Cache-Control": "no-store" } }
+      { ok: true, hasSession: false, message: genericSignupMessage },
+      { status: 200, headers: { "Cache-Control": "no-store", "Retry-After": String(limit.retryAfterSeconds) } }
     );
   }
 
@@ -42,11 +47,11 @@ export async function POST(request: Request) {
         emailRedirectTo: "https://www.bitaqati.online/auth/callback",
       },
     });
-    if (error) return NextResponse.json({ error: genericSignupMessage }, { status: 400 });
+    if (error) return genericSignupResponse();
     const cleared = await manageAuthAttemptLimit(request, email, "signup", "success");
     if (cleared.status === "unavailable") console.error("Could not clear successful signup attempt reservation.");
-    return NextResponse.json({ ok: true, hasSession: !!data.session }, { status: data.session ? 201 : 200 });
+    return genericSignupResponse(!!data.session);
   } catch {
-    return NextResponse.json({ error: genericSignupMessage }, { status: 503 });
+    return genericSignupResponse();
   }
 }
