@@ -427,12 +427,12 @@ export function readJsonPassword(
     typeof value !== "string" ||
     value.length < minLength ||
     value.length > maxLength ||
-    value.includes("\\u0000")
+    value.includes("\u0000")
   ) return null;
   return value;
 }
 
 export function isValidEmail(value: string): boolean {
   return value.length <= 254 &&
-    /^[^\\s@]+@[^\\s@.]+(?:\\.[^\\s@.]+)+$/.test(value);
+    /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(value);
 }
