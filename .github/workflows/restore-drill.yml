@@ -1,0 +1,260 @@
+name: Manual backup restore drill (test project only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_key:
+        description: "Optional R2 object key. Leave blank to use the newest daily backup."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bitaqati-restore-drill
+  cancel-in-progress: false
+
+jobs:
+  restore-test:
+    name: Decrypt and restore into a separate Supabase test project
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # Store restore-only secrets in this protected GitHub Environment.
+    environment: backup-restore-test
+    steps:
+      - name: Install restore tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y age postgresql-client jq
+          aws --version
+          psql --version
+
+      - name: Download and decrypt the selected backup
+        shell: bash
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AGE_IDENTITY: ${{ secrets.AGE_IDENTITY }}
+          REQUESTED_BACKUP_KEY: ${{ inputs.backup_key }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          required_vars=(R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY AGE_IDENTITY)
+          for name in "${required_vars[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required restore-environment secret is missing: $name"
+              exit 1
+            fi
+          done
+
+          r2_endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          if [[ -n "$REQUESTED_BACKUP_KEY" ]]; then
+            backup_key="$REQUESTED_BACKUP_KEY"
+          else
+            backup_key="$(
+              AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+              AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+              AWS_DEFAULT_REGION="auto" AWS_PAGER="" \
+                aws --endpoint-url "$r2_endpoint" --region auto \
+                  s3 ls "s3://$R2_BUCKET/daily/" --recursive |
+                awk '$4 ~ /\.tar\.gz\.age$/ { print $4 }' |
+                sort | tail -n 1
+            )"
+          fi
+
+          if [[ -z "$backup_key" || "$backup_key" != daily/*/*.tar.gz.age ]]; then
+            echo "::error::No valid encrypted daily backup object was selected."
+            exit 1
+          fi
+
+          mkdir -p "$RUNNER_TEMP/bitaqati-restore"
+          encrypted="$RUNNER_TEMP/bitaqati-restore/backup.tar.gz.age"
+          archive="$RUNNER_TEMP/bitaqati-restore/backup.tar.gz"
+          identity="$RUNNER_TEMP/bitaqati-restore/age-identity.txt"
+
+          AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+          AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+          AWS_DEFAULT_REGION="auto" AWS_PAGER="" \
+            aws --endpoint-url "$r2_endpoint" --region auto s3 cp \
+              "s3://$R2_BUCKET/$backup_key" "$encrypted" --no-progress
+
+          printf '%s\n' "$AGE_IDENTITY" > "$identity"
+          chmod 600 "$identity"
+          age --decrypt --identity "$identity" --output "$archive" "$encrypted"
+          tar -tzf "$archive" >/dev/null
+          tar -xzf "$archive" -C "$RUNNER_TEMP/bitaqati-restore"
+
+          payload="$RUNNER_TEMP/bitaqati-restore/payload"
+          test -s "$payload/db/roles.sql"
+          test -s "$payload/db/schema.sql"
+          test -s "$payload/db/data.sql"
+          test -s "$payload/storage-buckets.json"
+          test -s "$payload/repository.bundle"
+          git bundle verify "$payload/repository.bundle"
+
+          echo "BACKUP_PAYLOAD=$payload" >> "$GITHUB_ENV"
+          echo "RESTORE_BACKUP_KEY=$backup_key" >> "$GITHUB_ENV"
+
+      - name: Restore database into the isolated test project
+        shell: bash
+        env:
+          SUPABASE_TEST_PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          SUPABASE_TEST_DB_URL: ${{ secrets.SUPABASE_TEST_DB_URL }}
+        run: |
+          set -Eeuo pipefail
+
+          required_vars=(SUPABASE_TEST_PROJECT_REF SUPABASE_TEST_DB_URL)
+          for name in "${required_vars[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required test-project secret is missing: $name"
+              exit 1
+            fi
+          done
+
+          if [[ "$SUPABASE_TEST_PROJECT_REF" == "esetgqfftbgoavyihfiv" || "$SUPABASE_TEST_DB_URL" == *"esetgqfftbgoavyihfiv"* ]]; then
+            echo "::error::Safety stop: the configured target is the live Bitaqati project."
+            exit 1
+          fi
+
+          # Refuse to overwrite a non-empty test database.
+          auth_before="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from auth.users;')"
+          objects_before="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from storage.objects;')"
+          if [[ "$auth_before" != "0" || "$objects_before" != "0" ]]; then
+            echo "::error::The target test project is not empty. Use a fresh, isolated Supabase test project."
+            exit 1
+          fi
+
+          echo "Restoring roles, schema, and data to the test project..."
+          psql "$SUPABASE_TEST_DB_URL" \
+            --single-transaction \
+            --variable ON_ERROR_STOP=1 \
+            --file "$BACKUP_PAYLOAD/db/roles.sql" \
+            --file "$BACKUP_PAYLOAD/db/schema.sql" \
+            --command 'SET session_replication_role = replica' \
+            --file "$BACKUP_PAYLOAD/db/data.sql"
+
+          if [[ -s "$BACKUP_PAYLOAD/db/history_schema.sql" && -s "$BACKUP_PAYLOAD/db/history_data.sql" ]]; then
+            psql "$SUPABASE_TEST_DB_URL" \
+              --single-transaction \
+              --variable ON_ERROR_STOP=1 \
+              --file "$BACKUP_PAYLOAD/db/history_schema.sql" \
+              --file "$BACKUP_PAYLOAD/db/history_data.sql"
+          fi
+
+      - name: Recreate Storage buckets and restore files into the test project
+        shell: bash
+        env:
+          SUPABASE_TEST_PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+          SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+          SUPABASE_TEST_S3_ACCESS_KEY_ID: ${{ secrets.SUPABASE_TEST_S3_ACCESS_KEY_ID }}
+          SUPABASE_TEST_S3_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_TEST_S3_SECRET_ACCESS_KEY }}
+          SUPABASE_TEST_S3_REGION: ${{ secrets.SUPABASE_TEST_S3_REGION }}
+        run: |
+          set -Eeuo pipefail
+
+          required_vars=(
+            SUPABASE_TEST_PROJECT_REF SUPABASE_TEST_URL SUPABASE_TEST_SERVICE_ROLE_KEY
+            SUPABASE_TEST_S3_ACCESS_KEY_ID SUPABASE_TEST_S3_SECRET_ACCESS_KEY SUPABASE_TEST_S3_REGION
+          )
+          for name in "${required_vars[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required test Storage secret is missing: $name"
+              exit 1
+            fi
+          done
+
+          if [[ "$SUPABASE_TEST_URL" != "https://$SUPABASE_TEST_PROJECT_REF.supabase.co" ]]; then
+            echo "::error::SUPABASE_TEST_URL must match the separate test project reference."
+            exit 1
+          fi
+          if [[ "$SUPABASE_TEST_PROJECT_REF" == "esetgqfftbgoavyihfiv" ]]; then
+            echo "::error::Refusing to restore Storage into the live Bitaqati project."
+            exit 1
+          fi
+
+          test_s3_endpoint="https://$SUPABASE_TEST_PROJECT_REF.storage.supabase.co/storage/v1/s3"
+
+          while IFS= read -r bucket_json; do
+            bucket_id="$(jq -r '.id' <<< "$bucket_json")"
+            if [[ ! "$bucket_id" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]]; then
+              echo "::error::Unexpected bucket name in backup: $bucket_id"
+              exit 1
+            fi
+
+            bucket_exists="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc \
+              "select exists(select 1 from storage.buckets where id = '$bucket_id');")"
+            if [[ "$bucket_exists" != "t" ]]; then
+              payload="$(jq -c '{id,name,public,file_size_limit,allowed_mime_types}' <<< "$bucket_json")"
+              http_code="$(curl -sS -o "$RUNNER_TEMP/create-bucket-response.json" -w '%{http_code}' \
+                -X POST "$SUPABASE_TEST_URL/storage/v1/bucket" \
+                -H "apikey: $SUPABASE_TEST_SERVICE_ROLE_KEY" \
+                -H "Authorization: Bearer $SUPABASE_TEST_SERVICE_ROLE_KEY" \
+                -H "Content-Type: application/json" \
+                --data "$payload")"
+              if [[ "$http_code" != "200" && "$http_code" != "201" ]]; then
+                echo "::error::Could not create test Storage bucket $bucket_id (HTTP $http_code)."
+                cat "$RUNNER_TEMP/create-bucket-response.json"
+                exit 1
+              fi
+            fi
+
+            echo "Restoring bucket: $bucket_id"
+            AWS_ACCESS_KEY_ID="$SUPABASE_TEST_S3_ACCESS_KEY_ID" \
+            AWS_SECRET_ACCESS_KEY="$SUPABASE_TEST_S3_SECRET_ACCESS_KEY" \
+            AWS_DEFAULT_REGION="$SUPABASE_TEST_S3_REGION" AWS_PAGER="" \
+              aws --endpoint-url "$test_s3_endpoint" --region "$SUPABASE_TEST_S3_REGION" \
+                s3 sync "$BACKUP_PAYLOAD/storage/$bucket_id/" "s3://$bucket_id/" \
+                --no-progress --only-show-errors
+          done < <(jq -c '.[]' "$BACKUP_PAYLOAD/storage-buckets.json")
+
+      - name: Verify restored records and Storage objects
+        shell: bash
+        env:
+          SUPABASE_TEST_PROJECT_REF: ${{ secrets.SUPABASE_TEST_PROJECT_REF }}
+          SUPABASE_TEST_DB_URL: ${{ secrets.SUPABASE_TEST_DB_URL }}
+        run: |
+          set -Eeuo pipefail
+
+          source_users="$(sed -n 's/^auth_user_count=//p' "$BACKUP_PAYLOAD/manifest.txt" | head -n 1)"
+          restored_users="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from auth.users;')"
+          if [[ -z "$source_users" || "$source_users" != "$restored_users" ]]; then
+            echo "::error::Auth user count differs. Source=$source_users, restored=$restored_users"
+            exit 1
+          fi
+
+          source_objects=0
+          while IFS= read -r bucket_json; do
+            bucket_id="$(jq -r '.id' <<< "$bucket_json")"
+            expected="$(sed -n "s/^storage_object_count.$bucket_id=//p" "$BACKUP_PAYLOAD/manifest.txt" | head -n 1)"
+            restored="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc \
+              "select count(*) from storage.objects where bucket_id = '$bucket_id';")"
+            expected="${expected:-0}"
+            source_objects=$((source_objects + expected))
+            if [[ "$expected" != "$restored" ]]; then
+              echo "::error::Storage count mismatch for $bucket_id. Expected=$expected, restored=$restored"
+              exit 1
+            fi
+          done < <(jq -c '.[]' "$BACKUP_PAYLOAD/storage-buckets.json")
+
+          restored_objects="$(psql "$SUPABASE_TEST_DB_URL" -X -v ON_ERROR_STOP=1 -Atc 'select count(*) from storage.objects;')"
+          if [[ "$source_objects" != "$restored_objects" ]]; then
+            echo "::error::Total Storage object count differs. Expected=$source_objects, restored=$restored_objects"
+            exit 1
+          fi
+
+          {
+            echo "### Bitaqati restore drill — isolated test project"
+            echo "- Backup object: `$RESTORE_BACKUP_KEY`"
+            echo "- Test project ref: `$SUPABASE_TEST_PROJECT_REF`"
+            echo "- Auth users restored: $restored_users"
+            echo "- Storage objects restored: $restored_objects"
+            echo "- Repository bundle: verified"
+            echo "- Live project: not used"
+          } >> "$GITHUB_STEP_SUMMARY"
