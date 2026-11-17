@@ -407,3 +407,13 @@ export function isValidVipFormData(
 export function isValidAlgerianWilayaCode(value: unknown): value is string {
   return typeof value === "string" && /^(0[1-9]|[1-4][0-9]|5[0-8])$/.test(value);
 }
+
+export function isValidSlug(value: unknown): value is string {
+  return typeof value === "string" &&
+    value.length >= 1 && value.length <= 120 &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(value);
+}
+
+export function hasNoQueryParams(request: Request): boolean {
+  return [...new URL(request.url).searchParams.keys()].length === 0;
+}
