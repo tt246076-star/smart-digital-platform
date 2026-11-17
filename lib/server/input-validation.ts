@@ -104,7 +104,7 @@ export function readJsonText(
 ): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
-  if (normalized.length > maxLength || (required && !normalized) || /[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/.test(normalized)) return null;
+  if (normalized.length > maxLength || (required && !normalized) || /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(normalized)) return null;
   return normalized;
 }
 
