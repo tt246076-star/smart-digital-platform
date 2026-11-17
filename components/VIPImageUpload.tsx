@@ -12,6 +12,7 @@ export default function VIPImageUpload({ name, label, initialValue = "", maxFile
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [removedUrls, setRemovedUrls] = useState<string[]>([]);
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 
   async function discardStagedValue(current: string) {
     if (!current.startsWith("staging://")) return;
@@ -25,8 +26,8 @@ export default function VIPImageUpload({ name, label, initialValue = "", maxFile
   async function upload(file?: File) {
     if (!file) return;
     setError("");
-    if (!file.type.startsWith("image/")) { setError("اختار ملف صورة فقط."); return; }
-    if (file.size > maxFileSizeMB * 1024 * 1024) { setError(`حجم الصورة لازم ما يفوتش ${maxFileSizeMB} MB.`); return; }
+    if (!allowedTypes.includes(file.type)) { setError("اختار صورة JPG أو PNG أو WebP أو GIF أو AVIF فقط."); return; }
+    if (file.size > Math.min(maxFileSizeMB, 5) * 1024 * 1024) { setError(`حجم الصورة لازم ما يفوتش ${maxFileSizeMB} MB.`); return; }
     setUploading(true);
     try {
       const staged = await uploadStagedLandingImage(file);
@@ -55,7 +56,7 @@ export default function VIPImageUpload({ name, label, initialValue = "", maxFile
     <label className="text-sm font-bold" htmlFor={name}>{label} — رفع صورة</label>
     <input type="hidden" name={name} value={value} />
     <input type="hidden" name={name + "_removed"} value={JSON.stringify(removedUrls)} />
-    <input id={name} type="file" accept="image/*" disabled={uploading} onChange={(e) => upload(e.target.files?.[0])} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 disabled:opacity-60" />
+    <input id={name} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading} onChange={(e) => upload(e.target.files?.[0])} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 disabled:opacity-60" />
     {uploading && <p className="mt-2 text-xs font-bold text-amber-700">جاري رفع الصورة...</p>}
     {error && <p role="alert" className="mt-2 text-xs font-bold text-red-600">{error}</p>}
     {previewUrl && <div className="mt-3 flex items-center gap-3"><img src={previewUrl} alt={label} className="h-16 w-16 rounded-xl border object-cover" /><span className="text-xs font-bold text-emerald-700">تم رفع الصورة بشكل خاص</span><button type="button" onClick={() => void clearImage()} className="text-xs font-bold text-red-600">حذف</button></div>}

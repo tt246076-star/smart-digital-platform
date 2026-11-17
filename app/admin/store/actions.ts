@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupStoreProductImages } from "@/lib/server/storage-cleanup";
+import { validateImageFile } from "@/lib/server/upload-validation";
 import { hasOnlyFormFields, isValidUuid, isValidWebUrl, parseFormNumber, readFormCheckbox, readFormText } from "@/lib/server/input-validation";
 
 async function getAdmin() {
@@ -44,21 +45,12 @@ export async function saveStoreProduct(formData: FormData) {
   const imageFile = formData.get("image_file");
   if (imageFile !== null && !(imageFile instanceof File)) redirect("/admin/store?error=file");
   if (imageFile instanceof File && imageFile.size > 0) {
-    const mimeExtensions: Record<string, string> = {
-      "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
-      "image/gif": "gif", "image/avif": "avif",
-    };
-    const extension = mimeExtensions[imageFile.type];
-    if (!extension || imageFile.size > 5 * 1024 * 1024 || imageFile.name.length > 255) redirect("/admin/store?error=file");
-    const header = new Uint8Array(await imageFile.slice(0, 16).arrayBuffer());
-    const isJpeg = imageFile.type === "image/jpeg" && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
-    const isPng = imageFile.type === "image/png" && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => header[index] === byte);
-    const isWebp = imageFile.type === "image/webp" && String.fromCharCode(...header.slice(0, 4)) === "RIFF" && String.fromCharCode(...header.slice(8, 12)) === "WEBP";
-    const isGif = imageFile.type === "image/gif" && ["GIF87a", "GIF89a"].includes(String.fromCharCode(...header.slice(0, 6)));
-    const isAvif = imageFile.type === "image/avif" && String.fromCharCode(...header.slice(4, 12)).startsWith("ftypavif");
-    if (!isJpeg && !isPng && !isWebp && !isGif && !isAvif) redirect("/admin/store?error=file");
-    const path = `${crypto.randomUUID()}.${extension}`;
-    const { error: uploadError } = await admin.storage.from("store-products").upload(path, imageFile, { contentType: imageFile.type, upsert: false });
+    const validatedImage = await validateImageFile(imageFile, 5 * 1024 * 1024);
+    if (!validatedImage) redirect("/admin/store?error=file");
+    const path = `${crypto.randomUUID()}.${validatedImage.extension}`;
+    const { error: uploadError } = await admin.storage.from("store-products").upload(path, validatedImage.blob, {
+      contentType: validatedImage.mime, upsert: false, cacheControl: "31536000",
+    });
     if (uploadError) { console.error("Product image upload failed:", uploadError.message); redirect("/admin/store?error=upload"); }
     imageUrl = admin.storage.from("store-products").getPublicUrl(path).data.publicUrl;
   }
