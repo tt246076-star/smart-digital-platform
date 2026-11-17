@@ -311,3 +311,94 @@ export function validateLandingPageFormData(
     sections: { address, map_url, hours, theme_primary, theme_mode, round_image_url, cover_image_url, gallery, contact_numbers },
   };
 }
+
+const VIP_BASE_FIELDS = [
+  "slug", "name", "bio", "logo", "cover", "backgroundImage", "theme", "layout", "animation",
+  "phone", "phone_name", "phone2", "phone2_name", "whatsapp", "instagram", "tiktok",
+  "facebook", "google", "map", "address",
+] as const;
+
+const VIP_DAYS = ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday"] as const;
+
+export function isValidVipFormData(
+  formData: FormData,
+  maxGalleryImages: number,
+  editing: boolean,
+): boolean {
+  const allowed = new Set<string>(VIP_BASE_FIELDS);
+  if (!editing) allowed.delete("slug");
+  for (const day of VIP_DAYS) {
+    allowed.add(day + "_open");
+    allowed.add(day + "_from");
+    allowed.add(day + "_to");
+  }
+  const isDynamicAllowed = (key: string) => {
+    const match = /^gallery_([1-9][0-9]*)(_removed)?$/.exec(key);
+    if (!match) return false;
+    const index = Number(match[1]);
+    return Number.isSafeInteger(index) && index <= maxGalleryImages;
+  };
+  if (!hasOnlyFormFields(formData, [...allowed], isDynamicAllowed)) return false;
+
+  const slug = readFormText(formData, "slug", 120, editing);
+  const name = readFormText(formData, "name", 100, true);
+  const bio = readFormText(formData, "bio", 400);
+  const logo = readFormText(formData, "logo", 2048);
+  const cover = readFormText(formData, "cover", 2048);
+  const background = readFormText(formData, "backgroundImage", 2048);
+  const theme = readFormText(formData, "theme", 16);
+  const layout = readFormText(formData, "layout", 16);
+  const phone = readFormText(formData, "phone", 30);
+  const phoneName = readFormText(formData, "phone_name", 40);
+  const phone2 = readFormText(formData, "phone2", 30);
+  const phone2Name = readFormText(formData, "phone2_name", 40);
+  const whatsapp = readFormText(formData, "whatsapp", 30);
+  const instagram = readFormText(formData, "instagram", 2048);
+  const tiktok = readFormText(formData, "tiktok", 2048);
+  const facebook = readFormText(formData, "facebook", 2048);
+  const google = readFormText(formData, "google", 2048);
+  const map = readFormText(formData, "map", 2048);
+  const address = readFormText(formData, "address", 200);
+  if (
+    slug === null || name === null || bio === null || logo === null || cover === null ||
+    background === null || theme === null || layout === null || phone === null ||
+    phoneName === null || phone2 === null || phone2Name === null || whatsapp === null ||
+    instagram === null || tiktok === null || facebook === null || google === null ||
+    map === null || address === null
+  ) return false;
+  if (editing && !/^[a-z0-9][a-z0-9-]{0,119}$/i.test(slug)) return false;
+  if (theme && !["gold", "silver", "emerald", "ruby", "lavender", "pink", "dark"].includes(theme)) return false;
+  if (layout && !["classic", "salon"].includes(layout)) return false;
+  if (![phone, phone2, whatsapp].every(isValidPhone)) return false;
+  if (![logo, cover, background, instagram, tiktok, facebook, google, map].every((value) => isValidWebUrl(value, true))) return false;
+
+  const animation = readFormCheckbox(formData, "animation");
+  if (animation === null) return false;
+  for (const day of VIP_DAYS) {
+    const open = readFormCheckbox(formData, day + "_open");
+    const from = readFormText(formData, day + "_from", 5);
+    const to = readFormText(formData, day + "_to", 5);
+    if (open === null || from === null || to === null) return false;
+    if ((from && !isValidClockTime(from)) || (to && !isValidClockTime(to))) return false;
+  }
+
+  for (let index = 1; index <= maxGalleryImages; index++) {
+    const gallery = readFormText(formData, "gallery_" + index, 2048);
+    if (gallery === null || !isValidWebUrl(gallery, true)) return false;
+  }
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.endsWith("_removed") || key.startsWith("$ACTION_")) continue;
+    if (typeof value !== "string" || value.length > 12_000) return false;
+    let removed: unknown;
+    try {
+      removed = JSON.parse(value);
+    } catch {
+      return false;
+    }
+    if (!Array.isArray(removed) || removed.length > 20 ||
+        removed.some((item) => typeof item !== "string" || item.length > 2048)) return false;
+  }
+
+  return true;
+}
