@@ -25,7 +25,12 @@ async function createVIPCard(formData: FormData) {
   if (countError || pageTypeLimitError || (count ?? 0) >= maxVIPPages) redirect("/dashboard?vipError=limit");
   const name = String(formData.get("name") || "").trim().slice(0,100);
   if (!name) redirect("/vip/new?error=name");
-  const cleanUrl = (raw: FormDataEntryValue | null) => { try { const u = new URL(String(raw || "")); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
+  const cleanUrl = (raw: FormDataEntryValue | null) => {
+    const value = typeof raw === "string" ? raw.trim() : "";
+    if (value.startsWith("staging://")) return value;
+    try { const u = new URL(value); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; }
+    catch { return ""; }
+  };
   const days = ["saturday","sunday","monday","tuesday","wednesday","thursday","friday"];
   const hours: Record<string,{open:boolean;from:string;to:string}> = {};
   for (const day of days) hours[day] = { open: formData.get(day+"_open") === "on", from: String(formData.get(day+"_from") || "09:00"), to: String(formData.get(day+"_to") || "18:00") };
