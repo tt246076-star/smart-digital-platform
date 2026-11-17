@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { hasOnlyKeys, readBoundedJson, readJsonPassword   hasNoQueryParams,
-} from "@/lib/server/input-validation";
+import { hasNoQueryParams, hasOnlyKeys, readBoundedJson, readJsonPassword } from "@/lib/server/input-validation";
 
 export const dynamic = "force-dynamic";
 
