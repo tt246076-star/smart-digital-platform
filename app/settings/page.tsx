@@ -52,7 +52,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch("/api/auth/password", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         body: JSON.stringify({ password }),
       });
       const result = await response.json();

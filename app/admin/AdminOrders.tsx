@@ -82,7 +82,7 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/orders", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId }) });
+      const response = await fetch("/api/admin/orders", { method: "DELETE", headers: { "Content-Type": "application/json", ...(await csrfHeaders()) }, body: JSON.stringify({ orderId }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر حذف الطلب.");
       setOrders(old => old.filter(order => order.id !== orderId));
