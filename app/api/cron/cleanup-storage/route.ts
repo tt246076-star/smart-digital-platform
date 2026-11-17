@@ -1,9 +1,11 @@
 import { cleanupStalePendingLandingPageImages } from "@/lib/server/storage-cleanup";
+import { hasNoQueryParams } from "@/lib/server/input-validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  if (!hasNoQueryParams(request)) return Response.json({ error: "Invalid request" }, { status: 400 });
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
