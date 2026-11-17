@@ -2,22 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { createClient } from "@/lib/supabase/server";
-import { cleanupLandingPageImages } from "@/lib/server/storage-cleanup";
 import VIPImageUpload from "@/components/VIPImageUpload";
 import VIPCustomizer from "@/components/dashboard/VIPCustomizer";
 import VIPCreateSubmitButton from "@/components/VIPCreateSubmitButton";
-
-function readRemovedVIPImageUrls(formData: FormData): string[] {
-  const urls: string[] = [];
-  formData.forEach((value, key) => {
-    if (!key.endsWith("_removed")) return;
-    try {
-      const parsed = JSON.parse(String(value));
-      if (Array.isArray(parsed)) urls.push(...parsed.filter((item): item is string => typeof item === "string"));
-    } catch { /* Ignore malformed optional cleanup metadata. */ }
-  });
-  return [...new Set(urls)];
-}
+import { isValidVipFormData } from "@/lib/server/input-validation";
 
 async function createVIPCard(formData: FormData) {
   "use server";
@@ -27,6 +15,7 @@ async function createVIPCard(formData: FormData) {
   const { data: galleryLimit } = await supabase.from("user_gallery_limits").select("max_images,max_image_mb").eq("user_id",user.id).maybeSingle();
   const maxGalleryImages = Math.max(0, Math.min(100, galleryLimit?.max_images ?? 2));
   const maxGalleryImageMb = Math.max(0.1, Math.min(20, galleryLimit?.max_image_mb ?? 2));
+  if (!isValidVipFormData(formData, maxGalleryImages, false)) redirect("/vip/new?error=fields");
   const { data: plan } = await supabase.from("user_access_plans").select("plan_type,expires_at").eq("user_id",user.id).maybeSingle();
   const active = !!plan && (!plan.expires_at || new Date(plan.expires_at).getTime() > Date.now());
   if (!active || !["trial","vip"].includes(plan.plan_type)) redirect("/dashboard?vipError=plan");
@@ -49,7 +38,6 @@ async function createVIPCard(formData: FormData) {
   const slug = (name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||"vip-shop")+"-vip-"+crypto.randomUUID().slice(0,8);
   const { error } = await supabase.from("landing_pages").insert({ user_id:user.id,slug,business_name:name,headline:"بطاقة VIP",description:vip_card.bio,phone:vip_card.phone,whatsapp:vip_card.whatsapp,instagram_url:vip_card.instagram,facebook_url:vip_card.facebook,tiktok_url:vip_card.tiktok,logo_url:vip_card.logo,template:"vip",theme:"gold",sections:{vip_card},is_published:true });
   if (error) { console.error("VIP card creation failed",error.message); redirect("/vip/new?error=save"); }
-  await cleanupLandingPageImages([readRemovedVIPImageUrls(formData)]);
   redirect("/dashboard?vipCreated=1");
 }
 const input = "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100";
