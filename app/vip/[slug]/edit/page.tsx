@@ -35,7 +35,7 @@ async function updateVIPCard(formData: FormData) {
   if (!name) redirect("/dashboard?vipEditError=1");
   const gallery = Array.from({length:maxGalleryImages},(_,i)=>val("gallery_"+(i+1),old.gallery?.[i] || "")).filter(Boolean).map(cleanUrl).filter(Boolean);
   const requestedTheme = val("theme", old.theme || "gold");
-  const theme = ["gold","silver","emerald","ruby","lavender","pink","dark"].includes(requestedTheme) ? requestedTheme : "gold";
+  const theme = ["gold","silver","emerald","ruby","lavender","pink","dark","ocean","sunset","mint","royal","noir","copper","ice"].includes(requestedTheme) ? requestedTheme : "gold";
   const layout = "salon";
   const hours: Record<string,{open:boolean;from:string;to:string}> = {};
   for (const [day] of days) hours[day] = { open: formData.get(day+"_open") === "on", from: val(day+"_from",old.hours?.[day]?.from || "09:00"), to: val(day+"_to",old.hours?.[day]?.to || "18:00") };
