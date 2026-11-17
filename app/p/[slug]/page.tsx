@@ -26,7 +26,7 @@ function socialLinks(page: any) {
       }))
     : [];
   return [
-    { label: "WhatsApp", url: page.whatsapp ? "https://wa.me/" + String(page.whatsapp).replace(/\\D/g, "") : "", kind: "whatsapp" },
+    { label: "WhatsApp", url: page.whatsapp ? "https://wa.me/" + String(page.whatsapp).replace(/\D/g, "") : "", kind: "whatsapp" },
     { label: "Facebook", url: safeWebUrl(page.facebook_url), kind: "facebook" },
     { label: "Instagram", url: safeWebUrl(page.instagram_url), kind: "instagram" },
     { label: "TikTok", url: safeWebUrl(page.tiktok_url), kind: "tiktok" },
