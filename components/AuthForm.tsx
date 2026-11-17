@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const isLogin = mode === "login";
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
     try {
       const response = await fetch(isLogin ? "/api/auth/login" : "/api/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         body: JSON.stringify(isLogin
           ? { email, password }
           : { name: name.trim(), email, password }),

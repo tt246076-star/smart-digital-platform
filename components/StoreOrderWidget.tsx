@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 type Product = { name: string; price: string; image_url?: string; description?: string };
 
 export default function StoreOrderWidget({ slug, products }: { slug: string; products: Product[] }) {
@@ -23,7 +24,7 @@ export default function StoreOrderWidget({ slug, products }: { slug: string; pro
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         body: JSON.stringify({ slug, productIndex: Number(productIndex), quantity, customerName: name, customerPhone: phone, customerAddress: address, notes })
       });
       const data = await response.json();

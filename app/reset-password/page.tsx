@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
@@ -26,7 +27,7 @@ export default function ResetPasswordPage() {
     try {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         body: JSON.stringify({ password }),
       });
       const result = await response.json();

@@ -7,6 +7,7 @@ import { resolveTheme, pagePrimary } from "@/lib/theme";
 import { isValidSlug } from "@/lib/server/input-validation";
 
 
+import { safeWebUrl } from "@/lib/safe-web-url";
 function readableSurface(hex: string, whiteRatio = 0.9) {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return "#ffffff";
   const n = hex.slice(1);
@@ -16,13 +17,21 @@ function readableSurface(hex: string, whiteRatio = 0.9) {
 }
 
 function socialLinks(page: any) {
+  const customLinks = Array.isArray(page.custom_links)
+    ? page.custom_links.filter((item: any) => item && typeof item === "object" && !Array.isArray(item))
+      .map((item: any) => ({
+        label: typeof item.label === "string" ? item.label.slice(0, 80) : "",
+        url: safeWebUrl(item.url),
+        kind: "custom",
+      }))
+    : [];
   return [
-    { label: "WhatsApp", url: page.whatsapp ? `https://wa.me/${page.whatsapp.replace(/\D/g, "")}` : "", kind: "whatsapp" },
-    { label: "Facebook", url: page.facebook_url, kind: "facebook" },
-    { label: "Instagram", url: page.instagram_url, kind: "instagram" },
-    { label: "TikTok", url: page.tiktok_url, kind: "tiktok" },
-    { label: "YouTube", url: page.youtube_url, kind: "youtube" },
-    ...(Array.isArray(page.custom_links) ? page.custom_links.map((x: any) => ({ ...x, kind: "custom" })) : []),
+    { label: "WhatsApp", url: page.whatsapp ? "https://wa.me/" + String(page.whatsapp).replace(/\\D/g, "") : "", kind: "whatsapp" },
+    { label: "Facebook", url: safeWebUrl(page.facebook_url), kind: "facebook" },
+    { label: "Instagram", url: safeWebUrl(page.instagram_url), kind: "instagram" },
+    { label: "TikTok", url: safeWebUrl(page.tiktok_url), kind: "tiktok" },
+    { label: "YouTube", url: safeWebUrl(page.youtube_url), kind: "youtube" },
+    ...customLinks,
   ].filter((link) => link.url);
 }
 
@@ -72,7 +81,12 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     address?: string; map_url?: string; google_review_url?: string; hours?: string; card_color?: string; accent_color?: string; panel_color?: string; theme_primary?: string; theme_mode?: string; round_image_url?: string; cover_image_url?: string; rating_average?: number | string; rating_count?: number | string;
     gallery?: string[]; contact_numbers?: { phone: string; name?: string }[];
   };
-  const gallery = Array.isArray(sections.gallery) ? sections.gallery.filter((url:string)=>typeof url==="string" && /^https?:\/\//.test(url)).slice(0,12) : [];
+  const gallery = Array.isArray(sections.gallery)
+    ? sections.gallery.map((url: unknown) => safeWebUrl(url)).filter(Boolean).slice(0, 12)
+    : [];
+  const safeCoverImage = safeWebUrl(sections.cover_image_url);
+  const safeMapUrl = safeWebUrl(sections.map_url);
+  const safeGoogleReviewUrl = safeWebUrl(sections.google_review_url);
   const contactNumbers = Array.isArray(sections.contact_numbers) ? sections.contact_numbers.slice(0,2).filter((item:any)=>item && typeof item.phone==="string" && item.phone.trim()).map((item:any)=>({phone:item.phone.trim(),name:typeof item.name==="string"?item.name.trim().slice(0,40):""})) : (page.phone ? [{phone:page.phone,name:""}] : []);
   const template: string = page.template || "minimal";
   const isReferenceTemplate = template === "store" || template === "aurora";
@@ -89,7 +103,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   const cardMuted = cardText === "#ffffff" ? "#e2e8f0" : "#475569";
   const isRestaurant = template === "restaurant";
   const isStore = template === "store" || isRestaurant;
-  const displayImage = sections.round_image_url || page.logo_url;
+  const displayImage = safeWebUrl(sections.round_image_url) || safeWebUrl(page.logo_url);
   const hasContact = !!(page.phone || (Array.isArray(sections.contact_numbers) && sections.contact_numbers.some((item:any)=>typeof item?.phone==="string" && item.phone.trim())) || links.length);
   let weeklyHours: Record<string, {open:boolean;from:string;to:string}> | null = null;
   try {
@@ -136,9 +150,9 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
         <LandingPageAnalytics slug={slug} />
         <article className="mx-auto min-h-screen max-w-lg overflow-hidden border shadow-2xl sm:min-h-0 sm:rounded-[1.4rem]" style={{ backgroundColor: resolvedTheme.surface, borderColor: resolvedTheme.border, color: resolvedTheme.text }}>
           <header className="relative">
-            {sections.cover_image_url ? (
+            {safeCoverImage ? (
               <div className="relative h-56 sm:h-64">
-                <img src={sections.cover_image_url} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
+                <img src={safeCoverImage} alt={`غلاف ${page.business_name}`} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
               </div>
             ) : (
@@ -167,7 +181,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
                   {sections.rating_count && <span className="text-xs" style={{ color: resolvedTheme.muted }}>({sections.rating_count} تقييم)</span>}
                 </div>
               ) : null}
-              <GoogleReviewCard reviewUrl={sections.google_review_url} primary={resolvedTheme.primary} text={resolvedTheme.text} muted={resolvedTheme.muted} surface={resolvedTheme.palette.tint} border={resolvedTheme.border} />
+              <GoogleReviewCard reviewUrl={safeGoogleReviewUrl} primary={resolvedTheme.primary} text={resolvedTheme.text} muted={resolvedTheme.muted} surface={resolvedTheme.palette.tint} border={resolvedTheme.border} />
               {(page.phone || page.whatsapp) && <div className="mt-5 flex justify-center"><a href={page.phone ? "tel:" + page.phone : "https://wa.me/" + (page.whatsapp || "").replace(/\D/g, "")} data-track-event="contact" className="inline-flex min-w-40 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-black shadow-lg transition hover:brightness-105" style={{ background: resolvedTheme.primary, color: resolvedTheme.primaryText }}>{page.phone ? "اتصل بنا الآن" : "تواصل معنا"} <span aria-hidden="true">☎</span></a></div>}
             </div>
           </header>
@@ -230,9 +244,9 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
             </section>
           )}
 
-          {(sections.address || sections.map_url) && (
+          {(sections.address || safeMapUrl) && (
             <section className="px-5 pb-6 sm:px-7">
-              {sections.map_url && <a href={sections.map_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-3xl border p-4" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
+              {safeMapUrl && <a href={safeMapUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-3xl border p-4" style={{ borderColor: resolvedTheme.border, background: resolvedTheme.palette.tint }}>
                 <span className="font-black" style={{ color: resolvedTheme.primary }}>موقعنا على الخريطة</span>
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-green-600 text-white text-xl">⌖</span>
               </a>}

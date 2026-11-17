@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 type Order = {
   id: string;
   source: "homepage" | "catalog";
@@ -66,7 +67,7 @@ export default function AdminOrders({ initialOrders, initialTotal }: { initialOr
   async function changeStatus(orderId: string, status: Order["status"]) {
     setError("");
     try {
-      const response = await fetch("/api/admin/orders", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId, status }) });
+      const response = await fetch("/api/admin/orders", { method: "PATCH", headers: { "Content-Type": "application/json", ...(await csrfHeaders()) }, body: JSON.stringify({ orderId, status }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر تحديث حالة الطلب");
       setOrders(old => old.map(o => o.id === orderId ? { ...o, status } : o));

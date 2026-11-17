@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { safeWebUrl } from "@/lib/safe-web-url";
 type HoursDay = { open: boolean; from: string; to: string };
 type VIPShop = {
   name: string;
@@ -58,7 +59,12 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState("");
   const theme = themes[(shop.theme as ThemeId)] || themes.gold;
-  const cover = shop.backgroundImage || shop.coverImage || defaultCover;
+  const cover = safeWebUrl(shop.backgroundImage) || safeWebUrl(shop.coverImage) || defaultCover;
+  const logoUrl = safeWebUrl(shop.logo) || defaultLogo;
+  const googleUrl = safeWebUrl(shop.googleLink);
+  const mapUrl = safeWebUrl(shop.mapUrl);
+  const gallery = (Array.isArray(shop.gallery) ? shop.gallery : [])
+    .map((item) => safeWebUrl(item)).filter(Boolean).slice(0, 100);
   const animationEnabled = shop.animation !== false;
 
   const status = useMemo(() => {
@@ -88,9 +94,9 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
     ...(shop.phone ? [{ label: shop.phoneName || "الهاتف", detail: shop.phone, icon: "phone", url: `tel:${shop.phone}`, brandClass: "phone" }] : []),
     ...(shop.phone2 ? [{ label: shop.phone2Name || "الهاتف 2", detail: shop.phone2, icon: "phone", url: `tel:${shop.phone2}`, brandClass: "phone" }] : []),
     { label: "WhatsApp", icon: "whatsapp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", brandClass: "whatsapp" },
-    { label: "Instagram", icon: "instagram", url: shop.instagram || "", brandClass: "instagram" },
-    { label: "TikTok", icon: "tiktok", url: shop.tiktok || "", brandClass: "tiktok" },
-    { label: "Facebook", icon: "facebook", url: shop.facebook || "", brandClass: "facebook" },
+    { label: "Instagram", icon: "instagram", url: safeWebUrl(shop.instagram), brandClass: "instagram" },
+    { label: "TikTok", icon: "tiktok", url: safeWebUrl(shop.tiktok), brandClass: "tiktok" },
+    { label: "Facebook", icon: "facebook", url: safeWebUrl(shop.facebook), brandClass: "facebook" },
   ].filter((item) => item.url);
 
   async function share() {
@@ -106,7 +112,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
   const sideSocials = socials.filter((item) => ["Instagram", "WhatsApp", "TikTok", "Facebook"].includes(item.label));
 
   return <main className="vip-root" style={{ "--vip-bg": theme.bg, "--vip-card": theme.cardBg, "--vip-accent": theme.accent, "--vip-text": theme.text } as React.CSSProperties}>
-    <div className={`vip-backdrop ${animationEnabled ? "vip-pan" : ""}`} style={{ backgroundImage: `linear-gradient(#0009,#000b),url("${cover}")` }} aria-hidden="true">
+    <div className={`vip-backdrop ${animationEnabled ? "vip-pan" : ""}`} style={{ backgroundImage: `linear-gradient(#0009,#000b),url(${JSON.stringify(cover)})` }} aria-hidden="true">
       <div className="vip-grain"><span /><span /><span /></div>
     </div>
     <div className="vip-card-shell">
@@ -115,7 +121,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
       {sideSocials[2] && <a className="vip-side-icon vip-side-right vip-side-one vip-brand-tiktok" href={sideSocials[2].url} target="_blank" rel="noreferrer" aria-label={sideSocials[2].label}><BrandIcon brand={sideSocials[2].label} /></a>}
       {sideSocials[3] && <a className="vip-side-icon vip-side-right vip-side-two vip-brand-facebook" href={sideSocials[3].url} target="_blank" rel="noreferrer" aria-label={sideSocials[3].label}><BrandIcon brand={sideSocials[3].label} /></a>}
       <article className="vip-card">
-      <div className="vip-logo-wrap"><img className="vip-logo" src={shop.logo || defaultLogo} alt={`شعار ${shop.name}`} /><span className="vip-verified" title="بطاقة VIP">✓</span></div>
+      <div className="vip-logo-wrap"><img className="vip-logo" src={logoUrl} alt={`شعار ${shop.name}`} /><span className="vip-verified" title="بطاقة VIP">✓</span></div>
       <h1 className="vip-name">{shop.name}</h1>
       {shop.bio && <p className="vip-bio">{shop.bio}</p>}
       <div className={`vip-status ${status.open ? "is-open" : "is-closed"}`}><span className="vip-dot" />{status.label}</div>
@@ -128,7 +134,7 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
         return <div key={day}><span>{dayNames[day]}</span><strong>{hours?.open ? `${hours.from} – ${hours.to}` : "مغلق"}</strong></div>;
       })}</div>}
 
-      {shop.googleLink && <a className="vip-google" href={shop.googleLink} target="_blank" rel="noreferrer">
+      {googleUrl && <a className="vip-google" href={googleUrl} target="_blank" rel="noreferrer">
         <span className="vip-google-g" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.1c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.8 27.8a12 12 0 0 1 0-7.6v-5.3H5.9a20 20 0 0 0 0 18.2l6.9-5.3Z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.9 14.9l6.9 5.3C14.4 15.5 18.8 12 24 12Z"/></svg></span><span className="vip-google-copy"><strong>قيّمنا على Google</strong><span className="vip-stars">★★★★★</span><small>شاركنا رأيك في تقييم Google</small></span><span className="vip-google-arrow">↗</span>
       </a>}
 
@@ -137,10 +143,10 @@ export default function VIPShopTemplate({ shop }: { shop: VIPShop }) {
           <span className={`vip-social-icon vip-brand-${item.brandClass}`}><BrandIcon brand={item.label === "الهاتف" ? "phone" : item.label} /></span><small>{item.label}</small>{("detail" in item && item.detail) && <small dir="ltr" className="text-[10px] opacity-75">{item.detail}</small>}
         </a>)}</div></section>}
 
-      {(shop.gallery || []).filter(Boolean).length > 0 && <section className="vip-section"><h2>معرض الصور</h2><div className="vip-gallery">{(shop.gallery || []).filter(Boolean).slice(0, 100).map((src, index) =>
+      {gallery.length > 0 && <section className="vip-section"><h2>معرض الصور</h2><div className="vip-gallery">{gallery.map((src, index) =>
         <button key={src + index} onClick={() => setLightbox(src)} aria-label={`عرض الصورة ${index + 1}`}><img src={src} alt={`صورة من ${shop.name}`} loading="lazy" /></button>)}</div></section>}
 
-      {shop.address && <a className="vip-map" href={shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`} target="_blank" rel="noreferrer">
+      {shop.address && <a className="vip-map" href={mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`} target="_blank" rel="noreferrer">
         <span className="vip-map-pin">⌖</span><span className="vip-map-copy"><strong>موقعنا على الخريطة</strong><small>{shop.address}</small></span><b>↗</b>
       </a>}
       <footer className="vip-footer">بطاقة VIP · بطاقتي</footer>

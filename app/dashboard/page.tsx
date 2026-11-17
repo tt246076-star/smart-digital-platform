@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import SharePageButton from "@/components/SharePageButton";
 import { createClient } from "@/lib/supabase/server";
 
+import SignOutForm from "@/components/SignOutForm";
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ created?: string; editError?: string; readOnly?: string; vipCreated?: string; vipError?: string; vipUpdated?: string; vipEditError?: string }> }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -107,7 +108,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </article>)}</div> :
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl dark:bg-blue-950">↗</div><h3 className="mt-5 text-xl font-extrabold text-slate-950 dark:text-white">ابدأ بإنشاء أول صفحة لك</h3><p className="mx-auto mt-2 max-w-md text-sm leading-7 text-slate-500 dark:text-slate-400">أضف معلومات نشاطك، ثم خصّص الألوان والقالب وشارك الرابط مع الزبائن.</p><Link href="/pages/new" className="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-extrabold text-white hover:bg-blue-700">إنشاء أول صفحة</Link></div>}
         </section>
-        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><h2 className="font-extrabold text-slate-900 dark:text-white">معلومات الحساب</h2><p className="mt-2 text-sm text-slate-500 dark:text-slate-400" dir="ltr">{user.email || "غير متوفر"}</p><form action="/auth/signout" method="post" className="mt-4"><button type="submit" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold hover:border-slate-500 dark:border-slate-700 dark:hover:border-slate-500">تسجيل الخروج</button></form></section>
+        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><h2 className="font-extrabold text-slate-900 dark:text-white">معلومات الحساب</h2><p className="mt-2 text-sm text-slate-500 dark:text-slate-400" dir="ltr">{user.email || "غير متوفر"}</p><SignOutForm /></section>
       </div>
     </main>
   </>;

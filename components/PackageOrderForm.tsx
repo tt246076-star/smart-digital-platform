@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 export const ORDER_PACKAGES = [
   { id:"desk-card", name:"بطاقة مكتب", description:"بطاقة تعريف ذكية مناسبة للمكتب أو مكان الاستقبال.", price:2000, oldPrice:3000, icon:"▣" },
   { id:"door-card", name:"بطاقة باب", description:"عرّف الزوار بنشاطك من أمام المحل أو المكتب.", price:2500, oldPrice:3500, icon:"▤" },
@@ -31,7 +32,7 @@ export default function PackageOrderForm({ packageId }: { packageId: string }) {
     if (!item) { setError("المنتج غير متاح."); return; }
     setBusy(true);setError("");setSuccess("");
     try{
-      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:"homepage",packageId:item.id,idempotencyKey:idempotencyKey.current ?? (idempotencyKey.current = crypto.randomUUID()),customerName:name,customerPhone:phone,customerWilaya:wilaya.slice(0,2),customerMunicipality:municipality,customerAddress:address,notes})});
+      const response=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json",...(await csrfHeaders())},body:JSON.stringify({source:"homepage",packageId:item.id,idempotencyKey:idempotencyKey.current ?? (idempotencyKey.current = crypto.randomUUID()),customerName:name,customerPhone:phone,customerWilaya:wilaya.slice(0,2),customerMunicipality:municipality,customerAddress:address,notes})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"تعذر إرسال الطلب.");
       setSuccess("تم تسجيل طلبك بنجاح! نتواصل معك قريبًا لتأكيد العنوان والتفاصيل.");

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { safeWebUrl } from "@/lib/safe-web-url";
 type HoursDay = { open: boolean; from: string; to: string };
 type VIPShop = {
   name: string;
@@ -66,7 +67,12 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
   const [toast, setToast] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
   const palette = palettes[shop.theme || "gold"] || palettes.gold;
-  const cover = shop.backgroundImage || shop.coverImage || fallbackCover;
+  const cover = safeWebUrl(shop.backgroundImage) || safeWebUrl(shop.coverImage) || fallbackCover;
+  const logoUrl = safeWebUrl(shop.logo) || fallbackLogo;
+  const googleUrl = safeWebUrl(shop.googleLink);
+  const mapUrl = safeWebUrl(shop.mapUrl);
+  const gallery = (Array.isArray(shop.gallery) ? shop.gallery : [])
+    .map((item) => safeWebUrl(item)).filter(Boolean).slice(0, 100);
   const animate = shop.animation !== false;
 
   const status = useMemo(() => {
@@ -99,17 +105,17 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
   }, [shop.hours]);
 
   const socials = [
-    { label: "Instagram", url: shop.instagram || "", color: "#E1306C" },
+    { label: "Instagram", url: safeWebUrl(shop.instagram), color: "#E1306C" },
     { label: "WhatsApp", url: shop.whatsapp ? `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}` : "", color: "#25D366" },
-    { label: "TikTok", url: shop.tiktok || "", color: "#111111" },
-    { label: "Facebook", url: shop.facebook || "", color: "#1877F2" },
+    { label: "TikTok", url: safeWebUrl(shop.tiktok), color: "#111111" },
+    { label: "Facebook", url: safeWebUrl(shop.facebook), color: "#1877F2" },
   ].filter((item) => item.url);
   const sideSocials = socials.filter((item) => ["Instagram", "WhatsApp", "TikTok", "Facebook"].includes(item.label));
   const contactItems = [
     ...(shop.whatsapp ? [{ label: "واتساب · راسلنا", detail: shop.whatsapp, url: `https://wa.me/${shop.whatsapp.replace(/\D/g, "")}`, brand: "WhatsApp", color: "#25D366" }] : []),
     ...(shop.phone ? [{ label: shop.phoneName || "هاتف · اتصل بنا", detail: shop.phone, url: `tel:${shop.phone}`, brand: "phone", color: "#6b7280" }] : []),
     ...(shop.phone2 ? [{ label: shop.phone2Name || "هاتف 2 · اتصل بنا", detail: shop.phone2, url: `tel:${shop.phone2}`, brand: "phone", color: "#6b7280" }] : []),
-    ...(shop.address ? [{ label: "موقع المحل", detail: shop.address, url: shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`, brand: "map", color: "#EA4335" }] : []),
+    ...(shop.address ? [{ label: "موقع المحل", detail: shop.address, url: mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`, brand: "map", color: "#EA4335" }] : []),
   ];
   async function share() {
     const url = window.location.href;
@@ -122,7 +128,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
   }
 
   return <main className={`salon-root ${animate ? "salon-animated" : "salon-static"}`} style={{ "--salon-bg": palette.bg, "--salon-bg2": palette.bg2, "--salon-accent": palette.accent, "--salon-ink": palette.ink, "--salon-glass": palette.glass, backgroundImage: `linear-gradient(160deg,${palette.bg},${palette.bg2})` } as React.CSSProperties}>
-    <div className="salon-backdrop" aria-hidden="true" style={{ backgroundImage: `linear-gradient(155deg,${palette.bg}55,${palette.accent}70,${palette.bg2}b8),linear-gradient(180deg,#15101a35,#15101a9c),url("${cover}")` }} />
+    <div className="salon-backdrop" aria-hidden="true" style={{ backgroundImage: `linear-gradient(155deg,${palette.bg}55,${palette.accent}70,${palette.bg2}b8),linear-gradient(180deg,#15101a35,#15101a9c),url(${JSON.stringify(cover)})` }} />
     <div className="salon-aurora" aria-hidden="true"><i /><i /><i /></div>
     <div className="salon-wrap">
       <div className="salon-shell">
@@ -131,7 +137,7 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
         {sideSocials[2] && <a className="salon-orb salon-right salon-orb-one salon-tiktok" href={sideSocials[2].url} target="_blank" rel="noreferrer" aria-label={sideSocials[2].label}><SalonIcon brand={sideSocials[2].label} /></a>}
         {sideSocials[3] && <a className="salon-orb salon-right salon-orb-two salon-facebook" href={sideSocials[3].url} target="_blank" rel="noreferrer" aria-label={sideSocials[3].label}><SalonIcon brand={sideSocials[3].label} /></a>}
         <article className="salon-card">
-          <div className="salon-logo"><img src={shop.logo || fallbackLogo} alt={`شعار ${shop.name}`} /><span>✦</span></div>
+          <div className="salon-logo"><img src={logoUrl} alt={`شعار ${shop.name}`} /><span>✦</span></div>
           <header className="salon-head">
             <span className="salon-kicker">BUSINESS · BRAND · SERVICES</span>
             <h1>{shop.name}</h1>
@@ -145,12 +151,12 @@ export default function VIPSalonTemplate({ shop }: { shop: VIPShop }) {
             <button type="button" className="salon-hours-toggle" onClick={() => setHoursOpen(!hoursOpen)} aria-expanded={hoursOpen}><span>◷</span>{hoursOpen ? "إخفاء الجدول" : "عرض جدول الأسبوع"}<b>{hoursOpen ? "−" : "+"}</b></button>
             {hoursOpen && <div className="salon-hours-list">{dayOrder.map((day) => { const h = shop.hours?.[day]; return <div key={day}><span>{dayNames[day]}</span><strong>{h?.open ? `${h.from} – ${h.to}` : "مغلق"}</strong><em className={h?.open ? "salon-day-open" : "salon-day-closed"}>{h?.open ? "مفتوح" : "مغلق"}</em></div>; })}</div>}
           </section>
-          {shop.googleLink && <a className="salon-google" href={shop.googleLink} target="_blank" rel="noreferrer"><span className="salon-google-icon"><SalonIcon brand="Google" /></span><span className="salon-google-copy"><b>قيّم تجربتك على Google</b><span className="salon-stars">★★★★★</span><small>رأيك يساعدنا على التطور دائمًا</small></span><span className="salon-arrow">↗</span></a>}
+          {googleUrl && <a className="salon-google" href={googleUrl} target="_blank" rel="noreferrer"><span className="salon-google-icon"><SalonIcon brand="Google" /></span><span className="salon-google-copy"><b>قيّم تجربتك على Google</b><span className="salon-stars">★★★★★</span><small>رأيك يساعدنا على التطور دائمًا</small></span><span className="salon-arrow">↗</span></a>}
           {contactItems.length > 0 && <section className="salon-contacts"><div className="salon-section-title"><span>تواصل معنا</span><small>GET IN TOUCH</small></div><div className="salon-contact-list">{contactItems.map((item) => <a key={item.label} className="salon-contact" href={item.url} target={item.url.startsWith("http") ? "_blank" : undefined} rel="noreferrer"><span className="salon-contact-icon" style={{ color: item.color }}><SalonIcon brand={item.brand} /></span><span className="salon-contact-copy"><b>{item.label}</b><small>{item.detail}</small></span><span className="salon-contact-arrow">↗</span></a>)}</div></section>}
-          {shop.gallery?.filter(Boolean).length ? <section className="salon-gallery-section"><div className="salon-section-title"><span>من أعمالنا</span><small>OUR GALLERY</small></div><div className="salon-gallery">{shop.gallery.filter(Boolean).slice(0, 100).map((src, i) => <button key={src + i} type="button" onClick={() => setLightbox(src)} aria-label={`عرض الصورة ${i + 1}`}><img src={src} alt={`من أعمال ${shop.name}`} loading="lazy" /></button>)}</div></section> : null}
+          {gallery.length ? <section className="salon-gallery-section"><div className="salon-section-title"><span>من أعمالنا</span><small>OUR GALLERY</small></div><div className="salon-gallery">{gallery.map((src, i) => <button key={src + i} type="button" onClick={() => setLightbox(src)} aria-label={`عرض الصورة ${i + 1}`}><img src={src} alt={`من أعمال ${shop.name}`} loading="lazy" /></button>)}</div></section> : null}
           <footer className="salon-footer"><span>✦</span><b>{shop.name}</b><small>حضورك الرقمي يبدأ من التفاصيل</small></footer>
         </article>
-        {shop.googleLink && <a className="salon-google-orb" href={shop.googleLink} target="_blank" rel="noreferrer" aria-label="تقييم Google"><SalonIcon brand="Google" /><small>Google</small></a>}
+        {googleUrl && <a className="salon-google-orb" href={googleUrl} target="_blank" rel="noreferrer" aria-label="تقييم Google"><SalonIcon brand="Google" /><small>Google</small></a>}
       </div>
       <button type="button" className="salon-share" onClick={share} aria-label="مشاركة البطاقة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
       {toast && <button type="button" className="salon-toast" role="status" onClick={() => setToast("")}>{toast} ×</button>}

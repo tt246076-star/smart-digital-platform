@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { verifyCsrfRequest } from "@/lib/csrf";
 import {
   ADMIN_MFA_COOKIE,
   getSessionIdFromAccessToken,
@@ -39,6 +40,18 @@ export async function middleware(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const path = request.nextUrl.pathname;
   const adminRequest = isAdminRequest(path);
+  const apiRequest = path.startsWith("/api/");
+  const mutatingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
+
+  if ((apiRequest || path === "/auth/signout") && mutatingMethod && !verifyCsrfRequest(request)) {
+    return NextResponse.json(
+      { error: "الطلب غير صالح. حدّث الصفحة وحاول مجددًا." },
+      { status: 403, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  // API routes enforce their own authentication and authorization.
+  if (apiRequest && !adminRequest) return NextResponse.next({ request });
 
   if (!url || !key) {
     if (path.startsWith("/dashboard") || adminRequest) {
@@ -170,6 +183,7 @@ export const config = {
     "/login",
     "/signup",
     "/admin/:path*",
-    "/api/admin/:path*",
+    "/api/:path*",
+    "/auth/signout",
   ],
 };

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+import { csrfHeaders } from "@/lib/client/csrf";
 export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -29,7 +30,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch("/api/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         body: JSON.stringify({ display_name: normalizedName }),
       });
       const result = await response.json();
