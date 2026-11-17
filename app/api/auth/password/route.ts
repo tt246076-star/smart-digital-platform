@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { hasOnlyKeys, readBoundedJson, readJsonPassword } from "@/lib/server/input-validation";
+import { hasOnlyKeys, readBoundedJson, readJsonPassword   hasNoQueryParams,
+} from "@/lib/server/input-validation";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request: Request) {
+  if (!hasNoQueryParams(request)) return NextResponse.json({ error: "كلمة المرور الجديدة غير صالحة." }, { status: 400 });
   const parsed = await readBoundedJson(request, 2048);
   if (!parsed.ok) return NextResponse.json({ error: "كلمة المرور الجديدة غير صالحة." }, { status: 400 });
   const body = parsed.value;
