@@ -26,13 +26,19 @@ export default function SettingsPage() {
     const normalizedName = name.trim();
     if (normalizedName.length > 80) { setMessage("الاسم الظاهر يجب ألا يتجاوز 80 حرفًا."); return; }
     setBusy(true); setMessage("");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setMessage("سجّل الدخول من جديد."); setBusy(false); return; }
-    const { error: authError } = await supabase.auth.updateUser({ data: { display_name: normalizedName } });
-    const { error: profileError } = await supabase.from("profiles").upsert({ id: user.id, display_name: normalizedName }, { onConflict: "id" });
-    const error = authError || profileError;
-    setMessage(error ? "تعذر حفظ الملف الشخصي. تحقق من البيانات وحاول مجددًا." : "تم حفظ الملف الشخصي.");
-    setBusy(false);
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display_name: normalizedName }),
+      });
+      const result = await response.json();
+      setMessage(response.ok ? "تم حفظ الملف الشخصي." : (result.error || "تعذر حفظ الملف الشخصي. حاول مجددًا."));
+    } catch {
+      setMessage("تعذر الاتصال بالخدمة. حاول مجددًا.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function changePassword() {
