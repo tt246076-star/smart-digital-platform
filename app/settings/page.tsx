@@ -23,18 +23,20 @@ export default function SettingsPage() {
   }, []);
 
   async function saveProfile() {
+    const normalizedName = name.trim();
+    if (normalizedName.length > 80) { setMessage("الاسم الظاهر يجب ألا يتجاوز 80 حرفًا."); return; }
     setBusy(true); setMessage("");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage("سجّل الدخول من جديد."); setBusy(false); return; }
-    const { error: authError } = await supabase.auth.updateUser({ data: { display_name: name } });
-    const { error: profileError } = await supabase.from("profiles").upsert({ id: user.id, display_name: name }, { onConflict: "id" });
+    const { error: authError } = await supabase.auth.updateUser({ data: { display_name: normalizedName } });
+    const { error: profileError } = await supabase.from("profiles").upsert({ id: user.id, display_name: normalizedName }, { onConflict: "id" });
     const error = authError || profileError;
-    setMessage(error ? error.message : "تم حفظ الملف الشخصي.");
+    setMessage(error ? "تعذر حفظ الملف الشخصي. تحقق من البيانات وحاول مجددًا." : "تم حفظ الملف الشخصي.");
     setBusy(false);
   }
 
   async function changePassword() {
-    if (password.length < 8) { setMessage("كلمة السر لازم تكون 8 أحرف على الأقل."); return; }
+    if (password.length < 8 || password.length > 256) { setMessage("كلمة السر لازم تكون بين 8 و256 حرفًا."); return; }
     setBusy(true); setMessage("");
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
@@ -83,12 +85,18 @@ export default function SettingsPage() {
   async function verifyMfa() {
     if (!mfa?.id) return;
     setBusy(true);
+    if (typeof mfa.id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(mfa.id)) {
+      setMessage("عامل المصادقة غير صالح. أعد إعداد المصادقة الثنائية.");
+      setBusy(false);
+      return;
+    }
     const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: mfa.id });
-    if (challengeError || !challenge) { setMessage(challengeError?.message || "تعذر بدء التحقق."); setBusy(false); return; }
+    if (challengeError || !challenge) { setMessage("تعذر بدء التحقق. حاول مجددًا."); setBusy(false); return; }
     const code = window.prompt("أدخل رمز التحقق من تطبيق المصادقة");
     if (!code) { setBusy(false); return; }
-    const { error } = await supabase.auth.mfa.verify({ factorId: mfa.id, challengeId: challenge.id, code });
-    setMessage(error ? error.message : "تم تفعيل المصادقة الثنائية.");
+    if (!/^\\d{6,8}$/.test(code.trim())) { setMessage("أدخل رمز تحقق صحيحًا من 6 إلى 8 أرقام."); setBusy(false); return; }
+    const { error } = await supabase.auth.mfa.verify({ factorId: mfa.id, challengeId: challenge.id, code: code.trim() });
+    setMessage(error ? "رمز التحقق غير صحيح أو انتهت صلاحيته." : "تم تفعيل المصادقة الثنائية.");
     setBusy(false);
   }
 
