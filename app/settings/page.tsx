@@ -94,7 +94,7 @@ export default function SettingsPage() {
     if (challengeError || !challenge) { setMessage("تعذر بدء التحقق. حاول مجددًا."); setBusy(false); return; }
     const code = window.prompt("أدخل رمز التحقق من تطبيق المصادقة");
     if (!code) { setBusy(false); return; }
-    if (!/^\\d{6,8}$/.test(code.trim())) { setMessage("أدخل رمز تحقق صحيحًا من 6 إلى 8 أرقام."); setBusy(false); return; }
+    if (!/^[0-9]{6,8}$/.test(code.trim())) { setMessage("أدخل رمز تحقق صحيحًا من 6 إلى 8 أرقام."); setBusy(false); return; }
     const { error } = await supabase.auth.mfa.verify({ factorId: mfa.id, challengeId: challenge.id, code: code.trim() });
     setMessage(error ? "رمز التحقق غير صحيح أو انتهت صلاحيته." : "تم تفعيل المصادقة الثنائية.");
     setBusy(false);
