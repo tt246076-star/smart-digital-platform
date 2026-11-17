@@ -3,5 +3,5 @@ export const SITE = {
   name: "بطاقتي",
   tagline: "بطاقتك الرقمية الذكية: رابط واحد يعرّف بك",
   phone: "0557829036",
-  email: "tt246076@gmail.com",
+  email: "bitaqationline@gmail.com",
 };
