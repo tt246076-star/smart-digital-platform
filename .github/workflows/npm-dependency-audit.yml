@@ -1,0 +1,79 @@
+name: npm dependency security audit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "package.json"
+      - ".github/workflows/npm-dependency-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit direct and transitive npm dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Resolve exact dependency tree without running package scripts
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Run npm audit (all dependency types)
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > npm-audit.json 2> npm-audit-stderr.txt
+          AUDIT_EXIT=$?
+          set -e
+
+          node <<'NODE'
+          const fs = require("node:fs");
+          let report;
+          try {
+            report = JSON.parse(fs.readFileSync("npm-audit.json", "utf8"));
+          } catch {
+            console.log("npm audit returned a non-JSON response; inspect npm-audit-stderr.txt.");
+            process.exit(0);
+          }
+
+          const counts = report.metadata?.vulnerabilities ?? {};
+          console.log("Vulnerability counts:", JSON.stringify(counts));
+
+          for (const item of Object.values(report.vulnerabilities ?? {})) {
+            console.log([
+              item.name,
+              item.severity,
+              item.isDirect ? "direct" : "transitive",
+              `affected: ${item.range ?? "unknown"}`,
+              `fix: ${JSON.stringify(item.fixAvailable ?? false)}`,
+            ].join(" | "));
+          }
+          NODE
+
+          echo "npm audit exit code: $AUDIT_EXIT"
+          if [ "$AUDIT_EXIT" -gt 1 ]; then
+            echo "npm audit encountered an execution error."
+            cat npm-audit-stderr.txt
+          fi
+
+      - name: Upload report and resolved lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-dependency-audit-report
+          path: |
+            npm-audit.json
+            npm-audit-stderr.txt
+            package-lock.json
+          if-no-files-found: warn
