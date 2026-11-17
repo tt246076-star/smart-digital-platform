@@ -333,6 +333,7 @@ export function isValidVipFormData(
     allowed.add(day + "_to");
   }
   const isDynamicAllowed = (key: string) => {
+    if (["logo_removed", "cover_removed", "backgroundImage_removed"].includes(key)) return true;
     const match = /^gallery_([1-9][0-9]*)(_removed)?$/.exec(key);
     if (!match) return false;
     const index = Number(match[1]);
