@@ -14,9 +14,8 @@ export default function ResetPasswordPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
-    if (password.length < 8) {
-      setError("كلمة المرور لازم تكون 8 أحرف على الأقل.");
+    if (password.length < 8 || password.length > 256) {
+      setError("كلمة المرور يجب أن تكون بين 8 و256 حرفًا.");
       return;
     }
     if (password !== confirm) {
@@ -25,31 +24,30 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-
-    if (updateError) {
-      setError("الرابط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.");
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result?.error || "الرابط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.");
+        return;
+      }
+      router.push("/login?error=password-updated");
+      router.refresh();
+    } catch {
+      setError("تعذر الاتصال بالخدمة. حاول مجددًا.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const { error: sessionsError } = await supabase.auth.signOut({ scope: "others" });
-    if (sessionsError) {
-      setError("تم تغيير كلمة المرور، لكن تعذّر إنهاء الجلسات الأخرى. راجع الأجهزة الأخرى وسجّل الخروج منها يدويًا.");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(false);
-    router.push("/login?error=password-updated");
-    router.refresh();
   }
 
   return (
     <main dir="rtl" className="mx-auto max-w-md px-4 py-14">
       <h1 className="text-3xl font-extrabold">تعيين كلمة مرور جديدة</h1>
-      <p className="mt-3 text-sm leading-7 text-slate-600">أدخل كلمة مرور جديدة لا تقل عن 8 أحرف.</p>
+      <p className="mt-3 text-sm leading-7 text-slate-600">أدخل كلمة مرور جديدة بين 8 و256 حرفًا.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <label className="block text-sm font-bold">
           كلمة المرور الجديدة
@@ -57,6 +55,7 @@ export default function ResetPasswordPage() {
             type="password"
             dir="ltr"
             minLength={8}
+            maxLength={256}
             required
             autoComplete="new-password"
             value={password}
