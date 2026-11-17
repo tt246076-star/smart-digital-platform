@@ -10,15 +10,22 @@ export const onRequestError: Instrumentation.onRequestError = async (
   request,
   context
 ) => {
+  const normalizedError =
+    error instanceof Error ? error : new Error("Unknown request error");
+  const errorDigest =
+    typeof error === "object" && error !== null && "digest" in error
+      ? error.digest
+      : undefined;
   const requestPath = request.path.split("?")[0].slice(0, 512) || "/";
-  const message =
-    typeof error.message === "string" ? error.message.slice(0, 2000) : "Unknown error";
+  const message = normalizedError.message.slice(0, 2000);
   const stack =
-    typeof error.stack === "string" ? error.stack.slice(0, 12000) : undefined;
+    typeof normalizedError.stack === "string"
+      ? normalizedError.stack.slice(0, 12000)
+      : undefined;
 
   console.error("[bitaqati-server-error]", {
-    digest: typeof error.digest === "string" ? error.digest : undefined,
-    name: typeof error.name === "string" ? error.name.slice(0, 128) : "Error",
+    digest: typeof errorDigest === "string" ? errorDigest : undefined,
+    name: normalizedError.name.slice(0, 128),
     message,
     stack,
     method: request.method.slice(0, 16),
