@@ -5,30 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { cleanupLandingPageImages, cleanupPendingLandingPageImage } from "@/lib/server/storage-cleanup";
 import { promoteStagedLandingImages, removePromotedLandingImages } from "@/lib/server/landing-image-staging";
-
-function safeUrl(value: FormDataEntryValue | null) {
-  const input = String(value || "").trim();
-  if (!input) return "";
-  try {
-    const url = new URL(input);
-    if (input.startsWith("staging://")) return input;
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
-  } catch {
-    return "";
-  }
-}
-
-function readRemovedImageUrls(formData: FormData): string[] {
-  const urls: string[] = [];
-  formData.forEach((value, key) => {
-    if (key !== "removed_image_urls" && !key.endsWith("_removed")) return;
-    try {
-      const parsed = JSON.parse(String(value));
-      if (Array.isArray(parsed)) urls.push(...parsed.filter((item): item is string => typeof item === "string"));
-    } catch { /* Ignore malformed optional cleanup metadata. */ }
-  });
-  return [...new Set(urls)];
-}
+import { isValidUuid, readFormText, validateLandingPageFormData } from "@/lib/server/input-validation";
 
 export async function updateLandingPage(formData: FormData) {
   const supabase = await createClient();
@@ -41,57 +18,19 @@ export async function updateLandingPage(formData: FormData) {
   const planActive = !!accessPlan && (!accessPlan.expires_at || new Date(accessPlan.expires_at).getTime() > Date.now());
   if (!planActive) redirect("/dashboard?readOnly=1");
 
-  const id = String(formData.get("id") || "");
+  const submittedId = readFormText(formData, "id", 36, true);
+  if (!submittedId || !isValidUuid(submittedId)) redirect("/dashboard?readOnly=1");
+  const id = submittedId;
   const { data: existingPage } = await supabase.from("landing_pages").select("template,logo_url,sections").eq("id", id).eq("user_id", user.id).maybeSingle();
   if (!existingPage || (existingPage.template === "vip" && accessPlan?.plan_type !== "vip" && accessPlan?.plan_type !== "trial")) redirect("/dashboard?readOnly=1");
-  const business_name = String(formData.get("business_name") || "").trim();
-  const headline = String(formData.get("headline") || "").trim();
-  const description = String(formData.get("description") || "").trim();
-  const seo_title = String(formData.get("seo_title") || "").trim().slice(0, 60);
-  const seo_description = String(formData.get("seo_description") || "").trim().slice(0, 160);
-  const phone = String(formData.get("phone") || "").trim();
-  const phone2 = String(formData.get("phone2") || "").trim();
-  const whatsapp = String(formData.get("whatsapp") || "").trim();
-  const logo_url = safeUrl(formData.get("logo_url"));
-  const instagram_url = safeUrl(formData.get("instagram_url"));
-  const facebook_url = safeUrl(formData.get("facebook_url"));
-  const tiktok_url = safeUrl(formData.get("tiktok_url"));
-  const youtube_url = safeUrl(formData.get("youtube_url"));
-  const customLabel = String(formData.get("custom_label") || "").trim().slice(0, 40);
-  const customUrl = safeUrl(formData.get("custom_url"));
-  const custom_links = customLabel && customUrl ? [{ label: customLabel, url: customUrl }] : [];
-  let sections: Record<string, any> = {};
-  try { const raw = JSON.parse(String(formData.get("sections") || "{}")); if (raw && typeof raw === "object" && !Array.isArray(raw)) sections = raw; } catch { sections = {}; }
-  const cleanSectionUrl = (v: unknown) => { try { const raw = String(v || ""); if (raw.startsWith("staging://")) return raw; const u = new URL(raw); return ["https:","http:"].includes(u.protocol) ? u.toString() : ""; } catch { return ""; } };
-  sections = {
-    address: String(sections.address || "").trim().slice(0, 200),
-    map_url: cleanSectionUrl(sections.map_url),
-    google_review_url: cleanSectionUrl(sections.google_review_url),
-    rating_average: Number.isFinite(Number(sections.rating_average)) && Number(sections.rating_average) >= 0 && Number(sections.rating_average) <= 5 ? Number(sections.rating_average) : undefined,
-    rating_count: Number.isFinite(Number(sections.rating_count)) && Number(sections.rating_count) >= 0 ? Math.floor(Number(sections.rating_count)) : undefined,
-    hours: String(sections.hours || "").trim().slice(0, 1000),
-    card_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.card_color || "")) ? String(sections.card_color) : "#ffffff",
-    accent_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.accent_color || "")) ? String(sections.accent_color) : "",
-    panel_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.panel_color || "")) ? String(sections.panel_color) : "#f8fafc",
-    page_background_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.page_background_color || "")) ? String(sections.page_background_color) : "#ffffff",
-    text_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.text_color || "")) ? String(sections.text_color) : "#111827",
-    button_color: /^#[0-9a-fA-F]{6}$/.test(String(sections.button_color || "")) ? String(sections.button_color) : "#334155",
-    theme_primary: /^#[0-9a-fA-F]{6}$/.test(String(sections.theme_primary || "")) ? String(sections.theme_primary) : "",
-    theme_mode: ["light", "dark"].includes(String(sections.theme_mode || "")) ? String(sections.theme_mode) : "",
-    round_image_url: cleanSectionUrl(sections.round_image_url),
-    cover_image_url: cleanSectionUrl(sections.cover_image_url),
-    gallery: Array.isArray(sections.gallery) ? sections.gallery.slice(0,maxGalleryImages).map(cleanSectionUrl).filter(Boolean) : [],
-    contact_numbers: Array.isArray(sections.contact_numbers) ? sections.contact_numbers.slice(0,2).map((item:any)=>({phone:String(item?.phone||"").trim().slice(0,30),name:String(item?.name||"").trim().slice(0,40)})).filter((item:any)=>item.phone) : [],
-  };
-  const requestedTemplate = String(formData.get("template") || "aurora");
-  const requestedTheme = String(formData.get("theme") || "blue");
-  const template = ["profile", "aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"].includes(requestedTemplate) ? requestedTemplate : "aurora";
-  const theme = ["white", "black", "blue", "violet", "sunset", "emerald", "ocean", "rose", "gold", "glass", "volcano", "midnight", "mint", "berry", "slate"].includes(requestedTheme) ? requestedTheme : "blue";
+  const validated = validateLandingPageFormData(formData, maxGalleryImages, true);
+  if (!validated) redirect(`/pages/${encodeURIComponent(id)}/edit?error=length`);
 
-  if (!id || !business_name || business_name.length > 100) redirect(`/pages/${encodeURIComponent(id)}/edit?error=name`);
-  if (headline.length > 140 || description.length > 1000 || phone.length > 30 || phone2.length > 30 || whatsapp.length > 30) {
-    redirect(`/pages/${encodeURIComponent(id)}/edit?error=length`);
-  }
+  const {
+    business_name, headline, description, seo_title, seo_description,
+    phone, phone2, whatsapp, logo_url, instagram_url, facebook_url,
+    tiktok_url, youtube_url, custom_links, template, theme, sections,
+  } = validated;
 
   let promoted: { value: { logo_url: string; sections: typeof sections }; uploadedPaths: string[] };
   try {
@@ -113,7 +52,7 @@ export async function updateLandingPage(formData: FormData) {
     redirect(`/pages/${encodeURIComponent(id)}/edit?error=save`);
   }
 
-  await cleanupLandingPageImages([existingPage, readRemovedImageUrls(formData)]);
+  await cleanupLandingPageImages([existingPage]);
   revalidatePath("/dashboard");
   revalidatePath(`/p/${data.slug}`);
   redirect(`/p/${data.slug}?updated=1`);
