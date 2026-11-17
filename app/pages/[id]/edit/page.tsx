@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LandingPageEditor from "./editor";
+import { isValidUuid } from "@/lib/server/input-validation";
 
 export default async function EditLandingPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
   const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
+  if (!isValidUuid(id)) notFound();
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
