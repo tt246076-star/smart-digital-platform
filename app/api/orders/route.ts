@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordSecuritySignal } from "@/lib/server/security-alerts";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { hasNoQueryParams,
   hasOnlyKeys,
@@ -149,5 +150,6 @@ export async function POST(request: Request) {
     console.error("Platform order creation failed.");
     return NextResponse.json({ error: "ما قدرناش نسجلو الطلب الآن. حاول مجددًا." }, { status: 503 });
   }
+  await recordSecuritySignal("order-volume", 6, 600, 1800);
   return NextResponse.json({ ok: true, orderId: order.id, message: "تم استلام الطلب." }, { status: 201 });
 }

@@ -67,7 +67,8 @@ export async function middleware(request: NextRequest) {
   const apiRequest = path.startsWith("/api/");
   const mutatingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
 
-  if ((apiRequest || path === "/auth/signout") && mutatingMethod && !verifyCsrfRequest(request)) {
+  const deploymentAlertWebhook = path === "/api/monitoring/deployment";
+  if ((apiRequest || path === "/auth/signout") && mutatingMethod && !deploymentAlertWebhook && !verifyCsrfRequest(request)) {
     return NextResponse.json(
       { error: "الطلب غير صالح. حدّث الصفحة وحاول مجددًا." },
       { status: 403, headers: { "Cache-Control": "no-store" } }

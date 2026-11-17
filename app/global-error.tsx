@@ -1,11 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
+
 type GlobalErrorProps = {
   error: Error & { digest?: string };
   reset: () => void;
 };
 
 export default function GlobalError({ reset }: GlobalErrorProps) {
+  useEffect(() => {
+    void fetch("/api/monitoring/client-error", {
+      method: "GET",
+      cache: "no-store",
+      keepalive: true,
+    }).catch(() => undefined);
+  }, []);
+
   return (
     <html lang="ar" dir="rtl">
       <body

@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import { createClient } from "@supabase/supabase-js";
+import { sendSecurityAlert } from "@/lib/server/security-alerts";
 
 export type AuthLimitAction = "login" | "signup" | "recovery";
 export type AuthLimitOperation = "check" | "failure" | "request" | "success" | "attempt";
@@ -63,6 +64,16 @@ export async function manageAuthAttemptLimit(
   const row = data[0] as { allowed?: unknown; retry_after_seconds?: unknown };
   if (row.allowed === true) return { status: "allowed" };
   if (row.allowed !== false) return { status: "unavailable" };
+
+  if (action === "login") {
+    const country = request.headers.get("x-vercel-ip-country")?.trim().toUpperCase();
+    const countryLabel = country && /^[A-Z]{2}$/.test(country) ? country : "غير معروف";
+    await sendSecurityAlert(
+      "failed-login-burst",
+      `تم تجاوز حد محاولات الدخول وفُعّل الحظر المؤقت. البلد المبلّغ عنه: ${countryLabel}. لم تُرسل عناوين IP أو بيانات الحساب.`,
+      900,
+    );
+  }
 
   const parsedRetry = Number(row.retry_after_seconds);
   const retryAfterSeconds = Number.isFinite(parsedRetry)

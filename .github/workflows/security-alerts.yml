@@ -1,0 +1,100 @@
+name: Security activity notifications
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bitaqati-security-notifications
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    name: Notify on website source changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Send a throttled security notification
+        env:
+          WEBHOOK_SECRET: ${{ secrets.SECURITY_ALERTS_WEBHOOK_SECRET }}
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${WEBHOOK_SECRET:-}" ]]; then
+            echo "::error::Add SECURITY_ALERTS_WEBHOOK_SECRET under GitHub repository Actions secrets."
+            exit 1
+          fi
+
+          event="push"
+          files_json="[]"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            event="test"
+          else
+            base="$BEFORE_SHA"
+            if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+              base="$(git rev-list --max-parents=0 "$COMMIT_SHA" | tail -n 1)"
+            fi
+            mapfile -t changed < <(git diff --name-only "$base" "$COMMIT_SHA" | while IFS= read -r file; do
+              case "$file" in
+                app/*|lib/*|public/*|supabase/migrations/*|middleware.ts|next.config.*|package.json|package-lock.json|pnpm-lock.yaml|yarn.lock|vercel.json)
+                  printf '%s\n' "$file"
+                  ;;
+              esac
+            done)
+            if [[ ${#changed[@]} -eq 0 ]]; then
+              echo "No tracked website source or configuration files changed."
+              exit 0
+            fi
+            files_json="$(printf '%s\n' "${changed[@]}" | jq -R . | jq -s .)"
+          fi
+
+          payload="$(jq -n             --arg event "$event"             --arg ref "$REF_NAME"             --arg commit "$COMMIT_SHA"             --arg actor "$ACTOR"             --argjson files "$files_json"             '{event:$event,ref:$ref,commit:$commit,actor:$actor,files:$files}')"
+
+          export ALERT_PAYLOAD="$payload"
+          node --input-type=module <<'NODE'
+          const payload = process.env.ALERT_PAYLOAD;
+          const secret = process.env.WEBHOOK_SECRET;
+          if (!payload || !secret) process.exit(1);
+
+          const url = "https://www.bitaqati.online/api/monitoring/deployment";
+          let lastStatus = 0;
+          for (let attempt = 0; attempt < 12; attempt += 1) {
+            try {
+              const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                  "x-bitaqati-alert-key": secret,
+                },
+                body: payload,
+                signal: AbortSignal.timeout(15000),
+                cache: "no-store",
+              });
+              lastStatus = response.status;
+              if (response.ok) {
+                process.stdout.write("Security notification accepted by the application.\n");
+                process.exit(0);
+              }
+              if (response.status === 400 || response.status === 401) break;
+            } catch {
+              // Retry while a new production deployment is becoming ready.
+            }
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+          }
+          process.stderr.write(`Security notification delivery did not complete (HTTP ${lastStatus || "network error"}).\n`);
+          process.exit(1);
+          NODE

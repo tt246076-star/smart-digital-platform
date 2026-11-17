@@ -2,7 +2,8 @@
 
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { recordAdminSignInAlert } from "@/lib/server/security-alerts";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { isValidUuid } from "@/lib/server/input-validation";
@@ -246,6 +247,9 @@ export async function verifyAdminTotp(
   const updatedContext = { ...ctx, sessionId: refreshedSessionId };
   const cookieSet = await setAdminMfaCookie(updatedContext, "totp");
   if (!cookieSet) return { ok: false, message: "تعذر إنشاء جلسة إدارية آمنة." };
+  if (mode === "login") {
+    await recordAdminSignInAlert(ctx.user.id, await headers());
+  }
 
   if (mode === "setup") {
     const codes = await replaceRecoveryCodes(ctx.user.id);
@@ -317,6 +321,7 @@ export async function redeemAdminRecoveryCode(code: string): Promise<{ ok: boole
 
   const cookieSet = await setAdminMfaCookie(ctx, "backup");
   if (!cookieSet) return { ok: false, message: "تم قبول الرمز، لكن تعذر إنشاء جلسة الاسترداد. سجّل الدخول مجددًا." };
+  await recordAdminSignInAlert(ctx.user.id, await headers());
 
   return {
     ok: true,

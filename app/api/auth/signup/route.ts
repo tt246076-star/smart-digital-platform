@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasNoQueryParams, hasOnlyKeys, isValidEmail, readBoundedJson, readJsonPassword, readJsonText } from "@/lib/server/input-validation";
 import { manageAuthAttemptLimit } from "@/lib/server/auth-attempt-limit";
+import { sendSecurityAlert } from "@/lib/server/security-alerts";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,19 @@ export async function POST(request: Request) {
       },
     });
     if (error) return genericSignupResponse();
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    if (
+      adminEmail &&
+      email === adminEmail &&
+      data.user &&
+      (data.user.identities?.length || 0) > 0
+    ) {
+      await sendSecurityAlert(
+        "designated-admin-created",
+        "تم إنشاء حساب للبريد المعيّن كحساب المدير عبر مسار التسجيل. راجع ذلك إن لم تكن أنت من بدأ العملية.",
+        3600,
+      );
+    }
     const cleared = await manageAuthAttemptLimit(request, email, "signup", "success");
     if (cleared.status === "unavailable") console.error("Could not clear successful signup attempt reservation.");
     return genericSignupResponse(!!data.session);

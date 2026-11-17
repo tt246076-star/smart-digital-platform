@@ -1,11 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
+
 type AppErrorProps = {
   error: Error & { digest?: string };
   reset: () => void;
 };
 
 export default function ErrorPage({ reset }: AppErrorProps) {
+  useEffect(() => {
+    void fetch("/api/monitoring/client-error", {
+      method: "GET",
+      cache: "no-store",
+      keepalive: true,
+    }).catch(() => undefined);
+  }, []);
+
   return (
     <main
       dir="rtl"
