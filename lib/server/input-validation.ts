@@ -81,7 +81,7 @@ export function readFormText(
   if (values.length === 0) return required ? null : "";
   if (values.length !== 1 || typeof values[0] !== "string") return null;
   const value = values[0].trim();
-  if (value.length > maxLength || (required && value.length === 0)) return null;
+  if (value.length > maxLength || (required && value.length === 0) || /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(value)) return null;
   return value;
 }
 
@@ -301,7 +301,7 @@ export function validateLandingPageFormData(
     return null;
   }
   if (!Array.isArray(removedImages) || removedImages.length > 50 ||
-      removedImages.some((item) => typeof item !== "string" || item.length > 2048)) return null;
+      removedImages.some((item) => typeof item !== "string" || item.length > 2048 || !isValidWebUrl(item, true))) return null;
 
   return {
     id, business_name, headline, description, seo_title, seo_description, phone, phone2, whatsapp,
@@ -398,7 +398,7 @@ export function isValidVipFormData(
       return false;
     }
     if (!Array.isArray(removed) || removed.length > 20 ||
-        removed.some((item) => typeof item !== "string" || item.length > 2048)) return false;
+        removed.some((item) => typeof item !== "string" || item.length > 2048 || !isValidWebUrl(item, true))) return false;
   }
 
   return true;
