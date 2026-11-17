@@ -6,7 +6,7 @@ values (
   'landing-logos-staging',
   false,
   5242880,
-  array['image/jpeg','image/png','image/webp','image/gif','image/avif']
+  array['image/jpeg','image/png','image/webp','image/gif']
 )
 on conflict (id) do update
 set public = false,

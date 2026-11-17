@@ -30,7 +30,7 @@ export async function POST(request:Request){
    const {data:file,error:downloadError}=await supabase.storage.from(BUCKET).download(path);
    if(downloadError||!file||file.size<1||file.size>MAX_FILE_BYTES){await supabase.storage.from(BUCKET).remove([path]);return reply({error:"الملف غير صالح أو يتجاوز الحجم المسموح."},415);}
    const buffer=await file.arrayBuffer(),detected=detectSupportedImage(new Uint8Array(buffer));
-   if(!detected){await supabase.storage.from(BUCKET).remove([path]);return reply({error:"مرفوض: يُسمح فقط بصور JPG وPNG وWebP وGIF وAVIF. ملفات SVG وPHP والملفات الأخرى ممنوعة."},415);}
+   if(!detected){await supabase.storage.from(BUCKET).remove([path]);return reply({error:"مرفوض: يُسمح فقط بصور JPG وPNG وWebP وGIF. ملفات SVG وPHP والملفات الأخرى ممنوعة."},415);}
    const finalPath=user.id+"/"+randomUUID()+"."+detected.extension;
    const {error:uploadError}=await supabase.storage.from(BUCKET).upload(finalPath,new Blob([buffer],{type:detected.mime}),{contentType:detected.mime,upsert:false,cacheControl:"3600"});
    if(uploadError){await supabase.storage.from(BUCKET).remove([path]);console.error("Validated image finalization failed:",uploadError.message);return reply({error:"تعذر اعتماد الصورة بعد فحصها."},503);}

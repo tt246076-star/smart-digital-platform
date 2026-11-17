@@ -2,7 +2,7 @@
 import {csrfHeaders} from "@/lib/client/csrf";
 import {createStagingUploadClient} from "@/lib/supabase/storage-client";
 const BUCKET="landing-logos-staging",STAGING_PREFIX="staging://",MAX_FILE_BYTES=5*1024*1024;
-const ALLOWED_MIME_TYPES=["image/jpeg","image/png","image/webp","image/gif","image/avif"];
+const ALLOWED_MIME_TYPES=["image/jpeg","image/png","image/webp","image/gif"];
 type ApiResult={path?:string;token?:string;signedUrl?:string;error?:string};
 async function callStagingApi(payload:Record<string,unknown>):Promise<ApiResult>{
  const response=await fetch("/api/storage/staged-landing-image",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json","Content-Type":"application/json",...(await csrfHeaders())},body:JSON.stringify(payload)});
