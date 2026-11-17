@@ -5,6 +5,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUuid } from "@/lib/server/input-validation";
 import {
   ADMIN_MFA_COOKIE,
   getSessionIdFromAccessToken,
@@ -199,7 +200,7 @@ export async function verifyAdminTotp(
 ): Promise<{ ok: boolean; message: string; recoveryCodes?: string[] }> {
   const ctx = await getAdminContext();
   if (!ctx) return { ok: false, message: "غير مسموح." };
-  if (typeof factorId !== "string" || factorId.length > 100 || !/^\d{6,8}$/.test(String(code || "").trim())) {
+  if (!isValidUuid(factorId) || typeof code !== "string" || code.length > 8 || !/^\d{6,8}$/.test(code.trim())) {
     return { ok: false, message: "أدخل رمز التحقق الصحيح." };
   }
   if (mode !== "setup" && mode !== "login") return { ok: false, message: "طلب غير صالح." };
@@ -286,7 +287,14 @@ export async function redeemAdminRecoveryCode(code: string): Promise<{ ok: boole
   const ctx = await getAdminContext();
   if (!ctx) return { ok: false, message: "غير مسموح." };
 
-  const normalized = String(code || "").trim().replace(/-/g, "").toUpperCase();
+  if (typeof code !== "string" || code.length > 39) {
+    return { ok: false, message: "رمز الاسترداد غير صحيح." };
+  }
+  const supplied = code.trim().toUpperCase();
+  if (!/^(?:[0-9A-F]{32}|(?:[0-9A-F]{4}-){7}[0-9A-F]{4})$/.test(supplied)) {
+    return { ok: false, message: "رمز الاسترداد غير صحيح." };
+  }
+  const normalized = supplied.replace(/-/g, "");
   if (!/^[0-9A-F]{32}$/.test(normalized)) {
     return { ok: false, message: "رمز الاسترداد غير صحيح." };
   }
