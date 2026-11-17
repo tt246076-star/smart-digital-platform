@@ -149,3 +149,165 @@ export function parseFormNumber(value: string, options: {
   if (options.max !== undefined && number > options.max) return null;
   return number;
 }
+
+const REGULAR_FORM_FIELDS = [
+  "id", "business_name", "headline", "description", "seo_title", "seo_description",
+  "phone", "phone2", "whatsapp", "logo_url", "instagram_url", "facebook_url",
+  "tiktok_url", "youtube_url", "custom_label", "custom_url", "template", "theme",
+  "sections", "removed_image_urls",
+] as const;
+
+const SECTION_FIELDS = [
+  "address", "map_url", "hours", "theme_primary", "theme_mode",
+  "round_image_url", "cover_image_url", "gallery", "contact_numbers",
+] as const;
+
+const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+
+export type ValidatedLandingPageInput = {
+  id: string;
+  business_name: string;
+  headline: string;
+  description: string;
+  seo_title: string;
+  seo_description: string;
+  phone: string;
+  phone2: string;
+  whatsapp: string;
+  logo_url: string;
+  instagram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
+  youtube_url: string;
+  custom_links: { label: string; url: string }[];
+  template: string;
+  theme: string;
+  sections: {
+    address: string;
+    map_url: string;
+    hours: string;
+    theme_primary: string;
+    theme_mode: string;
+    round_image_url: string;
+    cover_image_url: string;
+    gallery: string[];
+    contact_numbers: { phone: string; name: string }[];
+  };
+};
+
+export function validateLandingPageFormData(
+  formData: FormData,
+  maxGalleryImages: number,
+  updating: boolean,
+): ValidatedLandingPageInput | null {
+  if (!hasOnlyFormFields(formData, REGULAR_FORM_FIELDS)) return null;
+  const id = readFormText(formData, "id", 36);
+  const business_name = readFormText(formData, "business_name", 100, true);
+  const headline = readFormText(formData, "headline", 140);
+  const description = readFormText(formData, "description", 1000);
+  const seo_title = readFormText(formData, "seo_title", 60);
+  const seo_description = readFormText(formData, "seo_description", 160);
+  const phone = readFormText(formData, "phone", 30);
+  const phone2 = readFormText(formData, "phone2", 30);
+  const whatsapp = readFormText(formData, "whatsapp", 30);
+  const logo_url = readFormText(formData, "logo_url", 2048);
+  const instagram_url = readFormText(formData, "instagram_url", 2048);
+  const facebook_url = readFormText(formData, "facebook_url", 2048);
+  const tiktok_url = readFormText(formData, "tiktok_url", 2048);
+  const youtube_url = readFormText(formData, "youtube_url", 2048);
+  const custom_label = readFormText(formData, "custom_label", 40);
+  const custom_url = readFormText(formData, "custom_url", 2048);
+  const template = readFormText(formData, "template", 32, true);
+  const theme = readFormText(formData, "theme", 32, true);
+  const sectionsJson = readFormText(formData, "sections", 12_000, true);
+  const removedImagesJson = readFormText(formData, "removed_image_urls", 12_000);
+  if (
+    id === null || business_name === null || headline === null || description === null ||
+    seo_title === null || seo_description === null || phone === null || phone2 === null ||
+    whatsapp === null || logo_url === null || instagram_url === null || facebook_url === null ||
+    tiktok_url === null || youtube_url === null || custom_label === null || custom_url === null ||
+    template === null || theme === null || sectionsJson === null || removedImagesJson === null
+  ) return null;
+  if ((updating && !isValidUuid(id)) || (!updating && id !== "")) return null;
+  if (!isValidPhone(phone) || !isValidPhone(phone2) || !isValidPhone(whatsapp)) return null;
+  for (const value of [logo_url, instagram_url, facebook_url, tiktok_url, youtube_url, custom_url]) {
+    if (!isValidWebUrl(value, true)) return null;
+  }
+  if ((custom_label && !custom_url) || (!custom_label && custom_url)) return null;
+
+  const templates = ["profile", "aurora", "store", "minimal", "bold", "beauty", "agency", "restaurant", "portfolio"];
+  const themes = ["white", "black", "blue", "violet", "sunset", "emerald", "ocean", "rose", "gold", "glass", "volcano", "midnight", "mint", "berry", "slate"];
+  if (!templates.includes(template) || !themes.includes(theme)) return null;
+
+  let rawSections: unknown;
+  try {
+    rawSections = JSON.parse(sectionsJson);
+  } catch {
+    return null;
+  }
+  if (!isPlainRecord(rawSections) || !hasOnlyKeys(rawSections, SECTION_FIELDS)) return null;
+  const address = readJsonText(rawSections.address ?? "", 200);
+  const map_url = readJsonText(rawSections.map_url ?? "", 2048);
+  const hours = readJsonText(rawSections.hours ?? "", 1000, true);
+  const theme_primary = readJsonText(rawSections.theme_primary ?? "", 7);
+  const theme_mode = readJsonText(rawSections.theme_mode ?? "", 5);
+  const round_image_url = readJsonText(rawSections.round_image_url ?? "", 2048);
+  const cover_image_url = readJsonText(rawSections.cover_image_url ?? "", 2048);
+  if (
+    address === null || map_url === null || hours === null || theme_primary === null ||
+    theme_mode === null || round_image_url === null || cover_image_url === null
+  ) return null;
+  if (theme_primary && !/^#[0-9a-f]{6}$/i.test(theme_primary)) return null;
+  if (theme_mode && theme_mode !== "light" && theme_mode !== "dark") return null;
+  for (const value of [map_url, round_image_url, cover_image_url]) {
+    if (!isValidWebUrl(value, true)) return null;
+  }
+
+  let parsedHours: unknown;
+  try {
+    parsedHours = JSON.parse(hours);
+  } catch {
+    return null;
+  }
+  if (!isPlainRecord(parsedHours) || !hasOnlyKeys(parsedHours, WEEKDAYS)) return null;
+  if (WEEKDAYS.some((day) => {
+    const value = parsedHours[day];
+    return !isPlainRecord(value) ||
+      !hasOnlyKeys(value, ["open", "from", "to"]) ||
+      typeof value.open !== "boolean" ||
+      typeof value.from !== "string" || !isValidClockTime(value.from) ||
+      typeof value.to !== "string" || !isValidClockTime(value.to);
+  })) return null;
+
+  if (!Array.isArray(rawSections.gallery) || rawSections.gallery.length > Math.max(0, maxGalleryImages)) return null;
+  const gallery = rawSections.gallery.map((value) => typeof value === "string" ? value.trim() : "");
+  if (gallery.some((value) => !value || value.length > 2048 || !isValidWebUrl(value, true))) return null;
+
+  if (!Array.isArray(rawSections.contact_numbers) || rawSections.contact_numbers.length > 2) return null;
+  const contact_numbers: { phone: string; name: string }[] = [];
+  for (const item of rawSections.contact_numbers) {
+    if (!isPlainRecord(item) || !hasOnlyKeys(item, ["phone", "name"])) return null;
+    if (typeof item.phone !== "string" || typeof item.name !== "string") return null;
+    const contactPhone = item.phone.trim();
+    const contactName = item.name.trim();
+    if (contactPhone.length > 30 || contactName.length > 40 || !isValidPhone(contactPhone)) return null;
+    if (contactPhone) contact_numbers.push({ phone: contactPhone, name: contactName });
+  }
+
+  let removedImages: unknown;
+  try {
+    removedImages = removedImagesJson ? JSON.parse(removedImagesJson) : [];
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(removedImages) || removedImages.length > 50 ||
+      removedImages.some((item) => typeof item !== "string" || item.length > 2048)) return null;
+
+  return {
+    id, business_name, headline, description, seo_title, seo_description, phone, phone2, whatsapp,
+    logo_url, instagram_url, facebook_url, tiktok_url, youtube_url,
+    custom_links: custom_label && custom_url ? [{ label: custom_label, url: custom_url }] : [],
+    template, theme,
+    sections: { address, map_url, hours, theme_primary, theme_mode, round_image_url, cover_image_url, gallery, contact_numbers },
+  };
+}
