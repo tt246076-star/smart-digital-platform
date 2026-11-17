@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "ERROR: Gitleaks is required; this commit is blocked." >&2
+  echo "Install Gitleaks, then run: npm run security:install-hooks" >&2
+  exit 1
+fi
+
+exec gitleaks git --pre-commit --redact=100 --staged

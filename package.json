@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "security:install-hooks": "git config core.hooksPath .githooks",
+    "security:scan": "gitleaks git --log-opts=--all --redact=100"
   },
   "dependencies": {
     "next": "15.5.29",
