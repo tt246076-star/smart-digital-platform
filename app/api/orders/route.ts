@@ -29,9 +29,12 @@ export async function POST(request: Request) {
   }
 
   const body = parsed.value;
+  if (body.source !== "homepage" && body.source !== "catalog") {
+    return NextResponse.json({ error: "نوع الطلب غير صالح." }, { status: 400 });
+  }
   const source = body.source;
-  const allowedFields = source === "homepage" ? HOMEPAGE_FIELDS : source === "catalog" ? CATALOG_FIELDS : [];
-  if (!allowedFields.length || !hasOnlyKeys(body, allowedFields)) {
+  const allowedFields = source === "homepage" ? HOMEPAGE_FIELDS : CATALOG_FIELDS;
+  if (!hasOnlyKeys(body, allowedFields)) {
     return NextResponse.json({ error: "بيانات الطلب غير مكتملة أو تحتوي على حقول غير معروفة." }, { status: 400 });
   }
 
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
     customerMunicipality === null || customerMunicipality.length < 2 ||
     customerAddress === null || customerAddress.length < 2 || notes === null ||
     !isValidUuid(idempotencyKey) ||
-    (source === "homepage" && (typeof packageId !== "string" || !Object.hasOwn(HOME_PACKAGES, packageId))) ||
+    (source === "homepage" && (typeof packageId !== "string" || !Object.prototype.hasOwnProperty.call(HOME_PACKAGES, packageId))) ||
     (source === "catalog" && !isValidUuid(productId))
   ) {
     return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والولاية والبلدية والعنوان والمنتج." }, { status: 400 });
