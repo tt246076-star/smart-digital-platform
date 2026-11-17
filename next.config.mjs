@@ -30,6 +30,8 @@ const contentSecurityPolicyReportOnly = [
 ].join("; ");
 
 const nextConfig = {
+  // Keep production browser source maps disabled to avoid exposing source paths.
+  productionBrowserSourceMaps: false,
   async headers() {
     return [
       {
