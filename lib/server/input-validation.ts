@@ -104,7 +104,7 @@ export function readJsonText(
 ): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
-  if (normalized.length > maxLength || (required && !normalized)) return null;
+  if (normalized.length > maxLength || (required && !normalized) || /[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/.test(normalized)) return null;
   return normalized;
 }
 
@@ -402,4 +402,8 @@ export function isValidVipFormData(
   }
 
   return true;
+}
+
+export function isValidAlgerianWilayaCode(value: unknown): value is string {
+  return typeof value === "string" && /^(0[1-9]|[1-4][0-9]|5[0-8])$/.test(value);
 }
