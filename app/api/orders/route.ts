@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import {
   hasOnlyKeys,
   isValidAlgerianMobile,
+  isValidAlgerianWilayaCode,
   isValidUuid,
   readBoundedJson,
   readJsonText,
@@ -17,8 +18,8 @@ const HOME_PACKAGES: Record<string, { name: string; price: number }> = {
   "three-card-bundle": { name: "حزمة 3 بطاقات", price: 8500 },
 };
 
-const HOMEPAGE_FIELDS = ["source", "packageId", "idempotencyKey", "customerName", "customerPhone", "customerAddress", "notes"] as const;
-const CATALOG_FIELDS = ["source", "productId", "idempotencyKey", "customerName", "customerPhone", "customerAddress", "notes"] as const;
+const HOMEPAGE_FIELDS = ["source", "packageId", "idempotencyKey", "customerName", "customerPhone", "customerWilaya", "customerMunicipality", "customerAddress", "notes"] as const;
+const CATALOG_FIELDS = ["source", "productId", "idempotencyKey", "customerName", "customerPhone", "customerWilaya", "customerMunicipality", "customerAddress", "notes"] as const;
 
 export async function POST(request: Request) {
   const parsed = await readBoundedJson(request, 16_384);
@@ -36,7 +37,9 @@ export async function POST(request: Request) {
 
   const customerName = readJsonText(body.customerName, 100, true);
   const phoneInput = readJsonText(body.customerPhone, 30, true);
-  const customerAddress = readJsonText(body.customerAddress ?? "", 250);
+  const customerWilaya = readJsonText(body.customerWilaya, 2, true);
+  const customerMunicipality = readJsonText(body.customerMunicipality, 100, true);
+  const customerAddress = readJsonText(body.customerAddress, 250, true);
   const notes = readJsonText(body.notes ?? "", 500);
   const idempotencyKey = body.idempotencyKey;
   const packageId = source === "homepage" ? body.packageId : undefined;
@@ -46,12 +49,14 @@ export async function POST(request: Request) {
   if (
     customerName === null || customerName.length < 2 ||
     phoneInput === null || !isValidAlgerianMobile(normalizedPhone) ||
-    customerAddress === null || notes === null ||
+    customerWilaya === null || !isValidAlgerianWilayaCode(customerWilaya) ||
+    customerMunicipality === null || customerMunicipality.length < 2 ||
+    customerAddress === null || customerAddress.length < 2 || notes === null ||
     !isValidUuid(idempotencyKey) ||
     (source === "homepage" && (typeof packageId !== "string" || !Object.hasOwn(HOME_PACKAGES, packageId))) ||
     (source === "catalog" && !isValidUuid(productId))
   ) {
-    return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والعنوان والمنتج والطلب." }, { status: 400 });
+    return NextResponse.json({ error: "راجع الاسم ورقم الهاتف والولاية والبلدية والعنوان والمنتج." }, { status: 400 });
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
