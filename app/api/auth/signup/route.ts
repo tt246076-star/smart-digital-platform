@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasNoQueryParams, hasOnlyKeys, isValidEmail, readBoundedJson, readJsonPassword, readJsonText } from "@/lib/server/input-validation";
+import { manageAuthAttemptLimit } from "@/lib/server/auth-attempt-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "تحقق من الاسم والبريد الإلكتروني وكلمة المرور." }, { status: 400 });
   }
 
+  const genericSignupMessage = "تعذر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.";
+  const limit = await manageAuthAttemptLimit(request, email, "signup", "attempt");
+  if (limit.status === "unavailable") {
+    return NextResponse.json({ error: genericSignupMessage }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
+  if (limit.status === "blocked") {
+    return NextResponse.json(
+      { error: genericSignupMessage },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds), "Cache-Control": "no-store" } }
+    );
+  }
+
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp({
@@ -29,9 +42,11 @@ export async function POST(request: Request) {
         emailRedirectTo: "https://www.bitaqati.online/auth/callback",
       },
     });
-    if (error) return NextResponse.json({ error: "تعذر إنشاء الحساب. تحقق من البيانات وحاول مجددًا." }, { status: 400 });
+    if (error) return NextResponse.json({ error: genericSignupMessage }, { status: 400 });
+    const cleared = await manageAuthAttemptLimit(request, email, "signup", "success");
+    if (cleared.status === "unavailable") console.error("Could not clear successful signup attempt reservation.");
     return NextResponse.json({ ok: true, hasSession: !!data.session }, { status: data.session ? 201 : 200 });
   } catch {
-    return NextResponse.json({ error: "تعذر إنشاء الحساب حاليًا. حاول مجددًا." }, { status: 503 });
+    return NextResponse.json({ error: genericSignupMessage }, { status: 503 });
   }
 }
