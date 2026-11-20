@@ -73,7 +73,7 @@ async function getImageQuota(supabase: Awaited<ReturnType<typeof createClient>>,
 
   return {
     maxPendingFiles,
-    maxPendingBytes: Math.min(maxPendingFiles * maxImageBytes, MAX_ACCOUNT_STAGING_BYTES),
+    maxPendingBytes: Math.min(maxPendingFiles * MAX_FILE_BYTES, MAX_ACCOUNT_STAGING_BYTES),
     maxPerHour: Math.max(20, Math.min(400, maxPendingFiles * 2)),
     maxImageBytes,
   };
@@ -157,7 +157,8 @@ export async function POST(request: Request) {
     const { data: reserved, error: reserveError } = await admin.rpc("reserve_staged_image_upload", {
       p_user_id: user.id,
       p_object_path: path,
-      p_size_bytes: size,
+      // Signed upload tokens do not bind their actual byte length; reserve the bucket maximum to prevent client size spoofing.
+      p_size_bytes: MAX_FILE_BYTES,
       p_max_pending_count: quota.maxPendingFiles,
       p_max_pending_bytes: quota.maxPendingBytes,
       p_max_per_hour: quota.maxPerHour,
