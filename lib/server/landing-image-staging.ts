@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { detectSupportedImage } from "@/lib/server/upload-validation";
+import { normalizeSupportedImage } from "@/lib/server/upload-validation";
 
 const STAGING_PREFIX = "staging://";
 const STAGING_BUCKET = "landing-logos-staging";
@@ -87,13 +87,13 @@ export async function promoteStagedLandingImages<T>(
       }
 
       const buffer = await file.arrayBuffer();
-      const detected = detectSupportedImage(new Uint8Array(buffer));
       const maxBytes = maxBytesForImagePath(path, maxImageBytes);
-      if (!detected || buffer.byteLength < 1 || buffer.byteLength > maxBytes) throw new Error("Rejected unsupported or oversized staged image.");
-      const destination = `${pageId}/${crypto.randomUUID()}.${detected.extension}`;
+      const normalized = await normalizeSupportedImage(new Uint8Array(buffer), maxBytes);
+      if (!normalized) throw new Error("Rejected malformed, unsupported, oversized, or unsafe-dimension image.");
+      const destination = `${pageId}/${crypto.randomUUID()}.${normalized.extension}`;
       const { error: uploadError } = await admin.storage.from(PUBLIC_BUCKET).upload(
-        destination, new Blob([buffer], { type: detected.mime }),
-        { upsert: false, contentType: detected.mime, cacheControl: "31536000" },
+        destination, Buffer.from(normalized.bytes),
+        { upsert: false, contentType: normalized.mime, cacheControl: "31536000" },
       );
       if (uploadError) {
         throw new Error("Could not publish a staged image.");

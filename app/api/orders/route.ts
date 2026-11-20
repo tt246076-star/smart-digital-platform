@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { NextResponse } from "next/server";
 import { recordSecuritySignal } from "@/lib/server/security-alerts";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
@@ -73,13 +74,15 @@ export async function POST(request: Request) {
   }
   const admin = createSupabaseClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
-  const forwardedIp =
-    request.headers.get("x-vercel-forwarded-for") ||
-    request.headers.get("x-forwarded-for") ||
-    request.headers.get("x-real-ip") ||
-    "";
-  const clientIp = forwardedIp.split(",")[0].trim() || (process.env.NODE_ENV === "production" ? "" : "127.0.0.1");
-  if (!clientIp || clientIp.length > 64) {
+  // Use only Vercel's edge-provided client IP for security rate limiting.
+  // Never fall back to client-controlled forwarding headers.
+  const forwardedIp = request.headers.get("x-vercel-forwarded-for")?.trim() || "";
+  const clientIp = forwardedIp && !forwardedIp.includes(",") && isIP(forwardedIp) !== 0
+    ? forwardedIp
+    : process.env.NODE_ENV !== "production" && !forwardedIp
+      ? "127.0.0.1"
+      : "";
+  if (!clientIp) {
     return NextResponse.json({ error: "تعذر التحقق من مصدر الطلب. حاول لاحقًا." }, { status: 503 });
   }
 
