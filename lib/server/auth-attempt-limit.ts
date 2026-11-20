@@ -13,9 +13,9 @@ export type AuthLimitResult =
   | { status: "unavailable" };
 
 function getClientIp(request: Request): string | null {
-  // Vercel overwrites X-Forwarded-For with the connecting client's public IP.
-  // Do not trust arbitrary forwarded headers or comma-separated proxy chains.
-  const forwarded = request.headers.get("x-forwarded-for")?.trim() || "";
+  // Use Vercel's edge-provided client IP for security rate limiting.
+  // Do not trust arbitrary forwarding headers or comma-separated proxy chains.
+  const forwarded = request.headers.get("x-vercel-forwarded-for")?.trim() || "";
   if (forwarded && !forwarded.includes(",") && isIP(forwarded) !== 0) return forwarded;
   if (process.env.NODE_ENV !== "production" && !forwarded) return "127.0.0.1";
   return null;
