@@ -53,13 +53,13 @@ export async function normalizeSupportedImage(
     const animated = detected.extension === "gif" || detected.extension === "webp";
     const options = {
       animated,
-      failOn: "error" as const,
+      failOn: "warning" as const,
       limitInputPixels: MAX_IMAGE_PIXELS,
     };
 
     const metadata = await sharp(source, options).metadata();
     const width = metadata.width ?? 0;
-    const height = metadata.height ?? 0;
+    const height = metadata.pageHeight ?? metadata.height ?? 0;
     const frames = Math.max(1, metadata.pages ?? 1);
     const expectedFormat = detected.extension === "jpg" ? "jpeg" : detected.extension;
 
