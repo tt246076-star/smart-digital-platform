@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 const BUCKET = "landing-logos-staging";
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MEBIBYTE = 1024 * 1024;
+const MAX_ACCOUNT_STAGING_BYTES = 250 * MEBIBYTE;
 
 type ImageQuota = {
   maxPendingFiles: number;
@@ -72,7 +73,7 @@ async function getImageQuota(supabase: Awaited<ReturnType<typeof createClient>>,
 
   return {
     maxPendingFiles,
-    maxPendingBytes: maxPendingFiles * maxImageBytes,
+    maxPendingBytes: Math.min(maxPendingFiles * maxImageBytes, MAX_ACCOUNT_STAGING_BYTES),
     maxPerHour: Math.max(20, Math.min(400, maxPendingFiles * 2)),
     maxImageBytes,
   };
