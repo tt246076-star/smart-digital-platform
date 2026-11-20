@@ -1,5 +1,9 @@
 -- Per-account quotas for private image staging.
+-- The account-specific limits are read from this admin-managed table.
 -- Signed upload reservations expire after the maximum signed-upload lifetime (2 hours).
+alter table public.user_gallery_limits
+  add column if not exists normal_max_images integer not null default 2 check (normal_max_images between 0 and 100),
+  add column if not exists normal_max_image_mb numeric(5,2) not null default 2 check (normal_max_image_mb between 0.1 and 20);
 create table if not exists private.staged_image_upload_windows (
   user_id uuid primary key references auth.users(id) on delete cascade,
   window_started_at timestamptz not null,
@@ -50,7 +54,7 @@ begin
      or p_object_path !~ ('^' || p_user_id::text || '/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}[.]tmp$')
      or p_size_bytes is null or p_size_bytes < 1 or p_size_bytes > 20971520
      or p_max_pending_count is null or p_max_pending_count < 4 or p_max_pending_count > 104
-     or p_max_pending_bytes is null or p_max_pending_bytes < 1 or p_max_pending_bytes > 2181038080
+     or p_max_pending_bytes is null or p_max_pending_bytes < 1 or p_max_pending_bytes > 262144000
      or p_max_per_hour is null or p_max_per_hour < 10 or p_max_per_hour > 400 then
     raise exception 'Invalid staged image quota parameters' using errcode = '22023';
   end if;
